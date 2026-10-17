@@ -2,17 +2,19 @@
 
 ## Goal
 
-> **A journaling app Matt can take on a trip and use on his phone. He starts
-> a trip, sets how many days it runs, and on each day quickly adds blocks for
-> what happened — the food he ate, a place, a person he met — each one fast
-> to fill in, with a picture beside it. The trip's story builds itself from
-> those blocks, so he never faces a blank page, and at the end he can export
-> it and share it with others.**
+> **A journaling app Matt can take on a trip and use on his iPhone. He
+> starts a trip, sets how many days it runs, and on each day quickly adds
+> blocks for the key moments: the food he ate, a place, a person he met.
+> Each block is a few taps, with a picture beside it, and more detail only
+> if he wants it, even days later. The trip's story builds itself from those
+> blocks, so he never faces a blank page. At the end he can export a summary
+> of the trip, to look back on and to share with others. The first version
+> is his alone; other people join by file later.**
 
-*Drafted 2026-10-17 by the agent from Matt's pitch (quoted under Intentions).
-Not yet ratified — Matt: confirm it in chat or by editing this block, and
-this line will record your words and the date. Once signed, it can be put in
-your own words and your own voice.*
+*Signed 2026-10-17. Matt, shown this whole draft in chat: "Yeah, I like
+that. That seems to capture it in a in in a nice general term. I, I think
+there's going to be more to grow from it, but I, but I think it's a good
+start." The wording is the agent's until Matt rewrites it in his own voice.*
 
 ## Current state (2026-10-17)
 
@@ -36,7 +38,7 @@ What Matt has said he wants, in his words, not yet decided. Each closes in one
 of three ways: promoted to a Decision, absorbed into the signed Goal, or
 struck.
 
-- **I1 — A travel journaling app that captures moments quickly and builds
+- **I1 (absorbed into the Goal 2026-10-17) — A travel journaling app that captures moments quickly and builds
   the day's story from blocks.** *(2026-10-17)* The pitch, as Matt said it:
 
   *"I have an idea that um, I need your help with building out. It's it's
@@ -94,9 +96,65 @@ struck.
   something that I can use and, and on my next trip. Or even if I can share it
   out too and other people can use it."*
 
+  *Added 2026-10-17*, asked what the pitch left out: *"honestly, I I I
+  don't have much else um, besides that because journaling is it feels so
+  simple, but ultimately the thing that holds me back is being able to just
+  quickly add items and not overthink things because I don't want it to be a
+  full paragraph. [...] when I travel and stuff, you know, days are um, like
+  pretty pretty standard, right? I mean, I eat something, I do something, I
+  see something, I. Travel, I, I, I, I you know, visit a, a landmark. I don't
+  know. There, there's so many like little things, but like if I can just like
+  have like the calendar day what it was, you know, and like I can choose if I
+  want to add extra little detail, if I really, really want to, but it's like
+  capturing just the key moments and not having to write a whole bunch."*
+
+  *Added 2026-10-17*, asked whether the end product is a record for him or
+  something to hand to others: *"I would say it's a little bit of both. Um,
+  you know, these journals are not supposed to be, it's supposed to be
+  something you can share, not something that's like personal you keep hidden
+  in secret yourself. I mean, you know, if you, we could develop what that
+  might look like later, but but I would like this to be more of a
+  collaborative thing and like even if I could like I mean, dream state, I
+  could like you know, um export it or cloud save it as a as a quick little
+  like slideshow or uh um like a almost just like a summary, like a your trip
+  summary. Um you know, in a in a at a glance, you know. And and and you can
+  like kind of look back at it. Um and also you can add more details if you
+  really want to. You can just like maybe um not after you export it, but like
+  yeah, you can always go back and, and, and add extra layers to each each
+  day. Cause I would say like each day kind of has like its solid foundation
+  that you have, and then, you know, like you could, if you want to go back
+  and maybe you're looking through photos and you're like, oh yeah, I want to
+  add that detail. Um, as well."* [The transcript then repeats this passage;
+  the repeat is left out.] What "collaborative" means here is not yet
+  settled; the agent has asked.
+
   **Settles when:** Matt and the agent have agreed what the first version
   captures on a day and what it produces at the end of a trip. (The
   settling condition is the agent's draft.)
+
+  **Absorbed into the Goal, 2026-10-17.** The block categories and the
+  shape of the end-of-trip summary are still to be decided; they will be
+  Decisions, not a reopening of this entry.
+
+- **I2 — Other people can add to a trip, by a shared file rather than live
+  sync.** *(2026-10-17)* Asked what "collaborative" means: *"maybe this app
+  we can save a cloud shared like on on on a Google Drive or something or on
+  a you know on one of those servers where um, they can add stuff to the day
+  as well if they want to. Um, maybe they can import your trip and view it.
+  Um, they can share with you a a photo or a location. Um, or a story that
+  they remember. They can add to your your day. Um, through the cloud,
+  perhaps."* Asked whether that is a want or thinking out loud: *"keep it as a
+  solo thing that maybe two individual people can like have their own and
+  then share across a different platform or something like that, a different
+  medium, because they don't need to update in real time together. Um, but
+  maybe there's like a shared file that they can use to update their their
+  current trip and, and import it. Um, but yeah, like I said, I don't think
+  they need to sync with each other uh, at the start."*
+
+  **Settles when:** one copy of the app can export a trip as a file and
+  another copy can import it, and Matt has said what an importer may add to
+  a day. (The settling condition is the agent's draft.) Deferred under Not
+  now until the solo version exists.
 
 ## Decisions
 
@@ -116,13 +174,30 @@ decided, where it is enforced, and what it **serves**.
   capitalisation and the folder's place, `D:\Moments That Matter` beside his
   other projects, are the agent's. **Serves →** Goal.
 
+- **2026-10-17 — The first version is a solo app; sharing happens through
+  an exported file, not live sync.** Chosen: one person's trip on one phone,
+  with export for sharing; a shared file others can import may come later.
+  Alternative: a cloud-shared trip others add to in real time (I2 as first
+  pitched). Why it lost, in Matt's words: *"let's just start with that
+  prototype. [...] we're gonna start at the base level of what we can
+  functionally do as I learn what the [...] interface and the [...] UI really
+  is gonna play a big part of it"*; *"they don't need to update in real time
+  together"*; *"I don't think they need to sync with each other uh, at the
+  start."* Enforced: this entry and the Not now entry below; in the first
+  build, no accounts and no server-side sharing (the agent's reading of
+  "solo"). **Serves →** I1, and I2 by sequencing it after.
+
 **Open decisions — waiting on Matt, oldest first:**
 
-- *2026-10-17* — **The Goal block:** confirm it, in chat or in the file.
+None.
 
 ## Not now
 
-None yet.
+- **Live multi-person sync (I2 as first pitched).** Deferred 2026-10-17.
+  Reason, Matt: *"they don't need to update in real time together."*
+  Trigger: not until the solo version has been used on a real trip and Matt
+  says it is time. (The trigger is the agent's draft; Matt declares when it
+  has fired.)
 
 ## Open items
 
