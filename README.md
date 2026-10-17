@@ -156,6 +156,24 @@ struck.
   a day. (The settling condition is the agent's draft.) Deferred under Not
   now until the solo version exists.
 
+- **I3 — Trips back up to a cloud drive Matt chooses, and past trips can be
+  offloaded to keep the app slim.** *(2026-10-17)* Matt, after hearing how a
+  home-screen web app stores data on the phone: *"that's what I'm thinking,
+  is that it just automatically kind of backs up onto a like linked cloud
+  drive that you choose. And so that way you it's it's able to, to do that.
+  You can also just like offload past trips as their own little journal I
+  don't know, packets onto the cloud, and then clear up the space on your app
+  for new ones and just kind of keep it keep it slim."* Also: *"just trying
+  to make sure that [...] it just doesn't accidentally disappear."*
+
+  **Settles when:** Matt has said whether "automatically" means with no tap
+  from him (which on a web app means signing in to Google Drive; iCloud has
+  no equivalent) or a one-tap save that he can send to any drive. (The
+  settling condition is the agent's draft.)
+
+  **Settled in part, 2026-10-17:** one-tap backup with a reminder, see the
+  Decision of that date. Offloading past trips to free space is still open.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -187,9 +205,41 @@ decided, where it is enforced, and what it **serves**.
   build, no accounts and no server-side sharing (the agent's reading of
   "solo"). **Serves →** I1, and I2 by sequencing it after.
 
+- **2026-10-17 — The app is a web app added to the iPhone home screen.**
+  Chosen: HTML and JavaScript, installed from a web address, opened
+  full-screen outside the browser, with trips and photos stored on the
+  phone. Alternatives: a native Swift app (needs a Mac, Xcode and an Apple
+  developer account; Matt builds on Windows) and a cross-platform app such
+  as Expo (more setup, and installing it for real still goes through Apple).
+  Matt, shown the three with costs and the agent's recommendation: *"I want
+  it to really just just work functionally"*, and after hearing how storage
+  works, *"Yeah, that's what I'm thinking."* Matt wants Expo kept in mind
+  for later apps: *"I want to do that eventually with just general um, like
+  other application ideas that I have."* Matt uses Chrome on the phone, not
+  Safari; on iPhone both run on WebKit and both can add a web app to the home
+  screen, so the build targets WebKit, not a browser. Enforced: the app's
+  manifest opens it standalone; the first build is checked on Matt's phone
+  from Chrome. **Serves →** Goal.
+
+- **2026-10-17 — Backup is one tap, and the app reminds Matt when enough
+  new content has piled up since the last backup.** Chosen: a one-tap save
+  of the trip as a file to whatever drive he picks, plus a reminder when the
+  unbacked-up content crosses a threshold. Alternative: backing up on its
+  own with no tap, which on a web app means signing in to Google Drive and
+  rules out iCloud. Matt: *"one tap is fine. I just wanted to really make
+  sure it knows that you didn't, you like, you haven't backed up it at least
+  like since you've added a bunch of stuff. Like, I mean, I don't want it to
+  constantly be doing like every day, but like if there is like maybe
+  substantial new content added that you might want to consider backing it
+  up, like maybe when it reaches a certain, I don't know, like, you know,
+  kill, like byte threshold or something like that."* The threshold itself
+  is not decided; "byte threshold" was tentative. Enforced: the backup
+  button and reminder in the app, once built. **Serves →** I3.
+
 **Open decisions — waiting on Matt, oldest first:**
 
-None.
+- *2026-10-17* — **The backup reminder threshold:** what counts as
+  "substantial new content". Can wait until the backup exists.
 
 ## Not now
 
@@ -205,4 +255,13 @@ None yet.
 
 ## Do not
 
-None yet.
+- **Do not let it become a photo dump.** *Drafted 2026-10-17 by the agent
+  from Matt's words; not yet confirmed.* Matt: *"one of the things I used to
+  love to do was make like little music videos with my like little travel
+  experiences, and they'd be montages basically of all the different things I
+  did throughout the day, and it wouldn't be like every photo and every video
+  that I took. It'd just be like highlights [...] that's why I'm saying the
+  moments that matter, because it's like, you know, I want to be very
+  targeted. I want it to be something that is um, again, it really like, jogs
+  your jogs your memory and and it's not supposed to be just a photo dump of
+  every single thing."*
