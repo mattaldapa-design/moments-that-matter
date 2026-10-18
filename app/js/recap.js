@@ -236,6 +236,46 @@ export async function drawPages(data, S) {
   return pages;
 }
 
+// One day as a single 4:5 picture, for sending or posting (I19).
+export async function drawDayCard(data, dayIndex) {
+  await ensureFonts();
+  const { trip, pmap } = data;
+  const d = data.days[dayIndex];
+  const CW = 1080, CH = 1350, inner = CW - 2 * P;
+  const c = document.createElement('canvas'); c.width = CW; c.height = CH;
+  const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, 0, CH); bg.addColorStop(0, '#1f1715'); bg.addColorStop(1, C.bg);
+  g.fillStyle = bg; g.fillRect(0, 0, CW, CH);
+  const glow = g.createRadialGradient(CW * 0.85, CH * 0.1, 0, CW * 0.85, CH * 0.1, 520); glow.addColorStop(0, 'rgba(255,77,46,0.35)'); glow.addColorStop(1, 'rgba(255,77,46,0)');
+  g.fillStyle = glow; g.fillRect(0, 0, CW, CH);
+  let y = P + 10;
+  y = eyebrow(g, `${trip.title || 'My trip'}${trip.region ? ' · ' + trip.region : ''}`, y);
+  y = text(g, `Day ${d.index + 1}`, P, y + 70, { font: `800 72px ${F.loud}`, color: C.signal, lineHeight: 1 });
+  if (d.weather) { g.font = `72px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, CW - P, y - 10); }
+  y = text(g, `${fmtDay(d.date)}${d.city ? ' · ' + d.city : ''}`, P, y + 44, { font: `700 44px ${F.display}`, maxLines: 1, maxWidth: inner });
+  g.font = `44px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 50);
+  y += 90;
+  const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
+  const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
+  const pics = [key, ...others].filter(Boolean).slice(0, 4);
+  const ims = await Promise.all(pics.map((p) => loadImage(p.blob)));
+  const titlesNeed = Math.min(d.blocks.length, 7) * 46 + 40;
+  const picArea = Math.max(300, CH - P - y - titlesNeed - 30);
+  if (ims.length === 1) { drawCover(g, ims[0], P, y, inner, picArea, 28); y += picArea + 30; }
+  else if (ims.length === 2) { const w2 = (inner - 24) / 2; const h2 = Math.min(Math.round(w2 * 1.35), picArea); drawCover(g, ims[0], P, y, w2, h2, 28); drawCover(g, ims[1], P + w2 + 24, y, w2, h2, 28); y += h2 + 30; }
+  else if (ims.length >= 3) {
+    const big = Math.round(picArea * 0.62), small = picArea - big - 24;
+    drawCover(g, ims[0], P, y, inner, big, 28);
+    const n = ims.length - 1; const w2 = (inner - 24 * (n - 1)) / n;
+    ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w2 + 24), y + big + 24, w2, small, 22));
+    y += picArea + 30;
+  }
+  for (const b of d.blocks.slice(0, 7)) { text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}`, P, y + 34, { font: `500 32px ${F.body}`, maxLines: 1 }); y += 46; }
+  if (d.blocks.length > 7) text(g, `+${d.blocks.length - 7} more`, P, y + 30, { font: `400 28px ${F.body}`, color: C.dim });
+  text(g, 'Moments That Matter', P, CH - P + 20, { font: `700 24px ${F.display}`, color: C.dim });
+  return c;
+}
+
 // ---------- files ----------
 const toJpeg = (canvas, q = 0.86) => new Promise((res) => canvas.toBlob(res, 'image/jpeg', q));
 

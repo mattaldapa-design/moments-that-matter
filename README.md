@@ -92,6 +92,8 @@ open their moment or day (I15).
 
 Then, in the agreed order: Archive to a file (I3) and place levels (I7),
 both verified in the preview.
+Then the longer detail list with "Your own" (I17) and "Share this day" as
+one picture (I19).
 
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
@@ -555,7 +557,7 @@ struck.
   **Built 2026-10-17**, verified in the preview: an emoji opened "New
   Friends" on Day 1; the Day 1 band opened its board.
 
-- **I16 — Pull activity data from the phone or Apple Watch: steps, miles
+- **I16 (struck 2026-10-17) — Pull activity data from the phone or Apple Watch: steps, miles
   hiked, stairs.** *(2026-10-17)* Matt: *"I wear an Apple Watch. I don't
   know if there's any way to sync my step count. Um, you know, if I do a
   trail, like, it, it'd be nice to put, like, step counts or miles hiked or,
@@ -567,6 +569,12 @@ struck.
   **Settles when:** Matt has heard that limit and said whether typed
   details are enough for now. (The settling condition is the agent's draft.)
 
+  **Struck 2026-10-17**, Matt: *"We don't need to do the the Apple Watch
+  thing. Um, that's that's big picture. I mean, even though if you just had
+  the you know, you can put the trail and the trail length or something like
+  that. Um, that would be wonderful."* Trail and distance become details
+  (I17).
+
 - **I17 — More kinds of detail to add to a block, including his own.**
   *(2026-10-17)* Matt: *"I'm also not 100% enamored with all of the uh, add
   detail functions because, I mean, yes, cost, how long, website, but I feel
@@ -577,6 +585,10 @@ struck.
   **Settles when:** the list has grown and includes a detail Matt names
   himself, and he has used it on a real block. (The settling condition is
   the agent's draft.)
+
+  **Built 2026-10-17** (see the Decision of that date); verified in the
+  preview with a four-star rating and a "Trail · 7.2 mi" of Matt's own kind.
+  Not yet used on a real block by Matt.
 
 - **I18 — Trip-level information: who he travelled with, the cruise line,
   a packing list, and other big-picture things, apart from the days.**
@@ -591,6 +603,25 @@ struck.
   **Settles when:** the trip page has a place for trip-wide details and a
   packing list, and Matt has said what the first version holds. (The
   settling condition is the agent's draft.)
+
+- **I19 — A one-day recap as a single picture, to send or post.**
+  *(2026-10-17)* Matt: *"it would be cool if you can like do almost the
+  recap, but at, like just from the day level where like you had a really
+  good day and like at the end of the day, you want to send your friend or a
+  loved one or, or post like a little screenshot picture of my like, I did
+  all these cool, this was like a summary of my day today [...] it's just
+  like a one PDF kind of um, shot or, or one, one JPEG or, or whatever the,
+  the photo version is that gets saved. So that way, if you want to like
+  post that picture online to on like a social media platform."*
+
+  **Settles when:** a board has a one-tap "Share this day" that hands the
+  share sheet one picture of that day. (The settling condition is the
+  agent's draft.)
+
+  **Built 2026-10-17:** "Share this day" on the board draws one 1080×1350
+  picture (trip, day, date and city, weather, emojis, up to four pictures,
+  titles) and hands it to the share sheet. Verified in the preview (97 KB
+  JPEG).
 
 ## Decisions
 
@@ -829,6 +860,17 @@ decided, where it is enforced, and what it **serves**.
   is, is a good good limit to start here uh, for a backup."* The 8 MB half
   is the agent's, kept as a safety net for picture-heavy days. Enforced:
   `BACKUP_DUE` in `app/js/app.js`. **Serves →** I3.
+
+- **2026-10-17 — The detail list grows, and gains "Your own", a detail
+  Matt names himself.** Chosen: ready-made details (Time, Cost, How long,
+  Website, Menu, plus Steps, Distance, Room, Confirmation number, Rating)
+  and "Your own" with a label and a value. Alternative: the five-item list.
+  Matt: *"starting off with the detail list and being able to to do those is
+  is great. Um the your own is is a good good feature."* The added
+  ready-made names are the agent's. Trip-level details and the packing list
+  (I18) follow when Matt wants them: *"a lot of these I'm going to be
+  thinking of as as I, you know, as I need them."* Enforced: `DETAILS` and
+  the custom details in `app/js/app.js`. **Serves →** I17.
 
 **Open decisions — waiting on Matt, oldest first:**
 

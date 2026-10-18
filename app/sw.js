@@ -1,5 +1,5 @@
 // Moments That Matter — offline shell. Bump VERSION whenever a shell file changes.
-const VERSION = 'mtm-v12';
+const VERSION = 'mtm-v13';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
   './css/darkroom-tokens.css', './css/darkroom.css', './css/app.css',

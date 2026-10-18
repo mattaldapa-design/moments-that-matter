@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
-import { gather, stats, renderRecap, drawPages, pagesToPdf, pagesToPictures } from './recap.js';
+import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures } from './recap.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -91,13 +91,19 @@ const DETAILS = [
   { k: 'time', label: 'Time', type: 'time' },
   { k: 'cost', label: 'Cost', hint: '12.50' },
   { k: 'duration', label: 'How long', hint: '2 hours' },
+  { k: 'rating', label: 'Rating', type: 'rating' },
   { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
   { k: 'menu', label: 'Menu', type: 'url', hint: 'Paste the menu address' },
+  { k: 'steps', label: 'Steps', hint: '12,400', numeric: true },
+  { k: 'distance', label: 'Distance', hint: '7.2 mi' },
+  { k: 'room', label: 'Room', hint: '1412' },
+  { k: 'confirmation', label: 'Confirmation number', hint: 'ABC123' },
 ];
+const stars = (n) => '★'.repeat(Number(n) || 0) + '☆'.repeat(5 - (Number(n) || 0));
 const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
 // Bring an older block up to the current shape (time/cost used to be fields on every card).
 function normalize(b) {
-  b.fields = b.fields || {}; b.place = b.place || { name: '', lat: null, lon: null }; b.details = b.details || {}; b.extras = b.extras || [];
+  b.fields = b.fields || {}; b.place = b.place || { name: '', lat: null, lon: null }; b.details = b.details || {}; b.extras = b.extras || []; b.custom = b.custom || [];
   if (b.time) { b.details.time = b.time.includes('T') ? b.time.slice(11, 16) : b.time; delete b.time; }
   if (b.cost) { b.details.cost = b.cost; delete b.cost; }
   if (b.fields.duration) { b.details.duration = b.fields.duration; delete b.fields.duration; }
@@ -115,6 +121,11 @@ function blockMeta(b) {
   if (b.place?.name) parts.push(b.place.name);
   if (b.details.cost) parts.push(b.details.cost);
   if (b.details.duration) parts.push(b.details.duration);
+  if (b.details.rating) parts.push(stars(b.details.rating));
+  if (b.details.distance) parts.push(b.details.distance);
+  if (b.details.steps) parts.push(`${b.details.steps} steps`);
+  if (b.details.room) parts.push(`Room ${b.details.room}`);
+  (b.custom || []).forEach((c) => { if (c.value) parts.push(`${c.label} ${c.value}`); });
   if (b.details.website || b.details.menu) parts.push('🔗');
   if (b.kind === 'stay' && b.fields?.nights) parts.push(`${b.fields.nights} night${+b.fields.nights === 1 ? '' : 's'}`);
   return parts.join(' · ');
@@ -338,6 +349,18 @@ async function tripPage(trip) {
   };
 }
 
+// Hand files to the share sheet, or download them where there is no share sheet.
+async function deliverFiles(files, title) {
+  if (navigator.canShare && navigator.canShare({ files })) {
+    try { await navigator.share({ files, title }); return true; } catch (e) { if (e.name === 'AbortError') return false; }
+  }
+  for (const f of files) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click();
+    await new Promise((r) => setTimeout(r, 400)); URL.revokeObjectURL(a.href); a.remove();
+  }
+  return true;
+}
+
 // The Recap: the trip summed up, and exported as a PDF or pictures (Decision, 2026-10-17).
 async function recapPage(trip) {
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: 'Recap' }], `/t/${trip.id}`);
@@ -347,22 +370,12 @@ async function recapPage(trip) {
   bindGo();
   const baseName = `${(trip.title || 'Trip').replace(/[\/:*?"<>|]+/g, ' ').trim()} recap`;
   const busy = (on) => $$('#savePdf, #sharePics').forEach((b) => { b.disabled = on; });
-  const deliver = async (files, title) => {
-    if (navigator.canShare && navigator.canShare({ files })) {
-      try { await navigator.share({ files, title }); return true; } catch (e) { if (e.name === 'AbortError') return false; }
-    }
-    for (const f of files) {
-      const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click();
-      await new Promise((r) => setTimeout(r, 400)); URL.revokeObjectURL(a.href); a.remove();
-    }
-    return true;
-  };
   $('#savePdf').onclick = async () => {
     busy(true); toast('Drawing the pages…');
     try {
       const pages = await drawPages(data, S);
       const pdf = await pagesToPdf(pages);
-      const ok = await deliver([new File([pdf], `${baseName}.pdf`, { type: 'application/pdf' })], baseName);
+      const ok = await deliverFiles([new File([pdf], `${baseName}.pdf`, { type: 'application/pdf' })], baseName);
       toast(ok ? `PDF ready: ${pages.length} page${pages.length === 1 ? '' : 's'}.` : 'Cancelled.');
     } catch (e) { console.error(e); toast('Could not make the PDF.'); }
     busy(false);
@@ -372,13 +385,14 @@ async function recapPage(trip) {
     try {
       const pages = await drawPages(data, S);
       const files = await pagesToPictures(pages, baseName);
-      const ok = await deliver(files, baseName);
+      const ok = await deliverFiles(files, baseName);
       toast(ok ? `${files.length} picture${files.length === 1 ? '' : 's'} ready.` : 'Cancelled.');
     } catch (e) { console.error(e); toast('Could not make the pictures.'); }
     busy(false);
   };
 }
 
+let ownOpen = null; // block id whose "Your own" row is open
 let view = 'tiles';
 try { view = localStorage.getItem('mtm-view') || 'tiles'; } catch { /* storage blocked: default view */ }
 let dragMoved = false;
@@ -420,7 +434,7 @@ async function board(trip, i) {
     ${stays.length ? `<div class="mtm-carry">${stays.map((s) => `<button class="dr-magnet" data-go="/t/${trip.id}/d/${s.dayIndex}/b/${s.id}"><span style="font-size:22px">🏨</span>${esc(s.title || 'Stay')} · night ${i - s.dayIndex + 1}</button>`).join('')}</div>` : ''}
     <div class="mtm-bar mtm-bar--between">
       <span class="dr-caption">${blocks.length ? `${blocks.length} moment${blocks.length === 1 ? '' : 's'}` : 'Nothing here yet'}</span>
-      <div class="mtm-seg"><button data-view="tiles" class="${view === 'tiles' ? 'is-on' : ''}">Tiles</button><button data-view="list" class="${view === 'list' ? 'is-on' : ''}">List</button></div>
+      <div class="mtm-bar" style="gap:8px"><button class="dr-btn dr-btn--quiet dr-btn--sm" id="shareDay" ${blocks.length ? '' : 'disabled'}>Share this day</button><div class="mtm-seg"><button data-view="tiles" class="${view === 'tiles' ? 'is-on' : ''}">Tiles</button><button data-view="list" class="${view === 'list' ? 'is-on' : ''}">List</button></div></div>
     </div>
     ${blocks.length
       ? (view === 'tiles' ? `<div class="mtm-grid" id="grid">${blocks.map(tile).join('')}</div>` : `<div class="dr-list">${blocks.map(row).join('')}</div>`)
@@ -438,6 +452,18 @@ async function board(trip, i) {
     day.weather = day.weather === b.dataset.w ? '' : b.dataset.w;
     await db.put('days', day); await touch(trip);
     $$('.mtm-chip', $('#weather')).forEach((c) => c.classList.toggle('is-on', c.dataset.w === day.weather));
+  };
+  $('#shareDay').onclick = async () => {
+    const btn = $('#shareDay'); btn.disabled = true; toast('Drawing your day…');
+    try {
+      const data = await gather(trip);
+      const card = await drawDayCard(data, i);
+      const name = `${(trip.title || 'Trip').replace(/[\\/:*?"<>|]+/g, ' ').trim()} day ${i + 1}.jpg`;
+      const blob = await new Promise((r) => card.toBlob(r, 'image/jpeg', 0.9));
+      const ok = await deliverFiles([new File([blob], name, { type: 'image/jpeg' })], `Day ${i + 1}`);
+      toast(ok ? 'Your day, as one picture.' : 'Cancelled.');
+    } catch (e) { console.error(e); toast('Could not draw the day.'); }
+    btn.disabled = false;
   };
   $$('.mtm-seg button').forEach((b) => { b.onclick = () => { view = b.dataset.view; try { localStorage.setItem('mtm-view', view); } catch { /* fine */ } render(); }; });
   $$('.mtm-block').forEach((el) => {
@@ -581,10 +607,16 @@ async function editor(trip, i, bid) {
     return `<div class="dr-field"><label for="f-${f.k}">${esc(f.label)}</label>
       <input class="dr-input" id="f-${f.k}" data-field="${f.k}" type="${f.type === 'number' ? 'number' : 'text'}" ${f.type === 'number' ? 'inputmode="numeric" min="1"' : ''} value="${esc(v)}" placeholder="${esc(f.hint || '')}" autocomplete="off"></div>`;
   };
-  const shown = DETAILS.filter((d) => b.details[d.k] || b.extras.includes(d.k));
+  const shown = DETAILS.filter((d) => (b.details[d.k] !== undefined && b.details[d.k] !== '') || b.extras.includes(d.k));
   const hidden = DETAILS.filter((d) => !shown.includes(d));
   const detail = (d) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="d-${d.k}">${esc(d.label)}</label><button type="button" class="mtm-x" data-drop="${d.k}" aria-label="Remove ${esc(d.label)}">×</button></div>
-    <div class="mtm-bar"><span class="mtm-grow ${d.k === 'cost' ? 'mtm-money' : ''}"><input class="dr-input" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} ${d.k === 'cost' ? 'inputmode="decimal"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></span>${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div></div>`;
+    ${d.type === 'rating'
+      ? `<div class="mtm-chips">${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="mtm-chip ${Number(b.details.rating) >= n ? 'is-on' : ''}" data-star="${n}" aria-label="${n} of 5">★</button>`).join('')}</div>`
+      : `<div class="mtm-bar"><span class="mtm-grow ${d.k === 'cost' ? 'mtm-money' : ''}"><input class="dr-input" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} ${d.k === 'cost' ? 'inputmode="decimal"' : ''} ${d.numeric ? 'inputmode="numeric"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></span>${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div>`}</div>`;
+  const customRow = (c, k) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="c-${k}">${esc(c.label)}</label><button type="button" class="mtm-x" data-dropcustom="${k}" aria-label="Remove ${esc(c.label)}">×</button></div>
+    <input class="dr-input" id="c-${k}" data-custom="${k}" value="${esc(c.value || '')}" placeholder="${esc(c.label)}" autocomplete="off"></div>`;
+  const ownRow = ownOpen === b.id ? `<div class="dr-field mtm-detail"><label for="ownLabel">Your own detail</label>
+    <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownLabel" placeholder="Name it: Trail, Seat, Tide…" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownAdd">Add</button></div></div>` : '';
 
   app.innerHTML = `<div class="mtm-stack">
     <div class="mtm-editor-head">
@@ -606,9 +638,11 @@ async function editor(trip, i, bid) {
       </div>
       <div class="dr-field"><label for="note">Note</label><textarea class="dr-textarea" id="note" rows="3" placeholder="Only if you want to.">${esc(b.note)}</textarea></div>
       ${shown.map(detail).join('')}
+      ${b.custom.map(customRow).join('')}
+      ${ownRow}
       <div class="dr-field"><label>Also on</label><div class="mtm-chips" id="alsoDays">${dayChips}</div>
         <div class="dr-field__hint">Tap a day to put this there too. The name and place travel with it; each day keeps its own picture, note and details.</div></div>
-      ${hidden.length ? `<div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}</select></div>` : ''}
+      <div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
     </div>
     <div class="mtm-bar mtm-bar--between">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="deleteBlock">Delete this moment</button>
@@ -660,7 +694,29 @@ async function editor(trip, i, bid) {
     x.onclick = async () => { const k = x.dataset.drop; delete b.details[k]; b.extras = b.extras.filter((e) => e !== k); await save.flush(); await db.put('blocks', b); await touch(trip); render(); };
   });
   const add = $('#addDetail');
-  if (add) add.onchange = async () => { if (!add.value) return; b.extras.push(add.value); await save.flush(); await db.put('blocks', b); render(); setTimeout(() => $(`#d-${add.value}`)?.focus(), 50); };
+  if (add) add.onchange = async () => {
+    if (!add.value) return;
+    if (add.value === '__own') { ownOpen = b.id; await save.flush(); render(); setTimeout(() => $('#ownLabel')?.focus(), 50); return; }
+    b.extras.push(add.value); await save.flush(); await db.put('blocks', b); render(); setTimeout(() => $(`#d-${add.value}`)?.focus(), 50);
+  };
+  const ownLabel = $('#ownLabel');
+  const addOwn = async () => {
+    const label = (ownLabel.value || '').trim(); if (!label) return;
+    b.custom.push({ label, value: '' }); ownOpen = null;
+    await save.flush(); await db.put('blocks', b); await touch(trip); render();
+    setTimeout(() => $(`#c-${b.custom.length - 1}`)?.focus(), 50);
+  };
+  if (ownLabel) { ownLabel.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addOwn(); } }; $('#ownAdd').onclick = addOwn; }
+  $$('[data-star]').forEach((st) => {
+    st.onclick = () => {
+      const n = Number(st.dataset.star);
+      b.details.rating = Number(b.details.rating) === n ? '' : n;
+      $$('[data-star]').forEach((x) => x.classList.toggle('is-on', Number(b.details.rating) >= Number(x.dataset.star)));
+      save();
+    };
+  });
+  $$('[data-custom]').forEach((inp) => { inp.oninput = () => { b.custom[Number(inp.dataset.custom)].value = inp.value; save(); }; });
+  $$('[data-dropcustom]').forEach((x) => { x.onclick = async () => { b.custom.splice(Number(x.dataset.dropcustom), 1); await save.flush(); await db.put('blocks', b); await touch(trip); render(); }; });
   $$('[data-chip]').forEach((c) => {
     c.onclick = () => {
       const k = c.dataset.chip;
