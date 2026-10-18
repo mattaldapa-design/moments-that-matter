@@ -717,6 +717,25 @@ struck.
   preview: pass → banner and read-only face, editor routes bounce; import
   of the passed file → "The notebook is back", one trip, editable again.
 
+- **I24 — A short explanation of the features in the app, and a settings
+  place with a small profile.** *(2026-10-17)* Matt: *"we may need like a
+  short little like just readme like informational button or section like
+  a settings section um, that way you can just like understand some of the
+  features [...] what does it mean? You know, the backup. What does the
+  pass the notebook mean? What does archiving? [...] some sort of
+  information though is need to be shared [...] that way somebody doesn't
+  mess up"*; and *"maybe you can just make yourself a little like um, you
+  know a little profile."*
+
+  **Settles when:** the app has a screen that explains back up, archive and
+  pass the notebook side by side, and holds the settings and a name. (The
+  settling condition is the agent's draft.)
+
+  **Built 2026-10-17** (see the Decision of that date): ⚙ Settings & help
+  from the foot of Trips; seven "How it works" sections; name, place-name
+  switch, saved packing list, storage gauge, version and update check.
+  Verified in the preview; the name signs the pass note and the recap.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -993,6 +1012,17 @@ decided, where it is enforced, and what it **serves**.
   home-screen web app cannot receive files from Messages directly.
   Enforced: `passNotebook`, the read-only guards and `importTrip` in
   `app/js/app.js`. **Serves →** I23, I2.
+
+- **2026-10-17 — One "Settings & help" screen, from a gear on the Trips
+  page: How it works in short paragraphs, the settings, and a profile that
+  is just a name.** Chosen: the explanations live in the app, in its own
+  voice, with back up, archive and pass the notebook explained together;
+  the place-name switch, storage gauge, version, update check and saved
+  packing list move there from the foot of Trips; the name signs the
+  pass-the-notebook note and the recap cover. Alternative: a fuller profile
+  (picture, home city), held until something needs it. Matt, asked whether
+  a name is enough for now: *"Yeah, I think that's good. Let's proceed."*
+  Enforced: `settingsPage` in `app/js/app.js`. **Serves →** I24, I23, I13.
 
 **Open decisions — waiting on Matt, oldest first:**
 

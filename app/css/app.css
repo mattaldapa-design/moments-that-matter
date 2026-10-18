@@ -267,6 +267,10 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 /* Backup line */
 .mtm-backup { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
+/* Help */
+.mtm-help .dr-panel { display: grid; gap: 6px; padding: 18px var(--space-5); }
+.mtm-help p { color: var(--cream-dim); }
+
 /* Storage footer */
 .mtm-foot { color: var(--cream-dim); font-size: 15px; padding-top: var(--space-6); }
 

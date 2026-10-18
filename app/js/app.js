@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 26; // keep in step with VERSION in sw.js
+const APP_VERSION = 27; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -221,6 +221,7 @@ async function render() {
   try {
     if (!p.length) return await trips();
     if (p[0] === 'new') return newTrip();
+    if (p[0] === 'settings') return await settingsPage();
     if (p[0] === 't') {
       const trip = await db.get('trips', p[1]);
       if (!trip) return await trips();
@@ -265,7 +266,6 @@ async function trips() {
       ${tripWhen(t).phase !== 'after' ? `<div class="dr-tile__meta mtm-countdown">${tripWhen(t).text}${tripWhen(t).phase === 'before' && (t.packing || []).length ? ` · ${t.packing.filter((p) => p.done).length} of ${t.packing.length} packed` : ''}</div>` : ''}
     </button>`;
   }));
-  const autoOn = await autoLookupOn();
   if (!paint(my, `<div class="mtm-stack">
     <div><div class="dr-eyebrow">Your trips</div><h1 class="dr-title-xl">Moments That Matter</h1></div>
     ${list.length ? `<div class="dr-shelf">${tiles.join('')}</div>`
@@ -274,11 +274,47 @@ async function trips() {
       <button class="dr-btn" data-go="/new">Start a trip</button>
       <label class="dr-btn dr-btn--ghost">Import a trip<input type="file" accept=".json,application/json" hidden id="importFile"></label>
     </div>
-    <label class="dr-check"><input type="checkbox" id="autoLookup" ${autoOn ? 'checked' : ''}> Look up place names automatically when online</label>
-    <div class="mtm-foot" id="storage"></div>
-    <div class="mtm-foot mtm-bar mtm-bar--between"><span>Moments That Matter · version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" id="checkUpdate">Check for an update</button></div>
+    <div class="mtm-foot mtm-bar mtm-bar--between"><span>Moments That Matter · version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" data-go="/settings">⚙ Settings &amp; help</button></div>
   </div>`)) return;
   bindGo();
+  $('#importFile').onchange = (e) => importTrip(e.target.files[0]);
+}
+
+// Settings & help (Decision, 2026-10-17): how it works, the settings, and your name.
+const HOW_IT_WORKS = [
+  ['Trips, days and moments', 'A trip is a run of days. Each day has a board. On a board you add moments: a meal, a place, a person you met, anything. Tap the + and pick a kind, or type any word and take the icon it offers. Nothing is required on a moment; fill in what you feel like, when you feel like it.'],
+  ['Pictures', 'Every moment can carry one picture from your photo library. When the photo has a time and a place in it, they fill in by themselves. On each day you can mark up to four pictures as key pictures; those lead on the day’s card and in the recap, in the order you tapped them.'],
+  ['Where', 'Each moment can say where it was. A picture or "Use my location" gives a position; "Look up the name" turns that into a place name using an online map service, only when you ask, or always if you switch that on below. Under About this trip you can list the countries and cities of the trip, and the boards offer them as you type.'],
+  ['Back up, Archive, Pass the notebook', 'All three make the same file: the whole trip, pictures included, which you save to Files, iCloud Drive, Google Drive, or send by Messages. Back up keeps the trip here; do that whenever the reminder shows. Archive makes the file and then takes the trip off this phone, to free space; Import a trip brings it back whole. Pass the notebook sends the file to someone and locks the trip here until their file comes back through Import a trip, which then replaces yours with everything they added. One person writes at a time, and the notebook always comes home.'],
+  ['Import a trip', 'On the Trips screen. Opens one of those files. A trip you don’t have arrives as itself. A trip you already have arrives as a copy beside it, unless it is one you passed on, which comes home in its place.'],
+  ['Recap and Share this day', 'Recap, on a trip’s page, sums the trip up: the numbers, every icon, then day by day. Save it as a PDF or as pictures. Share this day, on a board, makes one picture of that day for Messages or a post. Both are made on the phone; nothing is uploaded.'],
+  ['Storage and updates', 'Everything lives on this phone, inside the app. The gauge below shows how much of what the phone allows is in use; archive a finished trip when it fills. New versions arrive when you reopen the app, or from Check for an update. If the app ever reopens by itself, that was an update taking over between screens.'],
+];
+async function settingsPage() {
+  const my = renderSeq;
+  const [name, autoOn, saved] = await Promise.all([db.setting('yourName', ''), db.setting('autoLookup', false), db.setting('packingTemplate', [])]);
+  if (stale(my)) return;
+  trail([{ t: 'Trips', h: '/' }, { t: 'Settings & help' }], '/');
+  if (!paint(my, `<div class="mtm-stack">
+    <h1 class="dr-title-xl">Settings &amp; help</h1>
+    <div class="dr-panel mtm-stack mtm-stack--tight">
+      <div class="dr-field"><label for="yourName">Your name</label><input class="dr-input" id="yourName" value="${esc(name)}" placeholder="First name is plenty" autocomplete="given-name" autocapitalize="words"><div class="dr-field__hint">Signs the note when you pass the notebook, and the recap’s cover.</div></div>
+      <label class="dr-check"><input type="checkbox" id="autoLookup" ${autoOn ? 'checked' : ''}> Look up place names automatically when online</label>
+      <div class="mtm-bar mtm-bar--between"><span class="dr-body-sm">Saved packing list: ${saved.length ? `${saved.length} item${saved.length === 1 ? '' : 's'}` : 'none yet'}</span>${saved.length ? '<button class="dr-btn dr-btn--ghost dr-btn--sm" id="forgetPack">Forget it</button>' : ''}</div>
+      <div id="storage"></div>
+      <div class="mtm-bar mtm-bar--between"><span class="dr-body-sm">Version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" id="checkUpdate">Check for an update</button></div>
+    </div>
+    <div><div class="dr-eyebrow">How it works</div>
+      <div class="mtm-stack mtm-stack--tight mtm-help">${HOW_IT_WORKS.map(([h, p]) => `<section class="dr-panel"><h2 class="dr-label">${esc(h)}</h2><p class="dr-body-sm">${esc(p)}</p></section>`).join('')}</div></div>
+    <div class="mtm-foot">Moments That Matter is built for one phone at a time. Your trips never leave it unless you send them.</div>
+  </div>`)) return;
+  bindGo();
+  const nameIn = $('#yourName');
+  const saveName = debounce(async () => { await db.setSetting('yourName', nameIn.value.trim()); }, 400);
+  nameIn.oninput = saveName;
+  leaveHook = saveName.flush;
+  $('#autoLookup').onchange = async (e) => { await db.setSetting('autoLookup', e.target.checked); toast(e.target.checked ? 'Place names will be looked up when online.' : 'Place names are yours to type.'); };
+  const fp = $('#forgetPack'); if (fp) fp.onclick = async () => { await db.setSetting('packingTemplate', []); toast('Saved packing list forgotten.'); render(); };
   $('#checkUpdate').onclick = async () => {
     const btn = $('#checkUpdate'); btn.disabled = true; toast('Checking…');
     try {
@@ -291,8 +327,6 @@ async function trips() {
     } catch { toast('Could not check right now.'); }
     btn.disabled = false;
   };
-  $('#autoLookup').onchange = async (e) => { await db.setSetting('autoLookup', e.target.checked); toast(e.target.checked ? 'Place names will be looked up when online.' : 'Place names are yours to type.'); };
-  $('#importFile').onchange = (e) => importTrip(e.target.files[0]);
   storageGauge().then((h) => { const el = $('#storage'); if (el) el.innerHTML = h; });
 }
 
@@ -1156,7 +1190,8 @@ function cleanImport(data) {
 const APP_URL = 'https://mattaldapa-design.github.io/moments-that-matter/';
 const isPassed = (t) => !!t.passedOn;
 async function passNotebook(trip) {
-  const note = `Here's the notebook for ${trip.title || 'our trip'}. Save the file to Files, open Moments That Matter and tap "Import a trip". Add your days, then pass it back the same way. ${APP_URL}`;
+  const who = await db.setting('yourName', '');
+  const note = `${who ? who + ' passed you' : "Here's"} the notebook for ${trip.title || 'our trip'}. Save the file to Files, open Moments That Matter and tap "Import a trip". Add your days, then pass it back the same way. ${APP_URL}`;
   const went = await backupTrip(trip, note);
   if (!went) return;
   trip.passedOn = { at: Date.now() };
