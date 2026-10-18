@@ -419,6 +419,27 @@ struck.
   **Built 2026-10-17:** Website and Menu are in the list; a pasted address
   gets an Open button. Verified in the preview with "taronga.org.au".
 
+- **I12 — One item can sit on several days, consecutive or scattered,
+  keeping its place, with a different picture and details on each day.**
+  *(2026-10-17)* Matt: *"what if we can add an item to each day so like I
+  don't know we're staying at the hotel the same hotel for three days we can
+  add it to the like three consecutive days or we can add it to to different
+  days throughout the trip um and at least it like keeps the location but
+  maybe you can add a different picture on each day um as well uh and other
+  kind of information just like some of the general ones [...] you can
+  change the rest."*
+
+  **Settles when:** from a block Matt can pick the other days it belongs to,
+  each day gets its own copy with the same name and place and its own
+  picture, note and details, and Matt has said whether renaming one renames
+  them all. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-17** as an "Also on" row of day chips in the editor.
+  The agent's reading, asked: name, place and the kind's own fields travel
+  together (renaming one renames all); picture, note, details and order are
+  each day's own. Verified in the preview: hotel added to day 6, renamed
+  there, day 4 followed.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -664,6 +685,11 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Third look on the iPhone**, after the detail and link
+  changes: *"everything else looks really good though. This is a good first
+  start. Um, to this, I'm I'm enjoying it so far."* Asked for: one item on
+  several days (I12).
 
 - **2026-10-17 — Second look on the iPhone.** A library picture filled in
   the time and the coordinates (*"it did pool navigational information"*);

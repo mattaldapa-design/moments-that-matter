@@ -501,6 +501,9 @@ async function editor(trip, i, bid) {
   const ph = b.photoId ? await db.get('photos', b.photoId) : null;
   const day = await getDay(trip.id, i);
   const isKey = !!(ph && day.keyPhotoId === ph.id);
+  const family = await familyOf(b);
+  const onDays = new Set(family.map((x) => x.dayIndex));
+  const dayChips = Array.from({ length: trip.dayCount }, (_, d) => `<button type="button" class="mtm-chip mtm-chip--text ${onDays.has(d) ? 'is-on' : ''}" data-day="${d}" ${d === i ? 'disabled' : ''}>Day ${d + 1}</button>`).join('');
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}`, h: `/t/${trip.id}/d/${i}` }, { t: titleOf(b) }], `/t/${trip.id}/d/${i}`);
 
   const field = (f) => {
@@ -537,6 +540,8 @@ async function editor(trip, i, bid) {
       </div>
       <div class="dr-field"><label for="note">Note</label><textarea class="dr-textarea" id="note" rows="3" placeholder="Only if you want to.">${esc(b.note)}</textarea></div>
       ${shown.map(detail).join('')}
+      <div class="dr-field"><label>Also on</label><div class="mtm-chips" id="alsoDays">${dayChips}</div>
+        <div class="dr-field__hint">Tap a day to put this there too. The name and place travel with it; each day keeps its own picture, note and details.</div></div>
       ${hidden.length ? `<div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}</select></div>` : ''}
     </div>
     <div class="mtm-bar mtm-bar--between">
@@ -545,8 +550,25 @@ async function editor(trip, i, bid) {
     </div>
   </div>`;
 
-  const save = debounce(async () => { await db.put('blocks', b); await touch(trip); }, 350);
+  const save = debounce(async () => { await db.put('blocks', b); await syncFamily(b); await touch(trip); }, 350);
   leaveHook = save.flush;
+  $$('#alsoDays [data-day]').forEach((chip) => {
+    chip.onclick = async () => {
+      const d = Number(chip.dataset.day);
+      await save.flush();
+      const there = family.find((x) => x.dayIndex === d);
+      if (there) {
+        if (there.photoId && !confirm(`Day ${d + 1}'s copy has its own picture. Remove it anyway?`)) return;
+        if (there.photoId) await db.del('photos', there.photoId);
+        await db.del('blocks', there.id); await touch(trip);
+        toast(`Taken off day ${d + 1}.`);
+      } else {
+        await copyToDay(trip, b, d);
+        toast(`Now also on day ${d + 1}.`);
+      }
+      render();
+    };
+  });
   $('#title').oninput = (e) => { b.title = e.target.value; save(); };
   $('#where').oninput = (e) => { b.place.name = e.target.value; save(); };
   $('#note').oninput = (e) => { b.note = e.target.value; save(); };
@@ -594,7 +616,7 @@ async function editor(trip, i, bid) {
     navigator.geolocation.getCurrentPosition(async (pos) => {
       b.place.lat = pos.coords.latitude; b.place.lon = pos.coords.longitude; b.place.from = 'phone';
       const named = await maybeAutoName(b);
-      await db.put('blocks', b); await touch(trip);
+      await db.put('blocks', b); await syncFamily(b); await touch(trip);
       toast(named ? `Position saved: ${b.place.name}` : 'Position saved. Name the place if you like.');
       render();
     }, () => { btn.disabled = false; toast('Could not get a position. Type the place instead.'); },
@@ -606,7 +628,7 @@ async function editor(trip, i, bid) {
     lu.disabled = true; toast('Looking up the name…');
     try {
       const n = await lookupName(b.place.lat, b.place.lon);
-      if (n) { b.place.name = n; $('#where').value = n; await save.flush(); await db.put('blocks', b); await touch(trip); toast('Found it. Change it if it is wrong.'); }
+      if (n) { b.place.name = n; $('#where').value = n; await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); toast('Found it. Change it if it is wrong.'); }
       else toast('No name found here. Type one.');
     } catch { toast('Could not reach the lookup service.'); }
     lu.disabled = false;
@@ -619,6 +641,31 @@ async function editor(trip, i, bid) {
     go(`/t/${trip.id}/d/${i}`);
   };
   $('#done').onclick = async () => { await save.flush(); go(`/t/${trip.id}/d/${i}`); };
+}
+
+// ---------- one item on several days (I12) ----------
+// Copies share a groupId. Name, place, kind fields, emoji and label travel together; picture, note, details and order are each day's own.
+async function familyOf(b) {
+  if (!b.groupId) return [b];
+  return (await db.where('blocks', 'tripId', b.tripId)).filter((x) => x.groupId === b.groupId);
+}
+async function syncFamily(b) {
+  if (!b.groupId) return;
+  const sibs = (await familyOf(b)).filter((x) => x.id !== b.id);
+  if (!sibs.length) return;
+  sibs.forEach((x) => { x.title = b.title; x.place = { ...b.place }; x.fields = { ...b.fields }; x.emoji = b.emoji; x.label = b.label; });
+  await db.putMany('blocks', sibs);
+}
+async function copyToDay(trip, b, i) {
+  if (!b.groupId) { b.groupId = uid(); await db.put('blocks', b); }
+  const day = await getDay(trip.id, i);
+  if (!(await db.get('days', day.id))) await db.put('days', day);
+  const existing = await blocksForDay(day.id);
+  const copy = { ...b, id: uid(), dayId: day.id, dayIndex: i, order: existing.length, photoId: null, note: '', details: {}, extras: [],
+    place: { ...b.place }, fields: { ...b.fields }, createdAt: Date.now() };
+  await db.put('blocks', copy);
+  await touch(trip);
+  return copy;
 }
 
 // ---------- place names (Decision, 2026-10-17: optional, OpenStreetMap's Nominatim) ----------
@@ -654,6 +701,7 @@ async function attachPhoto(trip, b, file) {
   if (b.place.lat == null && exif.lat != null) { b.place.lat = exif.lat; b.place.lon = exif.lon; b.place.from = 'photo'; }
   const named = await maybeAutoName(b);
   await db.put('blocks', b);
+  await syncFamily(b);
   if (!trip.coverPhotoId) trip.coverPhotoId = photo.id;
   await touch(trip, blob.size);
   toast(named ? `Picture added: ${b.place.name}.` : exif.lat != null ? 'Picture added, with its position and time.'
