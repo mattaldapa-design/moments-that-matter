@@ -174,6 +174,110 @@ struck.
   **Settled in part, 2026-10-17:** one-tap backup with a reminder, see the
   Decision of that date. Offloading past trips to free space is still open.
 
+- **I4 — A day is built from emoji-icon blocks; a block can hold blocks;
+  some things span days.** *(2026-10-17)* Asked to walk through one real
+  day, Matt described day three of an Australia trip, flying into Sydney.
+  What he named, gathered by the agent from his telling: a flight (airline,
+  seat, flight details, "maybe it's a bumpy flight"); breakfast coffee and a
+  scone with a picture; a bike ride; a lunch cruise on Sydney Harbour, with
+  the food eaten on the boat nested inside it; the zoo, with ticket price,
+  how long they stayed, and the weather; a fireworks show; the people sat
+  next to at the fireworks (names, contact details, where from, what they
+  recommended); the hotel, which should carry across several days without
+  being re-added. In his words:
+
+  *"I imagine like the plane icon would be something that like I would look
+  for and I would just drop it into the day you know I'd be adding these
+  little icons to the day"* ... *"you can use like emojis to like creates a
+  little icon of what you did that day. You can make little icon emojis and
+  you can add more details on those. And so you're kind of building out your
+  day and adding pictures to each of these little icons"* ... *"inside of it,
+  you could even talk about the food that you ate too. So you can add within
+  those, once you're like in that layer, that's why I described it kind of
+  like little paper origami unfolding [...] you can kind of go deep within
+  the days, but you need to be able to get yourself out and back to like the
+  main area fast"* ... *"maybe it can be like multiple things. You can add
+  multiple elements uh, within that same day"* ... *"if it's a mode of travel
+  or something like that, yeah, you can like easily move it to like across
+  several days if it's like consistent. Um, so that way, like you it's
+  included in each day and you don't have to like always re-add it [...]
+  especially like if I'm staying at a hotel"*.
+
+  *Added 2026-10-17*, on how a board should look and feel: *"I imagined it
+  almost like magnets on a refrigerator or something like that, where like
+  they're they're you know stuck to the the refrigerator, and you can kind of
+  move them around as you want to. But they're colorful and they're like fun.
+  Um, you know, if you want to, and it kind of tells the story. And then it's
+  almost like a like a what's that? Like a word cloud, but also with with with
+  visuals or emojis or some sort of symbol of it."* Earlier the same day he
+  said a board is "probably going to be chronological"; settled the same
+  day: time order, draggable, with a list view (see Decisions).
+
+  **Settles when:** the first version's block kinds and their fields are a
+  Decision, and Matt has said whether nesting and cross-day items are in the
+  first version or wait. (The settling condition is the agent's draft.)
+
+  **Settled in part, 2026-10-17:** blocks are built-in kinds plus any emoji,
+  nothing mandatory, and the seven kinds are decided; see the Decisions of
+  that date. Cross-day items are covered by Stay's nights for now. Blocks
+  inside blocks are under Not now.
+
+- **I5 — A block's icon can be a word instead of an emoji.** *(2026-10-17)*
+  Matt, while deciding how blocks work: *"some people might not want it to
+  look like emojis and might not want those. And that might not be easily
+  visible for them to um, do the task. So maybe you can choose to just use a
+  word, you know, food instead of uh, an actual emoji of one."* Said as
+  "maybe" and about other people. *Added 2026-10-17*, asked whether it is for
+  the first version: *"you can maybe have like a little box where you can
+  start typing a word and it auto-populates and I can just tap that word to
+  add it as an item. Like to the board, and I can choose to either add it as
+  an emoji if it exists, or just the word if it doesn't exist as an emoji,
+  and that way I can just add it to to my board and then then start adding
+  information afterwards."* Matt's word for a day's page is **board**: *"I
+  keep on using this term as a board, like again, I'm kind of imagining it
+  like almost like a little like collage board that I'm building out, except
+  it's going to be a little more organized and it's probably going to be
+  chronological."*
+
+  **Settles when:** Matt says whether it is in the first version, and if so
+  whether it is a per-app setting or a per-block choice. (The settling
+  condition is the agent's draft.)
+
+- **I6 — A photo added to a block fills in its location (and time) from
+  the photo's own data, which Matt can verify or change.** *(2026-10-17)*
+  Matt: *"if I add a photo from my photos, can it just, can it autofill the
+  location um, I don't know if there's any data within the photo that we can
+  pull to tell the story uh, easier. And, and you can like verify it or, or
+  not, you know, or change it."* Agent's note, from user reports rather than
+  Apple documentation: on iPhone, a web app gets a library photo's location
+  only if the picker's Options menu allows it (iOS 17 and later), and a
+  photo taken fresh from inside the web app arrives with no location. A
+  fallback is the phone's own position at the moment a block is added.
+
+  **Settles when:** on Matt's phone, a block made from a real photo shows the
+  right place and time without him typing them, and he has said what should
+  happen when the photo carries no location. (The settling condition is the
+  agent's draft.)
+
+- **I7 — Places nest: country, city, down to the building or park; a block
+  folds into that, and Matt can always get back out to the top fast.**
+  *(2026-10-17)* Matt: *"Sydney. Is a location, right? But then also the
+  hotel within Sydney's a location, but maybe I want like you know that
+  umbrella of it, like like there's a hierarchy from like the like country
+  like you know city kind of thing down to the building you know and, and
+  park that I'm at [...] it's kind of like folding into each other when I
+  was mentioning the paper unfolding. But I also want you to be able to kind
+  of like go back out to the main scope quickly if you if you needed to add
+  something or you don't want to get too far down lost in the weeds of it
+  and you can't get out."* Agent's proposal, not yet decided: a day carries a
+  city set once at the top of its board; a block's place sits under it; a
+  trail like "Australia › Sydney › Taronga Zoo" shows at the top of every
+  screen, and tapping any level jumps there.
+
+  **Settles when:** the first version shows a block's place with its levels
+  and Matt can get from the deepest screen to the trip in one tap. (The
+  settling condition is the agent's draft.)
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -236,12 +340,99 @@ decided, where it is enforced, and what it **serves**.
   is not decided; "byte threshold" was tentative. Enforced: the backup
   button and reminder in the app, once built. **Serves →** I3.
 
+- **2026-10-17 — Blocks are a short set of built-in kinds with their own
+  fields, plus "anything else" as any emoji with simple fields; no field is
+  mandatory.** Chosen: built-in kinds (the list and their fields are the next
+  Decision) that ask for what fits them, and under them an open block where
+  Matt picks any emoji and gets a name, photo, note and price. Alternatives:
+  built-in kinds only (can't log what has no kind) or any-emoji only (a plane
+  doesn't know it's a plane, so no seat field). Matt: *"I agree that the
+  combination, the both [...] there's going to be some very specific things
+  that [...] I don't want to have to have a template for. And um, and
+  sometimes, like, having a template can be very restrictive as well, almost
+  as much as a blank page, where it's like, well, it's hard to fit it in this
+  box. And so it's, you know, nothing is really mandatory."* Enforced: the
+  block-kind list in the app's code once built; no required fields on any
+  block form. **Serves →** I4, and the Goal's "never faces a blank page".
+
+- **2026-10-17 — Adding a block starts with the built-in kinds as buttons
+  and a type-anything box; a typed word becomes an emoji block if one
+  matches, else a word block.** Chosen: on a board, tapping add shows the
+  built-in kinds, and below them a box; typing shows suggestions from a word
+  list kept on the phone; tapping one drops the block on the board with its
+  details left to fill in later. Alternative: an emoji keyboard picker alone
+  (no words, nothing for what has no emoji), or words alone (loses the icons
+  Matt looks for). Matt's design: *"a little box where you can start typing
+  a word and it auto-populates and I can just tap that word to add it as an
+  item [...] either add it as an emoji if it exists, or just the word if it
+  doesn't exist as an emoji"*; shown the flow on his Sydney morning: *"Yeah,
+  now we're getting there."* Enforced: the add flow and the word list in the
+  app, once built. **Serves →** I4, I5, and the Goal's "a few taps".
+
+- **2026-10-17 — A board shows its blocks in time order, draggable to
+  reorder, as tiles; a list view is one tap away.** Chosen: blocks sit in
+  the order of the day and Matt can drag one to move it; the board can be
+  switched between a tile view and a plain list, like a computer folder.
+  Alternative: blocks float anywhere, like magnets on a fridge. Matt: *"as
+  much as like being like being able to float everywhere is, is fine, I feel
+  like you can just get messy. And so there needs to be some sort of
+  organization around it. And um, I think the the draggable and
+  chronological is good. Um, I also think there should just be a list view if
+  you really want one [...] in case you have like a lot of icons in there on
+  each day [...] kind of like the tile view versus the the list view in a in
+  a web you know folder. Or computer folder."* The magnet look (colourful,
+  fun) stays as the styling of the tiles. Enforced: the board view in the
+  app, once built. **Serves →** I4.
+
+- **2026-10-17 — Photos come into the app from the photo library; the
+  first version does not use the camera.** Chosen: take pictures with the
+  phone's camera as usual, add them to blocks later. Alternative: taking
+  photos from inside the app, which on a web app also loses the photo's
+  location. Matt: *"I don't imagine us taking photos using the application.
+  I imagine just importing photos into the application would be the easiest
+  way [...] I think you would just take your pictures and then just add them
+  later. But I can always I can always that that can change. It's not it's
+  not off the off the table."* Enforced: no camera capture in the first
+  build; the photo field opens the library. **Serves →** I6, and the Goal.
+
+- **2026-10-17 — The first version has seven built-in kinds; weather sits
+  on the board; everything else comes through the gallery.** Chosen, every
+  block having a photo, title, note and cost, none required:
+
+  | Kind | Asks beyond the basics |
+  |---|---|
+  | ✈️ Travel | how (plane, boat, train, car, bike), company, from and to, seat or number |
+  | 🍽️ Food & drink | where |
+  | 🚴 Activity | where, how long |
+  | 📍 Place | how long |
+  | 👋 People | names, where from, contact, what they recommended |
+  | 🏨 Stay | nights, so it carries across days |
+  | 📝 Note | nothing more |
+
+  Weather is one tap at the top of a board. Anything else (art, museum,
+  beach, shopping, a show) is a gallery or typed word, promoted to a kind
+  later if it turns out to need its own fields. Alternatives: a longer list
+  (more buttons to scan past; the gallery covers the long tail), or no Note
+  kind (but the pitch says "write a name down, jog a note"). Matt, asked for
+  the set drawn from his Sydney day plus Note: *"let's just let's start with
+  those seven kinds. I don't think anything has changed since my last
+  ramble."* The emoji for each kind and the field names are the agent's.
+  Enforced: the kind list in the app's code once built. **Serves →** I4, and
+  the Goal.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **The backup reminder threshold:** what counts as
   "substantial new content". Can wait until the backup exists.
 
 ## Not now
+
+- **Blocks inside blocks (the boat lunch with its food nested in it).**
+  Deferred 2026-10-17. Reason: the agent proposed logging such things as
+  two blocks side by side first and building nesting in a later pass, and
+  Matt accepted the proposal's set without objecting; this deferral is the
+  agent's, not Matt's words. Trigger: once Matt has used the flat board on a
+  real day and says he misses it.
 
 - **Live multi-person sync (I2 as first pitched).** Deferred 2026-10-17.
   Reason, Matt: *"they don't need to update in real time together."*
