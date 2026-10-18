@@ -16,7 +16,7 @@ that. That seems to capture it in a in in a nice general term. I, I think
 there's going to be more to grow from it, but I, but I think it's a good
 start." The wording is the agent's until Matt rewrites it in his own voice.*
 
-## Current state (2026-10-17, evening)
+## Current state (2026-10-18)
 
 ```
 README.md            this file
@@ -32,8 +32,13 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-The first build is published (see below) and has not been tried on Matt's
-phone. What it
+**As of 2026-10-18, version 33 is live** at
+<https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
+on Matt's iPhone for a real trip. Everything below was built on 2026-10-17
+and 2026-10-18; the Decisions and Intentions carry the detail. The 18th
+added: Send this day (I25), Settings & help with a User guide and your name
+(I24), a colour per kind (I26), tap-to-reframe pictures (I28), recap sleeves
+(I27), ten code-review fixes, and the removal of Pass the notebook. What it
 does: trips (start one, set its days, rename, add or remove a day, delete);
 boards (a city, a weather tap, tiles in time order, drag to reorder, a list
 view with move arrows); the add flow (the seven kinds, a type-anything box,
