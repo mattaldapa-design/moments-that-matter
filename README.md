@@ -403,6 +403,20 @@ struck.
   picture"; the day row shows it. Verified in the preview: the button
   flips to "This is the day's picture" and Day 4's row took the picture.
 
+- **I11 — A block can carry a website link, and a food block a menu link.**
+  *(2026-10-17)* Matt, on the phone: *"it'd be cool if you could add a
+  website, if like there was a um, a website um, that they had, you can like
+  copy it, go to the website, copy and paste the URL, the web URL into it.
+  Um, for some of the places like food, like if I had a menu, um, that could
+  be an option as well."*
+
+  **Settles when:** Website and Menu are in the "Add a detail" list, a
+  pasted address opens from the block. (The settling condition is the
+  agent's draft.)
+
+  **Built 2026-10-17:** Website and Menu are in the list; a pasted address
+  gets an Open button. Verified in the preview with "taronga.org.au".
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -579,6 +593,12 @@ decided, where it is enforced, and what it **serves**.
 
 **Open decisions — waiting on Matt, oldest first:**
 
+- *2026-10-17* — **Place names from coordinates.** A picture or "Use my
+  location" gives coordinates, not a name; Matt: *"it gave coordinates, not
+  not the exact location, because I imagine it's not connected to a map or
+  something."* Turning them into "Taronga Zoo" needs an online lookup
+  service, which means sending the coordinates to that service. The agent
+  has asked whether he wants that.
 - *2026-10-17* — **The backup reminder threshold:** what counts as
   "substantial new content". The first build uses 10 changes or 8 MB as a
   placeholder.
@@ -634,6 +654,17 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Second look on the iPhone.** A library picture filled in
+  the time and the coordinates (*"it did pool navigational information"*);
+  "Use my location" works and also gives coordinates. Liked: *"it
+  auto-saves things when I tap out, so I don't lose stuff."* Asked for: a way
+  to clear or not have a time (*"What if I just don't even want the time?"*);
+  the cost hint *"A$ 12"* read as a bug (*"there's always an A money next to
+  the 12"*); "Title" on a word block such as "record shop" could be "Name";
+  website and menu links (I11). Fixed the same day: a × on each added
+  detail clears it, cost hint is a plain number, Name on place, stay and
+  word blocks, Website and Menu details.
 
 - **2026-10-17 — First run on Matt's iPhone**, from the home-screen icon
   added through Chrome, with a portrait picture from his photo library:

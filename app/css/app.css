@@ -156,6 +156,12 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-where { display: grid; gap: 8px; }
 .mtm-coords { color: var(--cream-dim); font-size: 15px; font-variant-numeric: tabular-nums; }
 
+/* Added details: a × clears one */
+.mtm-detail .mtm-bar--between label { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+.mtm-x { width: 36px; height: 36px; border-radius: var(--radius-disc); border: 0; background: var(--room-200); color: var(--cream-dim); font-size: 22px; line-height: 1; cursor: pointer; }
+.mtm-x:hover { color: var(--cream); background: var(--room-100); }
+.mtm-detail .mtm-bar { flex-wrap: nowrap; }
+
 /* Stepper */
 .mtm-stepper { justify-self: start; display: inline-flex; align-items: center; gap: 6px; background: var(--room-200); border-radius: var(--radius-pill); padding: 4px; }
 .mtm-stepper button { width: 44px; height: 44px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream); font-size: 22px; cursor: pointer; }

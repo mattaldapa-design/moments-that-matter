@@ -86,9 +86,12 @@ const titleOf = (b) => b.title || cap(b.label) || kindOf(b.kind)?.name || 'Momen
 // Optional details, added to a card from a list (Decision, 2026-10-17). Not on every card.
 const DETAILS = [
   { k: 'time', label: 'Time', type: 'time' },
-  { k: 'cost', label: 'Cost', hint: 'A$ 12' },
+  { k: 'cost', label: 'Cost', hint: '12.50' },
   { k: 'duration', label: 'How long', hint: '2 hours' },
+  { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
+  { k: 'menu', label: 'Menu', type: 'url', hint: 'Paste the menu address' },
 ];
+const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
 // Bring an older block up to the current shape (time/cost used to be fields on every card).
 function normalize(b) {
   b.fields = b.fields || {}; b.place = b.place || { name: '', lat: null, lon: null }; b.details = b.details || {}; b.extras = b.extras || [];
@@ -104,6 +107,7 @@ function blockMeta(b) {
   if (b.place?.name) parts.push(b.place.name);
   if (b.details.cost) parts.push(b.details.cost);
   if (b.details.duration) parts.push(b.details.duration);
+  if (b.details.website || b.details.menu) parts.push('🔗');
   if (b.kind === 'stay' && b.fields?.nights) parts.push(`${b.fields.nights} night${+b.fields.nights === 1 ? '' : 's'}`);
   return parts.join(' · ');
 }
@@ -509,8 +513,8 @@ async function editor(trip, i, bid) {
   };
   const shown = DETAILS.filter((d) => b.details[d.k] || b.extras.includes(d.k));
   const hidden = DETAILS.filter((d) => !shown.includes(d));
-  const detail = (d) => `<div class="dr-field"><label for="d-${d.k}">${esc(d.label)}</label>
-    <input class="dr-input" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></div>`;
+  const detail = (d) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="d-${d.k}">${esc(d.label)}</label><button type="button" class="mtm-x" data-drop="${d.k}" aria-label="Remove ${esc(d.label)}">×</button></div>
+    <div class="mtm-bar"><input class="dr-input mtm-grow" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off">${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div></div>`;
 
   app.innerHTML = `<div class="mtm-stack">
     <div class="mtm-editor-head">
@@ -523,7 +527,7 @@ async function editor(trip, i, bid) {
     </label>
     ${ph ? `<div class="mtm-bar"><button class="dr-btn ${isKey ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${isKey ? 'disabled' : ''}>${isKey ? 'This is the day’s picture' : 'Make this the day’s picture'}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
     <div class="mtm-fields">
-      <div class="dr-field"><label for="title">${b.kind === 'place' ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(kind?.hint || cap(b.label))}" autocomplete="off"></div>
+      <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
       <div class="dr-field mtm-where"><label for="where">Where</label>
         <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="${b.kind === 'place' ? 'Address or area' : 'Café, street, neighbourhood'}" autocomplete="off">
@@ -545,7 +549,13 @@ async function editor(trip, i, bid) {
   $('#where').oninput = (e) => { b.place.name = e.target.value; save(); };
   $('#note').oninput = (e) => { b.note = e.target.value; save(); };
   $$('[data-field]').forEach((inp) => { inp.oninput = () => { b.fields[inp.dataset.field] = inp.value; save(); }; });
-  $$('[data-detail]').forEach((inp) => { inp.oninput = () => { b.details[inp.dataset.detail] = inp.value; save(); }; });
+  $$('[data-detail]').forEach((inp) => {
+    inp.oninput = () => { b.details[inp.dataset.detail] = inp.value; save(); };
+    if (inp.type === 'url') inp.onchange = async () => { await save.flush(); render(); };
+  });
+  $$('[data-drop]').forEach((x) => {
+    x.onclick = async () => { const k = x.dataset.drop; delete b.details[k]; b.extras = b.extras.filter((e) => e !== k); await save.flush(); await db.put('blocks', b); await touch(trip); render(); };
+  });
   const add = $('#addDetail');
   if (add) add.onchange = async () => { if (!add.value) return; b.extras.push(add.value); await save.flush(); await db.put('blocks', b); render(); setTimeout(() => $(`#d-${add.value}`)?.focus(), 50); };
   $$('[data-chip]').forEach((c) => {
