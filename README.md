@@ -756,6 +756,21 @@ struck.
   pictures, then offered to the same-dated day of its own trip and skipped
   as already there. The help text covers it.
 
+- **I26 — More colour, within Dark Room.** *(2026-10-18)* Matt: *"I love
+  that you incorporated darkroom into this [...] it's it's very much my UI
+  [...] I think the only thing that I would like is a little more variety
+  in, I mean, in color [...] everything either is red, yellow, or black,
+  basically, and white. Um, and then, of course, the emoji colors. I feel
+  like it just needs a little more splashes of color just to give it a
+  little more dynamicism [...] I love, like, how each of the cards and the
+  tiles, they they kind of highlight when I when I tap them."* The brief
+  allows hot pink, acid and lagoon as earned splashes, scoped, and lagoon in
+  artwork and badges; the agent's proposal is one colour per kind in the
+  artwork slots (emoji faces, kind buttons, type covers, stat tiles).
+
+  **Settles when:** Matt sees the coloured kinds on his phone and says it
+  is the variety he meant. (The settling condition is the agent's draft.)
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

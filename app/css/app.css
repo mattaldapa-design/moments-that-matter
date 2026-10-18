@@ -100,6 +100,18 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 }
 .mtm-seg button.is-on { background: var(--room-200); color: var(--cream); }
 
+/* A splash per kind, in the artwork slots only (Dark Room: pink, acid and lagoon are earned splashes) */
+[data-kind="travel"], [data-tone="3"] { --kind: var(--lagoon); --on-kind: var(--on-lagoon); }
+[data-kind="food"], [data-kind="people"], [data-tone="1"] { --kind: var(--hot-pink); --on-kind: var(--on-hot-pink); }
+[data-kind="activity"], [data-kind="note"], [data-tone="2"] { --kind: var(--acid); --on-kind: var(--on-acid); }
+[data-kind="place"], [data-kind="stay"], [data-tone="0"] { --kind: var(--signal); --on-kind: var(--on-signal); }
+[data-kind="other"] { --kind: var(--cream); --on-kind: var(--room-000); }
+.mtm-block { --accent: var(--kind, var(--signal)); }
+.mtm-kind { --accent: var(--kind, var(--signal)); }
+.mtm-kind__emoji { width: 56px; height: 56px; border-radius: var(--radius-disc); display: grid; place-items: center; background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--kind, var(--signal)) 55%, transparent), color-mix(in srgb, var(--kind, var(--signal)) 18%, var(--room-200)) 70%); }
+.mtm-stat__art--emoji { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--kind, var(--signal)) 50%, transparent), color-mix(in srgb, var(--kind, var(--signal)) 16%, var(--room-200)) 70%); }
+.dr-cover--type { background: var(--kind, var(--accent)); color: var(--on-kind, var(--on-accent)); }
+
 /* Block tiles: magnets with a picture */
 .mtm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 14px; touch-action: pan-y; }
 @media (min-width: 520px) { .mtm-grid { grid-template-columns: repeat(3, 1fr); gap: 24px 18px; } }
@@ -107,7 +119,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-block .dr-cover { background: var(--room-200); }
 .mtm-block__emoji {
   position: absolute; inset: 0; display: grid; place-items: center; font-size: 64px; line-height: 1;
-  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%), var(--room-200);
+  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--kind, var(--accent)) 42%, transparent), transparent 62%), color-mix(in srgb, var(--kind, var(--accent)) 10%, var(--room-200));
 }
 .mtm-block__emoji--word { font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 7vw, 30px); letter-spacing: -0.02em; text-align: center; padding: 12px; color: var(--cream); }
 .mtm-block__badge {

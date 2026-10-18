@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 30; // keep in step with VERSION in sw.js
+const APP_VERSION = 31; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -254,10 +254,10 @@ async function trips() {
   const list = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   if (stale(my)) return;
   trail([{ t: 'Trips', h: '/' }], null);
-  const tiles = await Promise.all(list.map(async (t) => {
+  const tiles = await Promise.all(list.map(async (t, idx) => {
     const cover = t.coverPhotoId ? await db.get('photos', t.coverPhotoId) : null;
     const face = cover ? `<img src="${photoUrl(cover)}" alt="">`
-      : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(t.title || 'Untitled trip')}</span></div>`;
+      : `<div class="dr-cover--type" data-tone="${idx % 4}" style="position:absolute;inset:0"><span>${esc(t.title || 'Untitled trip')}</span></div>`;
     return `<button class="dr-tile" data-go="/t/${t.id}">
       <div class="dr-cover mtm-trip-cover">${face}<span class="dr-badge mtm-days">${t.dayCount} day${t.dayCount === 1 ? '' : 's'}</span></div>
       <div class="dr-tile__title">${esc(t.title || 'Untitled trip')}</div>
@@ -638,7 +638,7 @@ async function board(trip, i) {
     const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
     const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
       : (b.emoji ? `<div class="mtm-block__emoji">${esc(b.emoji)}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
-    return `<div class="dr-tile mtm-block" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
+    return `<div class="dr-tile mtm-block" data-id="${b.id}" data-kind="${esc(b.kind || 'other')}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
       <div class="dr-cover">${face}</div>
       <div class="dr-tile__title">${esc(titleOf(b))}</div>
       <div class="dr-tile__meta">${esc(blockMeta(b)) || '&nbsp;'}</div></div>`;
@@ -646,7 +646,7 @@ async function board(trip, i) {
   const row = (b, idx) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
     const art = ph ? `<div class="dr-row__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${esc(b.emoji || '•')}</div>`;
-    return `<div class="dr-row mtm-rowblock" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">${art}
+    return `<div class="dr-row mtm-rowblock" data-id="${b.id}" data-kind="${esc(b.kind || 'other')}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">${art}
       <div class="dr-row__text"><div class="dr-row__title">${esc(titleOf(b))}</div><div class="dr-row__meta">${esc(blockMeta(b))}</div></div>
       <div class="dr-row__end mtm-move">
         <button data-move="-1" data-id="${b.id}" ${idx === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>

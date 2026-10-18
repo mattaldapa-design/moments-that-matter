@@ -74,9 +74,9 @@ export function stats(data) {
 export function renderRecap(data, S, photoUrl) {
   const { trip, blocks, photos, days, cover, pmap, keeper } = data;
   const logged = days.filter((d) => d.blocks.length);
-  const statCard = (s) => {
+  const statCard = (s, k) => {
     const ph = s.photoId ? pmap[s.photoId] : null;
-    return `<div class="dr-panel mtm-stat">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
+    return `<div class="dr-panel mtm-stat" data-tone="${k % 4}">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
       <div><div class="dr-title mtm-stat__big">${esc(s.big)}</div><div class="dr-body-sm">${esc(s.small)}</div></div></div>`;
   };
   const dayBand = (d) => {
