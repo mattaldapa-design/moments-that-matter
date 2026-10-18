@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 36; // keep in step with VERSION in sw.js
+const APP_VERSION = 37; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -76,7 +76,7 @@ function keyify(d) {
   return d;
 }
 // The day summary (I33): long thoughts on the whole day, and a small log beside them.
-const LOGS = [{ k: 'miles', label: 'Miles', hint: 'How far you went' }, { k: 'steps', label: 'Steps', hint: 'From your watch or phone' }];
+const LOGS = [{ k: 'spent', label: 'Spent today', auto: true }, { k: 'miles', label: 'Miles', hint: 'How far you went' }, { k: 'steps', label: 'Steps', hint: 'From your watch or phone' }];
 const cleanNotes = (v) => (typeof v === 'string' ? v.slice(0, 20000) : '');
 const cleanLog = (v) => { const out = {}; if (v && typeof v === 'object') for (const { k } of LOGS) if (typeof v[k] === 'string' || typeof v[k] === 'number') out[k] = String(v[k]).slice(0, 20); return out; };
 let sumOpen = false;
@@ -86,17 +86,15 @@ function daySummary(day, blocks) {
   const spent = priced.reduce((s, b) => s + num(b.details.cost), 0);
   const on = LOGS.filter((x) => day.log[x.k] !== undefined);
   const off = LOGS.filter((x) => day.log[x.k] === undefined);
-  const note = day.notes.trim().replace(/\s+/g, ' ');
   const bits = [];
-  if (note) bits.push(note.length > 48 ? note.slice(0, 48).trimEnd() + '…' : note);
-  if (spent > 0) bits.push(`${money(spent)} spent`);
-  on.forEach((x) => { if (day.log[x.k]) bits.push(`${day.log[x.k]} ${x.label.toLowerCase()}`); });
+  if (day.notes.trim()) bits.push('a note');
+  on.forEach((x) => { if (x.auto) { if (spent > 0) bits.push(`${money(spent)} spent`); } else if (day.log[x.k]) bits.push(`${day.log[x.k]} ${x.label.toLowerCase()}`); });
   return `<details class="dr-panel mtm-daysum" id="daysum" ${sumOpen ? 'open' : ''}>
     <summary><span class="dr-label">Day summary</span><span class="dr-caption">${bits.length ? esc(bits.join(' · ')) : 'your thoughts on the day'}</span></summary>
     <div class="mtm-stack mtm-stack--tight mtm-daysum__body">
       <textarea class="dr-textarea" id="dayNotes" rows="4" placeholder="How the whole day felt. Long is fine here.">${esc(day.notes)}</textarea>
-      ${spent > 0 ? `<div class="mtm-daysum__tally"><span class="dr-label">Spent today</span><b>${money(spent)}</b><span class="dr-caption">added up from ${priced.length} moment${priced.length === 1 ? '' : 's'} with a price</span></div>` : ''}
-      ${on.map((x) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="log-${x.k}">${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
+      ${on.map((x) => x.auto ? `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label>${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
+        <div class="mtm-daysum__tally"><b>${money(spent)}</b><span class="dr-caption">${priced.length ? `added up from ${priced.length} moment${priced.length === 1 ? '' : 's'} with a price` : 'no moment has a price yet'}</span></div></div>` : `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="log-${x.k}">${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
         <input class="dr-input" id="log-${x.k}" data-log="${x.k}" inputmode="decimal" value="${esc(day.log[x.k])}" placeholder="${x.hint}" autocomplete="off"></div>`).join('')}
       ${off.length ? `<div class="dr-field"><label for="addLog">Add to the summary</label><select class="dr-select" id="addLog"><option value="">Choose one…</option>${off.map((x) => `<option value="${x.k}">${x.label}</option>`).join('')}</select></div>` : ''}
     </div>
@@ -354,7 +352,7 @@ const HOW_IT_WORKS = [
   ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
   ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
-  ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Spent today adds itself up from the moments that have a price; add miles or steps if you keep count.'],
+  ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Add to it if you want: Spent today adds itself up from the moments that have a price; Miles and Steps are yours to type.'],
   ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
   ['Send this day', 'Had a better day than your friend logged? Send just that day. On their side it slides into the right date, and they keep what they like.'],
   ['Recap', 'When the trip’s done, or any night you like, Recap tells the story: the numbers, every icon, day by day. Save it as a PDF or pictures. Share this day makes one picture of today for a post.'],

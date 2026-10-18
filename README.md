@@ -915,6 +915,20 @@ struck.
   (only when a moment has a price), and "Add to the summary" for Miles and
   Steps. A sent day carries its summary. Tallies are not yet in the recap.
 
+  *Added 2026-10-18*, after seeing it on the phone: *"the daily summary
+  looks good. I don't want the spent today to be the like default that's
+  there. I think just the day summary box is fine [...] you can write as
+  much as you need to in the box itself. I just don't want it to impact the
+  collapsible section. I don't think it just needs to be a preview that
+  something was written there [...] put the spent today as add to the
+  summary, like it should be one of the features that you can add to it, as
+  an option."* **Changed the same day:** Spent today is now an item under
+  Add to the summary, with the sum added up once it is there; the closed
+  line says "a note" when something is written, instead of quoting it, then
+  the spend, miles or steps that were added. The note itself has no limit
+  Matt will meet (20,000 characters). The reading of "preview" as a marker
+  rather than an excerpt is the agent's.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

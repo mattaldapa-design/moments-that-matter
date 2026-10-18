@@ -265,7 +265,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-daysum[open] summary .dr-label::after { transform: rotate(90deg); }
 .mtm-daysum summary .dr-caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .mtm-daysum__body { padding: 0 var(--space-5) var(--space-5); }
-.mtm-daysum__tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--radius-md); background: var(--room-200); }
+.mtm-daysum__tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 12px 16px; border-radius: var(--radius-md); background: var(--room-200); }
 .mtm-daysum__tally b { font-family: var(--font-display); font-size: 22px; }
 
 /* About this trip */
