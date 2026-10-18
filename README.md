@@ -16,21 +16,73 @@ that. That seems to capture it in a in in a nice general term. I, I think
 there's going to be more to grow from it, but I, but I think it's a good
 start." The wording is the agent's until Matt rewrites it in his own voice.*
 
-## Current state (2026-10-17)
+## Current state (2026-10-17, evening)
 
 ```
 README.md            this file
 README-STANDARD.md   Starter Dough version 5
 CLAUDE.md            Starter Dough, as committed in 8f695d9
-git                  local only
+app/                 the first build: 1,114 lines in 8 files the agent wrote
+                     (wc -l app/index.html app/sw.js app/manifest.webmanifest
+                     app/css/app.css app/js/*.js), plus darkroom-tokens.css and
+                     darkroom.css copied from the Dark Room kit, and three
+                     placeholder icons
+.claude/launch.json  the preview server for the desktop app
+git                  local only; no remote
 ```
 
-Nothing built. Started from a portion of Starter Dough (commit `8f695d9`,
-standard version 5).
+The first build exists on the PC and has not been on Matt's phone. What it
+does: trips (start one, set its days, rename, add or remove a day, delete);
+boards (a city, a weather tap, tiles in time order, drag to reorder, a list
+view with move arrows); the add flow (the seven kinds, a type-anything box,
+a gallery of about 300 words with emojis, a word block when nothing matches);
+the block editor (a picture from the photo library, with place and time read
+from the picture when it carries them, the kind's own fields, Where with the
+phone's position on request, When, Cost, Note, nothing required, saved as he
+types); a Stay carries across its nights; a trail at the top of every screen,
+each level tappable; one-tap backup to the share sheet (or a download) as a
+`.json` with the pictures inside, and a reminder once 10 changes or 8 MB have
+piled up since the last backup (a placeholder threshold, see Open decisions);
+import of a backup, as a copy if the trip is already there; an offline shell
+through a service worker.
+
+**Verified 2026-10-17** by the agent in the desktop app's built-in browser at
+375×812, served by the launch.json server: start a trip → open Day 3 → set
+city and weather → add Food & drink → attach a synthetic JPEG carrying EXIF
+(2026-10-19 14:05, 33°50'37.6"S 151°14'28.4"E) → the block shows 33.8438°S
+151.2412°E and 14:05 → typing "scone" made a word block → a Stay with 3
+nights shows "night 2" on Day 4 → list move and tile drag both reordered and
+stayed reordered → backup produced `Australia - Moments backup
+2026-10-17.json` (38 KB: 1 day, 3 blocks, 1 picture) → importing it made a
+copy with the picture showing → the service worker reached "activated".
+
+**Changed the same evening, after Matt's first look** (verified in the
+same preview): When no longer asks for a date; Time, Cost and How long are
+off the default card and in an "Add a detail" list; each day row shows the
+emojis of its moments under its name; a ⋯ on each day row opens a sheet to
+slide a day in before or after, move it earlier or later, or remove it, and
+the dates renumber. Checked: sliding a day in before Day 3 made Day 3 empty
+and moved Sydney and its 3 moments to Day 4; a block with no details shows
+Title, Where, Note and the list; choosing Cost added the field.
+
+**Not verified:** anything on an iPhone. Home-screen install from Chrome,
+the photo picker's location behaviour, share-to-Files, long-press drag on
+touch, and whether iOS marks the storage persistent are all untested.
+
+**At risk:** the service worker serves the app shell cache-first, so a
+changed file does not reach an installed phone until `VERSION` in
+`app/sw.js` is bumped.
 
 ## Runbook
 
-None yet.
+1. **Preview on the PC.** In the desktop app, start the `moments` server from
+   `.claude/launch.json`; it runs
+   `python -m http.server 8787 --bind 127.0.0.1 --directory app`. Open
+   <http://localhost:8787>. Warning: after editing files under `app/`, bump
+   `VERSION` in `app/sw.js` or unregister the service worker in the browser,
+   or the old files keep being served.
+2. **On the phone.** Not yet possible: a home-screen web app needs an https
+   address to install from. See Open decisions.
 
 ## Intentions
 
@@ -222,6 +274,9 @@ struck.
   that date. Cross-day items are covered by Stay's nights for now. Blocks
   inside blocks are under Not now.
 
+  **Built 2026-10-17** in the first build: boards, tiles, drag, list view,
+  the seven kinds, Stay across nights.
+
 - **I5 — A block's icon can be a word instead of an emoji.** *(2026-10-17)*
   Matt, while deciding how blocks work: *"some people might not want it to
   look like emojis and might not want those. And that might not be easily
@@ -243,6 +298,10 @@ struck.
   whether it is a per-app setting or a per-block choice. (The settling
   condition is the agent's draft.)
 
+  **Built 2026-10-17** as the type-anything box: a typed word becomes an
+  emoji block when the gallery knows it, else a word block (see the
+  Decision of that date). A setting to prefer words everywhere is not built.
+
 - **I6 — A photo added to a block fills in its location (and time) from
   the photo's own data, which Matt can verify or change.** *(2026-10-17)*
   Matt: *"if I add a photo from my photos, can it just, can it autofill the
@@ -258,6 +317,10 @@ struck.
   right place and time without him typing them, and he has said what should
   happen when the photo carries no location. (The settling condition is the
   agent's draft.)
+
+  **Built 2026-10-17**, verified only on the PC with a synthetic photo (see
+  Current state). When a photo carries no position the editor offers "Use my
+  location" and a typed place; what Matt wants there is still his to say.
 
 - **I7 — Places nest: country, city, down to the building or park; a block
   folds into that, and Matt can always get back out to the top fast.**
@@ -277,6 +340,33 @@ struck.
   **Settles when:** the first version shows a block's place with its levels
   and Matt can get from the deepest screen to the trip in one tap. (The
   settling condition is the agent's draft.)
+
+  **Built in part 2026-10-17:** the trail (Trips › trip › Day n › block) is
+  on every screen and any level is one tap. A board carries a city and a
+  block carries a place; levels between country and building are not built.
+
+- **I8 — Days can be moved, and a day slid in between two others.**
+  *(2026-10-17)* Matt, on the trip page: *"added and removed days good, but
+  I think like then um, like sometimes you may miss a couple of days or do
+  them out of order. So I think we should be able to edit the day order as
+  well and or slide a day in between. Uh, another existing day."*
+
+  **Settles when:** the trip page lets him move a day and insert one, the
+  dates renumber from the first day, and the moments stay with their day.
+  (The settling condition is the agent's draft.)
+
+- **I9 — A day's row shows the emojis of its moments, a snapshot of the
+  day.** *(2026-10-17)* Matt: *"in that space in between where it like where
+  it shows the little icon of the like weather, I'd love to see all the icons
+  of the different things that we're doing that day [...] it just tells you a
+  little snapshot of what you might find in that day, like a little window
+  of like, food. I did food that day, did an activity [...] it might be
+  harder when it's on a phone because it's kind of small. But I think that
+  might be nice."*
+
+  **Settles when:** each day row shows its moments' emojis next to the
+  weather and Matt can read them on his phone. (The settling condition is
+  the agent's draft.)
 
 ## Decisions
 
@@ -420,10 +510,42 @@ decided, where it is enforced, and what it **serves**.
   Enforced: the kind list in the app's code once built. **Serves →** I4, and
   the Goal.
 
+- **2026-10-17 — A block's date is its day's date; time, cost and how long
+  are optional details added from a list, not fields on every card.**
+  Chosen: When no longer asks for a date, since the day already says it;
+  time is an extra Matt can add; cost and how long come off the default
+  card and into an "Add a detail" list on the card. Alternative: the first
+  build's card, with When, Cost and How long on every block. Matt, on his
+  first look at the build: *"the when should be pretty obvious based on the
+  start date that you pick for your tour [...] I also don't know if I want
+  time um, specifically because it just adds a lot of extra cumbersome. I
+  think it should be an option to add the time, but I don't think it's 100%
+  necessary"*; *"Cost on everything just feels very superficial [...] maybe
+  there is just like a drop-down list of all these of these things that you
+  can add, like that would be on those cards"*; *"I don't know if I'd want
+  the how long for activities"*. The agent's reading, to be confirmed:
+  picture, title, Where and Note stay on every card; a kind's own fields
+  (airline and seat, names, nights) stay on its card; Time, Cost and How long
+  move to the list. Confirmed by Matt the same evening, asked outright:
+  *"Yes, I think it should have those four as the default."* Enforced: the
+  editor in `app/js/app.js`. **Serves →**
+  the Goal's "a few taps", and I4.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **The backup reminder threshold:** what counts as
-  "substantial new content". Can wait until the backup exists.
+  "substantial new content". The first build uses 10 changes or 8 MB as a
+  placeholder.
+- *2026-10-17* — **What "Import a trip" means and where it lives.** Today
+  it reads a backup file this app made. Matt: *"I guess we got to figure out
+  what the import a trip is going to look like and, and what that
+  necessarily means [...] I guess I'm just importing like an exported file
+  from this."* Tied to I2 and I3.
+- *2026-10-17* — **Where the app lives on the web, so the iPhone can install
+  it.** It needs an https address. Options the agent sees: GitHub Pages
+  (free; needs a GitHub account and, on a free account, a public repository
+  for the app's code, not its data), or another static host. Matt's trips
+  stay on the phone either way.
 
 ## Not now
 
@@ -442,7 +564,16 @@ decided, where it is enforced, and what it **serves**.
 
 ## Open items
 
-None yet.
+- **First run on Matt's phone.** Done when Matt opens the app from a
+  home-screen icon added through Chrome on his iPhone, adds a block with a
+  picture from his own photo library, and the block shows that picture's
+  place and time without him typing them. *(2026-10-17)*
+- **Backup round trip on the phone.** Done when a backup made on the iPhone
+  is saved through the share sheet to Files and imports back as a copy with
+  its pictures showing. *(2026-10-17)*
+- **Drag on touch.** Done when Matt holds a tile on the iPhone, drags it to
+  a new spot, and the new order is still there after the app is closed and
+  reopened. *(2026-10-17)*
 
 ## Do not
 
@@ -456,3 +587,15 @@ None yet.
   targeted. I want it to be something that is um, again, it really like, jogs
   your jogs your memory and and it's not supposed to be just a photo dump of
   every single thing."*
+
+---
+
+## Findings
+
+Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Matt's first look at the first build** (in the desktop
+  preview). Kept: *"I like the little icons. I like that it does default to
+  the picture. List looks good."* Changed by the Decision of the same date:
+  When, Cost and How long on every card. Asked for: moving and inserting
+  days (I8), a day's emojis on its row (I9).

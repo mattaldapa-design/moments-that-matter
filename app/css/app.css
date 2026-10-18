@@ -1,0 +1,186 @@
+/* Moments That Matter — app styles, built beside the Dark Room classes, never over them. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; }
+body { min-height: 100%; overscroll-behavior-y: none; }
+
+/* Page: phone first, safe areas respected */
+.mtm-page { padding-top: var(--space-4); padding-bottom: calc(var(--space-9) + env(safe-area-inset-bottom)); max-width: 760px; }
+@media (max-width: 640px) { .mtm-page { padding-top: var(--space-3); } }
+
+/* Top bar: the trail. Tap any level to jump there. */
+.mtm-top {
+  position: sticky; top: 0; z-index: 20;
+  padding: calc(10px + env(safe-area-inset-top)) var(--space-4) 10px;
+  background: color-mix(in srgb, var(--room-000) 86%, transparent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  display: flex; align-items: center; gap: 6px; min-height: 56px;
+}
+.mtm-top__back {
+  width: 44px; height: 44px; flex: none; border: 0; border-radius: var(--radius-disc);
+  background: var(--room-200); color: var(--cream); font-size: 22px; cursor: pointer;
+  display: grid; place-items: center; transition: background var(--dur-quick);
+}
+.mtm-top__back:hover { background: var(--room-100); }
+.mtm-trail { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.mtm-trail::-webkit-scrollbar { display: none; }
+.mtm-trail a, .mtm-trail span {
+  font-family: var(--font-display); font-weight: 700; font-size: 17px; white-space: nowrap;
+  color: var(--cream-dim); text-decoration: none; padding: 8px 10px; border-radius: var(--radius-pill);
+  transition: color var(--dur-quick), background var(--dur-quick);
+}
+.mtm-trail a:hover { color: var(--cream); background: var(--room-200); }
+.mtm-trail .is-here { color: var(--on-accent); background: var(--accent); }
+.mtm-trail i { color: var(--cream-dim); font-style: normal; opacity: .6; }
+
+/* Stacks and rows */
+.mtm-stack { display: grid; gap: var(--space-5); }
+.mtm-stack--tight { gap: var(--space-3); }
+.mtm-bar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.mtm-bar--between { justify-content: space-between; }
+.mtm-grow { flex: 1 1 auto; min-width: 0; }
+
+/* Trip tiles: a photo or the title as the picture */
+.mtm-trip-cover .mtm-days { position: absolute; left: 12px; top: 12px; }
+
+/* Day rows */
+.mtm-daynum {
+  width: 56px; height: 56px; border-radius: var(--radius-disc); display: grid; place-items: center;
+  background: var(--room-200); font-family: var(--font-display); font-weight: 800; font-size: 20px;
+}
+.dr-row.is-empty .dr-row__title { color: var(--cream-dim); }
+
+/* Day row snapshot and options */
+.mtm-snap { font-size: 18px; line-height: 1.3; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtm-snap small { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--cream-dim); letter-spacing: 0; margin-left: 2px; }
+.mtm-more { width: 40px; height: 40px; border-radius: var(--radius-disc); border: 0; background: var(--room-200); color: var(--cream); font-size: 20px; line-height: 1; cursor: pointer; flex: none; }
+.mtm-more:hover { background: var(--room-100); }
+.mtm-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .55); z-index: 45; }
+.mtm-sheet { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
+
+/* Board header */
+.mtm-city {
+  font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.1; letter-spacing: -0.01em;
+  background: transparent; border: 0; border-bottom: 2px dashed var(--line); color: var(--cream);
+  padding: 4px 0; width: 100%; min-width: 0; border-radius: 0;
+}
+.mtm-city::placeholder { color: var(--cream-dim); }
+.mtm-city:focus { outline: none; border-bottom-color: var(--accent); }
+.mtm-weather { display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; scrollbar-width: none; }
+.mtm-weather::-webkit-scrollbar { display: none; }
+.mtm-chip {
+  flex: none; border: 0; cursor: pointer; font: inherit; font-size: 22px; line-height: 1;
+  width: 44px; height: 44px; border-radius: var(--radius-disc); background: var(--room-200); color: var(--cream);
+  box-shadow: 0 0 0 1px var(--line); transition: transform var(--dur-move) var(--ease-out), background var(--dur-quick), box-shadow var(--dur-quick);
+}
+.mtm-chip:hover { transform: translateY(-2px); }
+.mtm-chip.is-on { background: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 10px 24px -10px var(--glow); }
+.mtm-chip--text { width: auto; padding: 0 16px; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+
+/* Segmented toggle (Tiles / List) */
+.mtm-seg { display: inline-flex; background: var(--room-100); border-radius: var(--radius-pill); padding: 4px; gap: 2px; }
+.mtm-seg button {
+  border: 0; background: transparent; color: var(--cream-dim); font-family: var(--font-display); font-weight: 700; font-size: 16px;
+  padding: 8px 14px; border-radius: var(--radius-pill); cursor: pointer; transition: background var(--dur-quick), color var(--dur-quick);
+}
+.mtm-seg button.is-on { background: var(--room-200); color: var(--cream); }
+
+/* Block tiles: magnets with a picture */
+.mtm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 14px; touch-action: pan-y; }
+@media (min-width: 520px) { .mtm-grid { grid-template-columns: repeat(3, 1fr); gap: 24px 18px; } }
+.mtm-block { position: relative; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.mtm-block .dr-cover { background: var(--room-200); }
+.mtm-block__emoji {
+  position: absolute; inset: 0; display: grid; place-items: center; font-size: 64px; line-height: 1;
+  background: radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%), var(--room-200);
+}
+.mtm-block__emoji--word { font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 7vw, 30px); letter-spacing: -0.02em; text-align: center; padding: 12px; color: var(--cream); }
+.mtm-block__badge {
+  position: absolute; left: 10px; top: 10px; width: 40px; height: 40px; border-radius: var(--radius-disc);
+  display: grid; place-items: center; font-size: 22px; background: color-mix(in srgb, var(--room-000) 75%, transparent); backdrop-filter: blur(6px);
+}
+.mtm-block.is-dragging { z-index: 5; }
+.mtm-block.is-dragging .dr-cover { transform: scale(1.04) rotate(-2deg); box-shadow: var(--shadow-lift); }
+.mtm-block.is-over .dr-cover { outline: 3px dashed var(--accent); outline-offset: 4px; }
+.mtm-block .dr-tile__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Stay ghosts carried across days */
+.mtm-carry { display: flex; gap: 10px; flex-wrap: wrap; }
+.mtm-carry .dr-magnet { position: static; cursor: pointer; }
+
+/* List view move buttons */
+.mtm-move { display: inline-flex; gap: 4px; }
+.mtm-move button { width: 40px; height: 40px; border-radius: var(--radius-disc); border: 0; background: var(--room-200); color: var(--cream); font-size: 18px; cursor: pointer; }
+.mtm-move button:disabled { opacity: .3; cursor: default; }
+
+/* Floating add button */
+.mtm-fab {
+  position: fixed; right: calc(var(--space-4) + env(safe-area-inset-right)); bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  z-index: 15; width: 64px; height: 64px; font-size: 34px; box-shadow: 0 18px 40px -12px var(--glow);
+}
+
+/* Add page */
+.mtm-kinds { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 520px) { .mtm-kinds { grid-template-columns: repeat(4, 1fr); } }
+.mtm-kind {
+  display: grid; gap: 6px; justify-items: start; padding: 16px; border: 0; border-radius: var(--radius-lg);
+  background: var(--room-100); color: var(--cream); cursor: pointer; text-align: left; font: inherit;
+  box-shadow: 0 0 0 1px var(--line); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out), background var(--dur-quick);
+}
+.mtm-kind:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); background: var(--room-200); }
+.mtm-kind__emoji { font-size: 34px; line-height: 1; }
+.mtm-kind__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+.mtm-gallery { display: flex; flex-wrap: wrap; gap: 8px; }
+.mtm-word {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px 10px 12px; border: 0; border-radius: var(--radius-pill);
+  background: var(--room-200); color: var(--cream); font-family: var(--font-display); font-weight: 700; font-size: 17px; cursor: pointer;
+  box-shadow: 0 0 0 1px var(--line); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out);
+}
+.mtm-word:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -14px var(--glow), 0 0 0 1px color-mix(in srgb, var(--accent) 60%, transparent); }
+.mtm-word--new { background: var(--accent); color: var(--on-accent); }
+.mtm-word em { font-style: normal; font-size: 20px; }
+
+/* Editor */
+.mtm-editor-head { display: flex; align-items: center; gap: 16px; }
+.mtm-editor-head .mtm-big { font-size: 56px; line-height: 1; }
+.mtm-editor-head .mtm-big--word { font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: -0.02em; }
+.mtm-photo { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden; background: var(--room-100); box-shadow: var(--shadow-rest); cursor: pointer; display: grid; place-items: center; }
+.mtm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mtm-photo__empty { display: grid; gap: 6px; justify-items: center; color: var(--cream-dim); text-align: center; padding: 20px; }
+.mtm-photo__empty b { font-family: var(--font-display); font-size: 20px; color: var(--cream); }
+.mtm-photo input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+.mtm-fields { display: grid; gap: var(--space-4); }
+@media (min-width: 520px) { .mtm-fields--two { grid-template-columns: 1fr 1fr; } }
+.mtm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mtm-where { display: grid; gap: 8px; }
+.mtm-coords { color: var(--cream-dim); font-size: 15px; font-variant-numeric: tabular-nums; }
+
+/* Stepper */
+.mtm-stepper { justify-self: start; display: inline-flex; align-items: center; gap: 6px; background: var(--room-200); border-radius: var(--radius-pill); padding: 4px; }
+.mtm-stepper button { width: 44px; height: 44px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream); font-size: 22px; cursor: pointer; }
+.mtm-stepper output { min-width: 64px; text-align: center; font-family: var(--font-display); font-weight: 800; font-size: 22px; font-variant-numeric: tabular-nums; }
+
+/* Menus (simple sheet) */
+.mtm-sheet { display: grid; gap: 6px; }
+.mtm-sheet .dr-btn { justify-content: flex-start; width: 100%; }
+
+/* Toast */
+.mtm-toast {
+  position: fixed; left: 50%; bottom: calc(var(--space-7) + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 60; background: var(--room-200); color: var(--cream); padding: 12px 20px; border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-float); font-family: var(--font-display); font-weight: 700; font-size: 17px; max-width: calc(100vw - 32px); text-align: center;
+}
+
+/* Empty states */
+.mtm-empty { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-6) 0; }
+
+/* Backup line */
+.mtm-backup { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Storage footer */
+.mtm-foot { color: var(--cream-dim); font-size: 15px; padding-top: var(--space-6); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mtm-chip, .mtm-kind, .mtm-word, .mtm-top__back, .mtm-block .dr-cover { transition: none !important; transform: none !important; }
+}

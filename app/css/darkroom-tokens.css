@@ -1,0 +1,68 @@
+/* Dark Room — design tokens. Mirrors tokens.json in the Dark Room design system.
+   Load the Google Fonts link first, then this file, then darkroom.css.
+   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600&display=swap">
+*/
+:root {
+  color-scheme: dark;
+
+  /* The room */
+  --room-000: #15100e;                    /* page background, warm black */
+  --room-100: #1f1715;                    /* panels, cards, the crate */
+  --room-200: #2b201c;                    /* raised: popovers, inputs, magnets */
+  --line: rgba(255, 228, 206, 0.10);      /* hairlines and dividers */
+
+  /* Text */
+  --cream: #f5ebe2;                       /* primary text */
+  --cream-dim: rgba(245, 235, 226, 0.62); /* secondary text; nothing dimmer */
+
+  /* The family accent */
+  --signal: #ff4d2e;
+  --on-signal: #15100e;
+
+  /* Splashes a project can earn */
+  --hot-pink: #ff3f94;  --on-hot-pink: #15100e;
+  --acid: #e9f227;      --on-acid: #15100e;
+  --lagoon: #22b9c2;    --on-lagoon: #15100e;   /* artwork and badges only */
+
+  /* State, always paired with a word or icon */
+  --state-good: #8fe388;
+  --state-warn: var(--acid);
+  --state-bad: var(--signal);
+
+  /* Light */
+  --glow: rgba(255, 77, 46, 0.45);
+  --focus: var(--signal);
+  --shadow-rest: 0 10px 30px -18px rgba(0, 0, 0, 0.9);
+  --shadow-lift: 0 30px 60px -22px rgba(255, 77, 46, 0.6), 0 0 0 2px rgba(255, 77, 46, 0.35);
+  --shadow-float: 0 30px 70px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 228, 206, 0.10);
+
+  /* Voice */
+  --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;            /* talking */
+  --font-loud: "Unbounded", "Outfit", "Segoe UI", system-ui, sans-serif;  /* one line per screen */
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;              /* quiet */
+
+  /* Space, 4px scale */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px; --space-5: 24px;
+  --space-6: 32px; --space-7: 48px; --space-8: 64px; --space-9: 96px;
+
+  /* Shape, circles first */
+  --radius-sm: 10px; --radius-md: 14px; --radius-lg: 18px; --radius-xl: 24px;
+  --radius-pill: 999px; --radius-disc: 50%;
+
+  /* Motion, nothing snaps */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-quick: 200ms; --dur-move: 350ms; --dur-slow: 600ms; --dur-peek-delay: 320ms;
+}
+
+/* Type styles, same names as the design system */
+.hero       { font-family: var(--font-loud); font-size: 64px; line-height: .98; font-weight: 800; letter-spacing: -0.01em; }
+.big-number { font-family: var(--font-loud); font-size: 48px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; }
+.title-xl   { font-family: var(--font-display); font-size: 44px; line-height: 1.05; font-weight: 700; letter-spacing: -0.015em; }
+.title      { font-family: var(--font-display); font-size: 32px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+.heading    { font-family: var(--font-display); font-size: 24px; line-height: 1.2; font-weight: 700; }
+.label      { font-family: var(--font-display); font-size: 18px; line-height: 1.2; font-weight: 700; }
+.eyebrow    { font-family: var(--font-display); font-size: 15px; line-height: 1.2; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.body-lg    { font-family: var(--font-body); font-size: 21px; line-height: 1.5; font-weight: 400; }
+.body       { font-family: var(--font-body); font-size: 18px; line-height: 1.5; font-weight: 400; }
+.body-sm    { font-family: var(--font-body); font-size: 16px; line-height: 1.45; font-weight: 400; }
+.caption    { font-family: var(--font-body); font-size: 15px; line-height: 1.4; font-weight: 500; }
