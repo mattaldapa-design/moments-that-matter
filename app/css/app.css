@@ -59,6 +59,8 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-sheet { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
 
 /* Place levels */
+.mtm-place { display: grid; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--room-200); }
+.mtm-place .mtm-person { background: var(--room-100); }
 .mtm-region { font-size: 20px; font-weight: 500; color: var(--cream-dim); margin-top: 6px; }
 .mtm-region:focus { color: var(--cream); }
 .mtm-placetrail { margin-top: -4px; }

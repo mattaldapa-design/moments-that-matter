@@ -30,6 +30,7 @@ export async function gather(trip) {
     days.push({ ...d, index: i, date: addDays(trip.startDate, i), blocks: blocks.filter((b) => b.dayIndex === i) });
   }
   const cover = (trip.coverPhotoId && pmap[trip.coverPhotoId]) || photos[0] || null;
+  if (Array.isArray(trip.places) && trip.places.length) trip.region = trip.places.map((p) => p.name).join(', ');
   return { trip, blocks, photos, pmap, days, cover };
 }
 

@@ -415,14 +415,15 @@ struck.
   and Matt can get from the deepest screen to the trip in one tap. (The
   settling condition is the agent's draft.)
 
-  **Built 2026-10-17**, in two passes: the trail (Trips › trip › Day n ›
-  block) on every screen, any level one tap; then a trip's region ("Where
-  in the world?" on the trip page), the city in the trail ("Day 4 ·
-  Sydney"), a place trail above Where in the editor ("Australia › Sydney ›
-  Rainforest Trail, Mosman"), the region on the recap's cover, and a
-  "cities and towns" stat once a trip has more than one. Verified in the
-  preview. Getting out from the deepest screen is still one tap on the
-  trail or the back arrow.
+  **Built 2026-10-17**, in three passes: the trail (Trips › trip › Day n ›
+  block) on every screen, any level one tap; then the city in the trail
+  ("Day 4 · Sydney"), a place trail above Where in the editor ("Australia ›
+  Sydney › Rainforest Trail, Mosman"), and a "cities and towns" stat once a
+  trip has more than one; then, after the ninth look, **Places** in "About
+  this trip": countries with their cities listed underneath, which the
+  board offers when a day's city is typed, and which the trail and the
+  recap's cover use. Verified in the preview. Getting out from the deepest
+  screen is still one tap on the trail or the back arrow.
 
 - **I8 — Days can be moved, and a day slid in between two others.**
   *(2026-10-17)* Matt, on the trip page: *"added and removed days good, but
@@ -1035,6 +1036,20 @@ limits before I break them."*
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Ninth look, the trip page header.** *"I don't need the
+  number of megabytes in this trip. That's that doesn't need to be up at
+  the very top [...] The trip title, like I, I have one right now that I
+  call I'm calling Australia and New Zealand, and then underneath it says
+  where in the world, and then I'm going to put Australia and New Zealand
+  again. So it just feels a little I don't know. Like, redundant [...] I
+  wish there'd be a way that you can either like again put Australia and
+  then like list the cities underneath it and then New Zealand put the
+  cities underneath it [...] the top just feels a little like eh a little
+  cluttered and redundant."* Changed the same day: the header is the dates
+  and the title only; pictures and size moved into "About this trip"; "Where
+  in the world?" became **Places** there, countries with their cities
+  underneath, and a board offers those cities when you type where you were.
 
 - **2026-10-17 — Eighth look.** The Activity prompt appeared above where
   he tapped, out of view: *"I didn't even notice I tapped activity and I
