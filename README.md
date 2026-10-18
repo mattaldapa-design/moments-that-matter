@@ -785,11 +785,16 @@ decided, where it is enforced, and what it **serves**.
   Enforced: this list; each lands as its own entry when built. **Serves →**
   I3, I7, I5.
 
+- **2026-10-17 — The backup reminder shows after 10 changes since the last
+  backup.** Chosen: the placeholder from the first build stays, 10 changes
+  or 8 MB of new pictures, whichever first. Alternative: a larger or
+  size-only threshold. Matt: *"I think the backup threshold after 10 changes
+  is, is a good good limit to start here uh, for a backup."* The 8 MB half
+  is the agent's, kept as a safety net for picture-heavy days. Enforced:
+  `BACKUP_DUE` in `app/js/app.js`. **Serves →** I3.
+
 **Open decisions — waiting on Matt, oldest first:**
 
-- *2026-10-17* — **The backup reminder threshold:** what counts as
-  "substantial new content". The first build uses 10 changes or 8 MB as a
-  placeholder.
 - *2026-10-17* — **What "Import a trip" means and where it lives.** Today
   it reads a backup file this app made. Matt: *"I guess we got to figure out
   what the import a trip is going to look like and, and what that
@@ -831,7 +836,9 @@ decided, where it is enforced, and what it **serves**.
 - **First run on Matt's phone.** Done when Matt opens the app from a
   home-screen icon added through Chrome on his iPhone, adds a block with a
   picture from his own photo library, and the block shows that picture's
-  place and time without him typing them. *(2026-10-17)*
+  place and time without him typing them. *(2026-10-17)* **Done
+  2026-10-17:** installed through Chrome, a library picture filled in time
+  and coordinates (see Findings).
 - **Backup round trip on the phone.** Done when a backup made on the iPhone
   is saved through the share sheet to Files and imports back as a copy with
   its pictures showing. *(2026-10-17)* **Done 2026-10-17**, by way of
@@ -839,7 +846,9 @@ decided, where it is enforced, and what it **serves**.
   Everything repopulated relatively easily."*
 - **Drag on touch.** Done when Matt holds a tile on the iPhone, drags it to
   a new spot, and the new order is still there after the app is closed and
-  reopened. *(2026-10-17)*
+  reopened. *(2026-10-17)* **Done 2026-10-17**, Matt: *"when I open uh, and my
+  phone and I, I, I drag a photo or a tile to a new spot, it does survive
+  closing. So that looks good."*
 
 ## Do not
 
