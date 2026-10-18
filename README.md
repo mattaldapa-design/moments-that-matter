@@ -1253,6 +1253,12 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-18 — Another agent read this project as a UI reference.**
+  Matt: another AI agent on a different project *"use[d] our journal
+  design as a reference for the UI and and concept [...] they didn't change
+  anything."* Checked the same day: working trees clean, no stray files, no
+  extra branches or stashes, remote matches local. Nothing to undo.
+
 - **2026-10-18 — "As entered" goes.** Matt, on the recap's money lines:
   *"it's just kind of a weird phrase there [...] spent in total [...] spent
   on food and drinks and like I don't think we need the as entered thing
