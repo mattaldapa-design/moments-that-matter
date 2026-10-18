@@ -1158,6 +1158,16 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-18 — The help text read like work.** Matt: *"let's change it
+  from how it works to like user guide [...] This this app should be fun
+  [...] all of that stuff kind of sounds like work. So I want it to feel
+  like something that like something gets you excited to use it [...] I
+  don't want all of those to take up that [...] Keeps the trip here. Do that
+  whenever the reminder shows. I don't. I don't think it needs the
+  instructions [...] let's try and simplify it a little bit."* Rewritten
+  the same day: "User guide", one or two warm lines each, the backup trio
+  kept side by side without instructions.
+
 - **2026-10-17 — Code review of the day's work** (the agent's /code-review
   at high effort, ten findings, all fixed the same day, version 25): a
   backup file's emoji, weather and ids were rendered as raw HTML, so a

@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 28; // keep in step with VERSION in sw.js
+const APP_VERSION = 29; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -282,13 +282,13 @@ async function trips() {
 
 // Settings & help (Decision, 2026-10-17): how it works, the settings, and your name.
 const HOW_IT_WORKS = [
-  ['Trips, days and moments', 'A trip is a run of days. Each day has a board. On a board you add moments: a meal, a place, a person you met, anything. Tap the + and pick a kind, or type any word and take the icon it offers. Nothing is required on a moment; fill in what you feel like, when you feel like it.'],
-  ['Pictures', 'Every moment can carry one picture from your photo library. When the photo has a time and a place in it, they fill in by themselves. On each day you can mark up to four pictures as key pictures; those lead on the day’s card and in the recap, in the order you tapped them.'],
-  ['Where', 'Each moment can say where it was. A picture or "Use my location" gives a position; "Look up the name" turns that into a place name using an online map service, only when you ask, or always if you switch that on below. Under About this trip you can list the countries and cities of the trip, and the boards offer them as you type.'],
-  ['Back up, Archive, Pass the notebook', 'All three make the same file: the whole trip, pictures included, which you save to Files, iCloud Drive, Google Drive, or send by Messages. Back up keeps the trip here; do that whenever the reminder shows. Archive makes the file and then takes the trip off this phone, to free space; Import a trip brings it back whole. Pass the notebook sends the file to someone and locks the trip here until their file comes back through Import a trip, which then replaces yours with everything they added. One person writes at a time, and the notebook always comes home.'],
-  ['Send this day, Import a trip', 'Send this day, in a day’s ⋯ menu, sends just that day and its pictures to someone. Import a trip, on the Trips screen, opens any of these files. A whole trip you don’t have arrives as itself; one you already have arrives as a copy, unless you passed it on, in which case it comes home in its place. A day asks which trip it joins, then adds its moments to the day with the same date, or as a new day at the end; moments already there from an earlier send are skipped, and you remove what you don’t want.'],
-  ['Recap and Share this day', 'Recap, on a trip’s page, sums the trip up: the numbers, every icon, then day by day. Save it as a PDF or as pictures. Share this day, on a board, makes one picture of that day for Messages or a post. Both are made on the phone; nothing is uploaded.'],
-  ['Storage and updates', 'Everything lives on this phone, inside the app. The gauge below shows how much of what the phone allows is in use; archive a finished trip when it fills. New versions arrive when you reopen the app, or from Check for an update. If the app ever reopens by itself, that was an update taking over between screens.'],
+  ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
+  ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever.'],
+  ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
+  ['Back up, Archive, Pass the notebook', 'All three make the same file, and it’s yours to keep anywhere. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Pass the notebook: send the trip to someone and let them write in it until it comes back.'],
+  ['Send this day', 'Had a better day than your friend logged? Send just that day. On their side it slides into the right date, and they keep what they like.'],
+  ['Recap', 'When the trip’s done, or any night you like, Recap tells the story: the numbers, every icon, day by day. Save it as a PDF or pictures. Share this day makes one picture of today for a post.'],
+  ['Yours', 'Everything stays on this phone until you send it. Nothing is uploaded, nothing needs an account.'],
 ];
 async function settingsPage() {
   const my = renderSeq;
@@ -304,7 +304,7 @@ async function settingsPage() {
       <div id="storage"></div>
       <div class="mtm-bar mtm-bar--between"><span class="dr-body-sm">Version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" id="checkUpdate">Check for an update</button></div>
     </div>
-    <div><div class="dr-eyebrow">How it works</div>
+    <div><div class="dr-eyebrow">User guide</div>
       <div class="mtm-stack mtm-stack--tight mtm-help">${HOW_IT_WORKS.map(([h, p]) => `<section class="dr-panel"><h2 class="dr-label">${esc(h)}</h2><p class="dr-body-sm">${esc(p)}</p></section>`).join('')}</div></div>
     <div class="mtm-foot">Moments That Matter is built for one phone at a time. Your trips never leave it unless you send them.</div>
   </div>`)) return;
