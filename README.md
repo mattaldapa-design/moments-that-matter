@@ -32,7 +32,8 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-The first build exists on the PC and has not been on Matt's phone. What it
+The first build is published (see below) and has not been tried on Matt's
+phone. What it
 does: trips (start one, set its days, rename, add or remove a day, delete);
 boards (a city, a weather tap, tiles in time order, drag to reorder, a list
 view with move arrows); the add flow (the seven kinds, a type-anything box,
@@ -67,6 +68,12 @@ and moved Sydney and its 3 moments to Day 4; a block with no details shows
 Title, Where, Note and the list; choosing Cost added the field.
 
 Later the same evening: a day's key picture (I10), chosen from a block.
+
+**Published 2026-10-17 (late evening, 2026-10-18 UTC):** workflow run 6 on
+commit `9efdc81` succeeded; `curl -s -o /dev/null -w "%{http_code}"
+https://mattaldapa-design.github.io/moments-that-matter/` returned 200, and
+in the desktop app's browser the page loaded with the manifest and the
+service worker "activated" at that scope, no console errors.
 
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
