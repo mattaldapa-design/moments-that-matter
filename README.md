@@ -555,6 +555,43 @@ struck.
   **Built 2026-10-17**, verified in the preview: an emoji opened "New
   Friends" on Day 1; the Day 1 band opened its board.
 
+- **I16 — Pull activity data from the phone or Apple Watch: steps, miles
+  hiked, stairs.** *(2026-10-17)* Matt: *"I wear an Apple Watch. I don't
+  know if there's any way to sync my step count. Um, you know, if I do a
+  trail, like, it, it'd be nice to put, like, step counts or miles hiked or,
+  um, you know, like, like stairs, uh, you know, taken [...] data that maybe
+  if I wanted to sync from my phone, I could."* Agent's note: a home-screen
+  web app cannot read Apple Health; that needs a native app (see the
+  platform Decision). Typing the numbers as details is the reach today.
+
+  **Settles when:** Matt has heard that limit and said whether typed
+  details are enough for now. (The settling condition is the agent's draft.)
+
+- **I17 — More kinds of detail to add to a block, including his own.**
+  *(2026-10-17)* Matt: *"I'm also not 100% enamored with all of the uh, add
+  detail functions because, I mean, yes, cost, how long, website, but I feel
+  like there could be more options to add um, things from that from that
+  drop down menu [...] it can be a bit. Limiting in what I add"*; examples
+  across his telling: steps, miles, stairs, seat numbers, hotel room number.
+
+  **Settles when:** the list has grown and includes a detail Matt names
+  himself, and he has used it on a real block. (The settling condition is
+  the agent's draft.)
+
+- **I18 — Trip-level information: who he travelled with, the cruise line,
+  a packing list, and other big-picture things, apart from the days.**
+  *(2026-10-17)* Matt: *"I'm also wondering if there's like overall trip
+  info because it's great day by day, but like you know maybe just name it.
+  Who did you travel with? Um, what was the cruise line? [...] maybe you can
+  have a packing list. Uh, included, um, like what you packed, what you
+  brought [...] these are, like, all optional things, but I think, like,
+  they might need to live separately [...] at the high level of the trip
+  level and then um, and then versus at the at the day level."*
+
+  **Settles when:** the trip page has a place for trip-wide details and a
+  packing list, and Matt has said what the first version holds. (The
+  settling condition is the agent's draft.)
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
