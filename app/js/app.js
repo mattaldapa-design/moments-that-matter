@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 37; // keep in step with VERSION in sw.js
+const APP_VERSION = 38; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -86,17 +86,20 @@ function daySummary(day, blocks) {
   const spent = priced.reduce((s, b) => s + num(b.details.cost), 0);
   const on = LOGS.filter((x) => day.log[x.k] !== undefined);
   const off = LOGS.filter((x) => day.log[x.k] === undefined);
+  const minds = blocks.flatMap((b) => (normalize(b).mind.length ? b.mind.map((m) => ({ b, m })) : b.kind === 'mind' ? [{ b, m: null }] : []));
   const bits = [];
   if (day.notes.trim()) bits.push('a note');
+  if (minds.length) bits.push(`${minds.length} I statement${minds.length === 1 ? '' : 's'}`);
   on.forEach((x) => { if (x.auto) { if (spent > 0) bits.push(`${money(spent)} spent`); } else if (day.log[x.k]) bits.push(`${day.log[x.k]} ${x.label.toLowerCase()}`); });
   return `<details class="dr-panel mtm-daysum" id="daysum" ${sumOpen ? 'open' : ''}>
     <summary><span class="dr-label">Day summary</span><span class="dr-caption">${bits.length ? esc(bits.join(' · ')) : 'your thoughts on the day'}</span></summary>
     <div class="mtm-stack mtm-stack--tight mtm-daysum__body">
       <textarea class="dr-textarea" id="dayNotes" rows="4" placeholder="How the whole day felt. Long is fine here.">${esc(day.notes)}</textarea>
+      ${minds.length ? `<div class="mtm-mindlist">${minds.map(({ b, m }) => `<button type="button" class="mtm-mindlink" data-go="/t/${b.tripId}/d/${b.dayIndex}/b/${b.id}"><span>💭</span><span class="mtm-grow">${m ? esc(mindLead(m)) + '…' : 'Nothing written yet…'}</span>${b.kind !== 'mind' ? `<span class="dr-caption">in ${esc(titleOf(b))}</span>` : ''}</button>`).join('')}</div>` : ''}
       ${on.map((x) => x.auto ? `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label>${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
         <div class="mtm-daysum__tally"><b>${money(spent)}</b><span class="dr-caption">${priced.length ? `added up from ${priced.length} moment${priced.length === 1 ? '' : 's'} with a price` : 'no moment has a price yet'}</span></div></div>` : `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="log-${x.k}">${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
         <input class="dr-input" id="log-${x.k}" data-log="${x.k}" inputmode="decimal" value="${esc(day.log[x.k])}" placeholder="${x.hint}" autocomplete="off"></div>`).join('')}
-      ${off.length ? `<div class="dr-field"><label for="addLog">Add to the summary</label><select class="dr-select" id="addLog"><option value="">Choose one…</option>${off.map((x) => `<option value="${x.k}">${x.label}</option>`).join('')}</select></div>` : ''}
+      <div class="dr-field"><label for="addLog">Add to the summary</label><select class="dr-select" id="addLog"><option value="">Choose one…</option><option value="__mind">Mindfulness</option>${off.map((x) => `<option value="${x.k}">${x.label}</option>`).join('')}</select></div>
     </div>
   </details>`;
 }
@@ -169,8 +172,17 @@ let aboutOpen = false;
 try { aboutOpen = localStorage.getItem('mtm-about') === '1'; } catch { /* default closed */ }
 const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
 // Bring an older block up to the current shape (time/cost used to be fields on every card).
+// Mindfulness (I34, Decision 2026-10-18): I statements, on a Mindfulness moment or inside any other.
+const PROMPTS = ['I was surprised', 'I felt', 'I reflected', 'I learned', 'I noticed', 'I’m grateful for'];
+const cleanMind = (v) => (Array.isArray(v) ? v : []).filter((m) => m && typeof m === 'object').slice(0, 50)
+  .map((m) => ({ p: typeof m.p === 'string' ? m.p.slice(0, 40) : '', t: typeof m.t === 'string' ? m.t.slice(0, 2000) : '' }));
+const mindLead = (m) => m.p || (m.t.trim().split(/\s+/).slice(0, 4).join(' ') || 'I …');
+const mindLine = (m) => `${m.p ? m.p + ' ' : ''}${m.t}`.trim();
+// Words for a tile with no picture (Matt, 2026-10-18): a Note shows its note, a Mindfulness moment its statements.
+const tileWords = (b) => (b.kind === 'note' ? (b.note || '').trim() : b.kind === 'mind' ? b.mind.map(mindLine).filter(Boolean).join(' · ') : '');
 function normalize(b) {
   b.fields = b.fields || {}; b.place = b.place || { name: '', lat: null, lon: null }; b.details = b.details || {}; b.extras = b.extras || []; b.custom = b.custom || [];
+  b.mind = cleanMind(b.mind);
   if (b.time) { b.details.time = b.time.includes('T') ? b.time.slice(11, 16) : b.time; delete b.time; }
   if (b.cost) { b.details.cost = b.cost; delete b.cost; }
   if (b.fields.duration) { b.details.duration = b.fields.duration; delete b.fields.duration; }
@@ -353,6 +365,7 @@ const HOW_IT_WORKS = [
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
   ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
   ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Add to it if you want: Spent today adds itself up from the moments that have a price; Miles and Steps are yours to type.'],
+  ['Mindfulness', 'A kind of moment of its own, 💭, or an I statement inside any other moment: I was surprised, I felt, I reflected, I learned, I noticed, I’m grateful for, or your own. The day summary lists the day’s statements and opens each one; Add to the summary → Mindfulness starts a new one. A Note or Mindfulness tile with no picture shows its words.'],
   ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
   ['Send this day', 'Had a better day than your friend logged? Send just that day. On their side it slides into the right date, and they keep what they like.'],
   ['Recap', 'When the trip’s done, or any night you like, Recap tells the story: the numbers, every icon, day by day. Save it as a PDF or pictures. Share this day makes one picture of today for a post.'],
@@ -725,6 +738,7 @@ async function recapPage(trip) {
 }
 
 let ownOpen = null; // block id whose "Your own" row is open
+let mindOpen = null; // block id that just asked for an I statement
 let view = 'tiles';
 try { view = localStorage.getItem('mtm-view') || 'tiles'; } catch { /* storage blocked: default view */ }
 let dragMoved = false;
@@ -743,7 +757,9 @@ async function board(trip, i) {
   const tile = (b) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
     const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
+    const words = ph ? '' : tileWords(normalize(b));
     const face = ph ? `<img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
+      : words ? `<div class="mtm-block__emoji mtm-block__emoji--text">${esc(words)}</div><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>`
       : (b.emoji ? `<div class="mtm-block__emoji">${esc(b.emoji)}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
     return `<div class="dr-tile mtm-block" data-id="${b.id}" data-kind="${esc(b.kind || 'other')}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
       <div class="dr-cover">${face}</div>
@@ -791,7 +807,7 @@ async function board(trip, i) {
   $$('[data-log]').forEach((inp) => { inp.oninput = () => { day.log[inp.dataset.log] = inp.value; saveDay(); }; });
   $$('[data-droplog]').forEach((x) => { x.onclick = async () => { delete day.log[x.dataset.droplog]; await db.put('days', day); await touch(trip); render(); }; });
   const al = $('#addLog');
-  if (al) al.onchange = async () => { const k = al.value; if (!k) return; day.log[k] = ''; await db.put('days', day); await touch(trip); render(); setTimeout(() => $(`#log-${k}`)?.focus(), 50); };
+  if (al) al.onchange = async () => { const k = al.value; if (!k) return; if (k === '__mind') { await saveDay.flush(); await createBlock(trip, i, { kind: 'mind', emoji: '💭', label: 'Mindfulness' }); return; } day.log[k] = ''; await db.put('days', day); await touch(trip); render(); setTimeout(() => $(`#log-${k}`)?.focus(), 50); };
   $('#weather').onclick = async (e) => {
     const b = e.target.closest('[data-w]'); if (!b) return;
     day.weather = day.weather === b.dataset.w ? '' : b.dataset.w;
@@ -995,6 +1011,12 @@ async function editor(trip, i, bid) {
       : `<div class="mtm-bar"><span class="mtm-grow ${d.k === 'cost' ? 'mtm-money' : ''}"><input class="dr-input" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} ${d.k === 'cost' ? 'inputmode="decimal"' : ''} ${d.numeric ? 'inputmode="numeric"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></span>${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div>`}</div>`;
   const customRow = (c, k) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="c-${k}">${esc(c.label)}</label><button type="button" class="mtm-x" data-dropcustom="${k}" aria-label="Remove ${esc(c.label)}">×</button></div>
     <input class="dr-input" id="c-${k}" data-custom="${k}" value="${esc(c.value || '')}" placeholder="${esc(c.label)}" autocomplete="off"></div>`;
+  const mindRow = (m, k) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="m-${k}">${esc(m.p || 'Your own')}</label><button type="button" class="mtm-x" data-dropmind="${k}" aria-label="Remove this statement">×</button></div>
+    <textarea class="dr-textarea" id="m-${k}" data-mind="${k}" rows="2" placeholder="${m.p ? '… finish the sentence' : 'I …'}">${esc(m.t)}</textarea></div>`;
+  const mindSection = (b.kind === 'mind' || b.mind.length || mindOpen === b.id) ? `<div class="dr-field mtm-mind"><label>${b.kind === 'mind' ? 'I statements' : 'Mindfulness'}</label>
+    ${b.mind.map(mindRow).join('')}
+    <div class="dr-field__hint">${b.mind.length ? 'Add another:' : 'Start with:'}</div>
+    <div class="mtm-chips">${PROMPTS.map((p) => `<button type="button" class="mtm-chip mtm-chip--text" data-prompt="${esc(p)}">${esc(p)}…</button>`).join('')}<button type="button" class="mtm-chip mtm-chip--text" data-prompt="">Your own</button></div></div>` : '';
   const ownRow = ownOpen === b.id ? `<div class="dr-field mtm-detail"><label for="ownLabel">Your own detail</label>
     <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownLabel" placeholder="Name the detail" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownAdd">Add</button></div></div>` : '';
 
@@ -1003,6 +1025,7 @@ async function editor(trip, i, bid) {
       <span class="mtm-emojiwrap">${b.emoji ? `<span class="mtm-big">${esc(b.emoji)}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}<button type="button" class="mtm-pencil mtm-pencil--emoji" id="editEmoji" aria-label="Change the emoji">✎</button></span>
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
+    ${b.kind === 'mind' ? `<div class="mtm-fields">${mindSection}</div>` : ''}
     ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}" role="button" tabindex="0" aria-label="Tap where the picture should stay in frame">
       <img src="${photoUrl(ph)}" alt=""><span class="mtm-focus" id="focusDot" style="left:${Math.round((ph.focus?.x ?? 0.5) * 100)}%;top:${Math.round((ph.focus?.y ?? 0.5) * 100)}%"></span>
     </div>
@@ -1021,12 +1044,13 @@ async function editor(trip, i, bid) {
         <div class="mtm-bar"><span class="mtm-coords" id="coords">${coordsText(b.place)}</span><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="locate">Use my location</button>${b.place.lat != null ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="lookup">Look up the name</button>' : ''}</div>
       </div>
       <div class="dr-field"><label for="note">Note</label><textarea class="dr-textarea" id="note" rows="3" placeholder="Only if you want to.">${esc(b.note)}</textarea></div>
+      ${b.kind !== 'mind' ? mindSection : ''}
       ${shown.map(detail).join('')}
       ${b.custom.map(customRow).join('')}
       ${ownRow}
       <div class="dr-field"><label>Also on</label><div class="mtm-chips" id="alsoDays">${dayChips}</div>
         <div class="dr-field__hint">Tap a day to put this there too. The name and place travel with it; each day keeps its own picture, note and details.</div></div>
-      <div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
+      <div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}${b.kind !== 'mind' && !b.mind.length && mindOpen !== b.id ? '<option value="__mind">I statement (mindfulness)</option>' : ''}<option value="__own">Your own…</option></select></div>
     </div>
     <div class="mtm-bar mtm-bar--between">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="deleteBlock">Delete this moment</button>
@@ -1076,6 +1100,9 @@ async function editor(trip, i, bid) {
   $$('[data-unperson]').forEach((x) => { x.onclick = async () => { b.fields.people.splice(Number(x.dataset.unperson), 1); await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); render(); }; });
   $('#where').oninput = (e) => { b.place.name = e.target.value; const pt = $('#placeTrail'); if (pt) pt.innerHTML = `${esc(countryOf(trip, day.city))} › ${esc(day.city || '…')} › <b>${esc(b.place.name || '…')}</b>`; save(); };
   $('#note').oninput = (e) => { b.note = e.target.value; save(); };
+  $$('[data-prompt]').forEach((c) => { c.onclick = async () => { b.mind.push({ p: c.dataset.prompt, t: '' }); mindOpen = null; await save.flush(); await db.put('blocks', b); await touch(trip); render(); setTimeout(() => $(`#m-${b.mind.length - 1}`)?.focus(), 50); }; });
+  $$('[data-mind]').forEach((ta) => { ta.oninput = () => { b.mind[Number(ta.dataset.mind)].t = ta.value; save(); }; });
+  $$('[data-dropmind]').forEach((x) => { x.onclick = async () => { b.mind.splice(Number(x.dataset.dropmind), 1); await save.flush(); await db.put('blocks', b); await touch(trip); render(); }; });
   $$('[data-field]').forEach((inp) => { inp.oninput = () => { b.fields[inp.dataset.field] = inp.value; save(); }; });
   $$('[data-detail]').forEach((inp) => {
     inp.oninput = () => { b.details[inp.dataset.detail] = inp.value; save(); };
@@ -1088,6 +1115,7 @@ async function editor(trip, i, bid) {
   if (add) add.onchange = async () => {
     if (!add.value) return;
     if (add.value === '__own') { ownOpen = b.id; await save.flush(); render(); setTimeout(() => $('#ownLabel')?.focus(), 50); return; }
+    if (add.value === '__mind') { mindOpen = b.id; await save.flush(); render(); setTimeout(() => $('.mtm-mind')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50); return; }
     b.extras.push(add.value); await save.flush(); await db.put('blocks', b); render(); setTimeout(() => $(`#d-${add.value}`)?.focus(), 50);
   };
   const ownLabel = $('#ownLabel');
@@ -1323,7 +1351,7 @@ function cleanImport(data) {
     ...d, weather: safeGlyph(d.weather), keyPhotos: (Array.isArray(d.keyPhotos) ? d.keyPhotos : [d.keyPhotoId]).map(safeId).filter(Boolean), keyPhotoId: undefined, notes: cleanNotes(d.notes), log: cleanLog(d.log),
   }));
   data.blocks = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id) && Number.isInteger(b.dayIndex)).map((b) => ({
-    ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
+    ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, mind: cleanMind(b.mind), photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
   }));
   data.photos = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/')).map((p) => ({ ...p, blockId: idOr(p.blockId, undefined) }));
 }
@@ -1352,7 +1380,7 @@ async function sendDay(trip, i) {
 async function importDay(data) {
   // Tidy what came in, then ask where it goes.
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(data.from?.date || '')) ? data.from.date : null;
-  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, photoId: safeId(b.photoId), groupId: undefined }));
+  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, mind: cleanMind(b.mind), photoId: safeId(b.photoId), groupId: undefined }));
   const photosIn = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/'));
   if (!blocksIn.length) return toast('That day file has no moments in it.');
   const trips = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));

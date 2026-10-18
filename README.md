@@ -929,6 +929,49 @@ struck.
   Matt will meet (20,000 characters). The reading of "preview" as a marker
   rather than an excerpt is the agent's.
 
+- **I34 — Mindfulness moments: I-statements Matt can add to a moment, as a
+  moment of their own on the day, or to the day summary.** *(2026-10-18)*
+  Matt: *"I would like this almost as any add item, a mindfulness option.
+  Let's call them mindfulness moments. And so when you add a mindfulness
+  moment, it's going to have like I statements. I want it to have a few
+  different prompts, and we can work those out together. It should have like
+  'I was surprised' or 'I felt', 'I reflected', 'I learned'. I think you
+  should be able to add those mindfulness moments to not just a moment
+  itself, but at the daily summary level too [...] let's figure out how many
+  we can fit in there, and how that will work. So we're gonna add the
+  mindfulness moment. Then you can select from the I statements or add your
+  own I statement, and then go from there."* Shown the draft: *"Yeah, that
+  seems right. I also want mindful moments to be their own moment you can
+  add to the timeline if you want to, or to the day if you want to. And just
+  like the notes, they're a little different, but these have a very specific
+  call out to it."*
+
+  *Added 2026-10-18*, in the same breath, and it reaches Note moments too:
+  *"when I do add a note, instead of it being an emoji, if somebody writes
+  the content for a note, can it just be the text that they input from the
+  note itself, or the mindfulness note itself, just so that way it has a
+  little bit of text in that bubble, like a little preview of what the
+  mindfulness actually was, since there's not really a photo associated with
+  it. But you can put a photo if you really wanted to, since it works
+  similarly to the other moments that you add."*
+
+  **Settles when:** Mindfulness is a kind of moment with a list of prompts
+  to pick from plus "your own"; the same I-statements can be added inside
+  any moment and under Add to the summary on a day; a Note or Mindfulness
+  tile with no picture shows its words instead of an emoji; and the prompt
+  list and any limit on how many are Matt's, worked out with him. (The
+  settling condition is the agent's draft; the prompts are not yet decided.)
+
+  **Built 2026-10-18**, after the Decision of that date: Mindfulness is the
+  eighth kind (💭); its moment opens on prompt chips, each picked prompt
+  becomes a row to finish, Your own is a free row; the same rows come to any
+  moment through Add a detail → I statement; Add to the summary →
+  Mindfulness makes the moment and opens it; the day summary lists every
+  statement on the day as prompt and dots, naming the moment when it is not
+  a Mindfulness one, and each opens its moment. A Note or Mindfulness tile
+  with no picture shows its words, with the emoji as a small badge. A
+  statement stands in for the note line on the recap's day cards.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1244,6 +1287,29 @@ decided, where it is enforced, and what it **serves**.
   Enforced: the code is gone from `app/js/app.js`; the Decision of
   2026-10-17 on Pass the notebook is superseded. **Serves →** the Goal's
   "a few taps", and I25.
+
+- **2026-10-18 — Mindfulness: seven prompts, and the day summary lists the
+  day's Mindfulness moments rather than keeping its own.** Chosen: a
+  Mindfulness kind of moment (💭) with the prompts I was surprised, I felt,
+  I reflected, I learned, I noticed, I'm grateful for, and Your own, no cap
+  on how many statements; "Add to the summary → Mindfulness" creates that
+  moment on the day and opens it; the day summary shows each one as its
+  prompt and three dots, and tapping it opens the moment; one made from +
+  appears there the same way. Alternative: statements stored on the day
+  itself, separate from the board, which lost the link between the two and
+  could hold the same thought twice. Matt: *"if you do that, it
+  automatically creates the moment for you. And it takes you to that moment
+  [...] under the summary it will just put the like, 'I was surprised' and
+  then maybe three dots, and if you click on that from the summary it will
+  take you to the moment within the day that was created alongside it, and
+  then vice versa, if you create it from the little plus it'll just
+  automatically add it to the daily summary."* On the prompt list (his four
+  plus the agent's I noticed, I'm grateful for, Your own): *"Yes, I like
+  that."* One part is the agent's: an I-statement added inside some other
+  moment, such as a Cruise, is listed in the day summary too, as its prompt
+  and dots, naming the moment it sits in. Enforced: the Mindfulness kind in
+  `app/js/words.js`; the statements and the summary list in
+  `app/js/app.js`. **Serves →** I34.
 
 **Open decisions — waiting on Matt, oldest first:**
 

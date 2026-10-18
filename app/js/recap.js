@@ -273,7 +273,7 @@ export async function drawDayCard(data, dayIndex) {
 
   // Words at the bottom: title · place, and a note line when there is one. Up to six moments.
   const shown = d.blocks.slice(0, 6);
-  const noteOf = (b) => (b.note || '').split(String.fromCharCode(10)).map((x) => x.trim()).filter(Boolean)[0] || '';
+  const noteOf = (b) => (b.note || '').split(String.fromCharCode(10)).map((x) => x.trim()).filter(Boolean)[0] || (Array.isArray(b.mind) && b.mind[0] ? `${b.mind[0].p || ''} ${b.mind[0].t || ''}`.trim() : '');
   const linesNeed = shown.reduce((n, b) => n + 46 + (noteOf(b) ? 32 : 0), 0) + (d.blocks.length > 6 ? 36 : 0);
   const footer = 54;
   const picTop = y + 12;

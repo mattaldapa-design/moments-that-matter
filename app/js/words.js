@@ -19,6 +19,7 @@ export const KINDS = [
     ] },
   { key: 'stay', emoji: '🏨', name: 'Stay', hint: 'Where you slept', fields: [{ k: 'nights', label: 'Nights', type: 'number', hint: 'How many nights' }] },
   { key: 'note', emoji: '📝', name: 'Note', hint: 'Anything at all', fields: [] },
+  { key: 'mind', emoji: '💭', name: 'Mindfulness', hint: 'A name for it, or not', fields: [] },
 ];
 export const kindOf = (key) => KINDS.find((k) => k.key === key);
 
