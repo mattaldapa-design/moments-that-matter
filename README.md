@@ -132,6 +132,11 @@ changed file does not reach an installed phone until `VERSION` in
    when a newer worker takes over, the app reopens itself once.
 3. **On the phone.** Open the address above in Chrome on the iPhone, Share →
    Add to Home Screen, then open it from the icon.
+4. **Sharing a trip with someone.** They install the app from the same
+   address. Back up sends them a copy; Pass the notebook sends it and locks
+   it here until their file comes back through Import a trip, which then
+   replaces it. They receive by saving the attachment to Files and tapping
+   Import a trip.
 
 ## Intentions
 
@@ -694,6 +699,24 @@ struck.
   tile and page; "Day n of m today" while it runs. Verified in the preview
   with a trip dated 24 days ahead.
 
+- **I23 — Pass the notebook: hand a trip to someone by text, let them add,
+  and get it back whole.** *(2026-10-17)* Matt: *"Would we be able to make
+  the pass the notebook feature like kind of like a almost like a text
+  message version of it? Like, like you could pass it to them like a note
+  as a as a text, and then they can just open it that way and import it and
+  then they can like pass the notebook back as a text. That might be a
+  little risky [...] just make sure you back it up, I guess, first."* Then,
+  shown the shape: *"I like that. I think that's a fun feature. Let's
+  incorporate it."*
+
+  **Settles when:** a trip can be passed on from its page, is read-only
+  while passed, and an import of it replaces the passed copy instead of
+  making a second one. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-17** (see the Decision of that date). Verified in the
+  preview: pass → banner and read-only face, editor routes bounce; import
+  of the passed file → "The notebook is back", one trip, editable again.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -956,6 +979,20 @@ decided, where it is enforced, and what it **serves**.
   just kind of what it is. It's made on your phone [...] this isn't a, a
   photo dump app."* Enforced: `day.keyPhotos` in `app/js/app.js` and the
   card drawing in `app/js/recap.js`. **Serves →** I10, I19, and the Do not.
+
+- **2026-10-17 — Pass the notebook: one person writes at a time; a passed
+  trip is read-only until it comes back, and its return replaces it.**
+  Chosen: "Pass the notebook" on the trip page backs the trip up, opens
+  the share sheet with a short note (Messages among the choices), and marks
+  the trip passed on; while passed, the trip cannot be edited here; "Take
+  it back" undoes that; importing a file of a passed trip replaces it
+  rather than adding a copy. Alternatives: a plain backup sent by text (two
+  diverging copies), or live sync (Not now). Matt: *"I like that. I think
+  that's a fun feature. Let's incorporate it."* The receiving side stays
+  three taps (save the attachment to Files, open the app, Import), since a
+  home-screen web app cannot receive files from Messages directly.
+  Enforced: `passNotebook`, the read-only guards and `importTrip` in
+  `app/js/app.js`. **Serves →** I23, I2.
 
 **Open decisions — waiting on Matt, oldest first:**
 
