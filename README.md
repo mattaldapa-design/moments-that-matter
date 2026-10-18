@@ -771,6 +771,36 @@ struck.
   **Settles when:** Matt sees the coloured kinds on his phone and says it
   is the variety he meant. (The settling condition is the agent's draft.)
 
+- **I27 — The recap should feel like browsing a record collection.**
+  *(2026-10-18)* Matt: *"maybe the recap screen. I think you could just have
+  a little more style [...] maybe like some, some highlights around some of
+  the, the little boxes there [...] like I like it feeling like I'm kind of
+  like browsing through like a, like a record collection, you know, of
+  vinyls and, and looking at all the different CD covers."*
+
+  **Settles when:** the recap's stat cards and day bands lift and glow like
+  sleeves in a crate, and Matt says it feels that way. (The settling
+  condition is the agent's draft.)
+
+  **Built 2026-10-18:** coloured rims and a tilted lift on the stat cards,
+  a lift on the day bands and their pictures, a crate glow behind the emoji
+  field. Verified in the preview; awaiting Matt's eye on the phone.
+
+- **I28 — Reframe a picture so crops keep the subject.** *(2026-10-18)*
+  Matt: *"a lot of my key photos are, are still kind of cropped weird in the
+  um in in my uh recaps and in, in some of the the share photos which which
+  is kind of a bummer [...] I don't know if I can just like move them around
+  and and reframe or something."*
+
+  **Settles when:** tapping a picture in the editor sets the point that
+  every crop keeps in frame, on tiles, cards and the recap. (The settling
+  condition is the agent's draft.)
+
+  **Built 2026-10-18:** a tap on the picture in the editor sets its focal
+  point (a ring marks it); tiles, rows, recap bands, PDF pages and the day
+  card crop around it; untouched tall pictures in wide frames favour their
+  top third. Verified in the preview with a focal point at 15% from the top.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

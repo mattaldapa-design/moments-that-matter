@@ -1,7 +1,7 @@
 // The Recap (Decision, 2026-10-17): one long scroll — cover, stats with pictures, every emoji, then day by day —
 // and an export that draws each band to a picture and wraps the pictures into a PDF, on the phone.
 import * as db from './db.js';
-import { esc, addDays, fmtDay, fmtLong, joinNames, titleOf } from './util.js';
+import { esc, addDays, fmtDay, fmtLong, joinNames, titleOf, focusOf, objectPosition } from './util.js';
 
 const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
 const money = (n) => '$' + Math.round(n).toLocaleString();
@@ -76,7 +76,7 @@ export function renderRecap(data, S, photoUrl) {
   const logged = days.filter((d) => d.blocks.length);
   const statCard = (s, k) => {
     const ph = s.photoId ? pmap[s.photoId] : null;
-    return `<div class="dr-panel mtm-stat" data-tone="${k % 4}">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
+    return `<div class="dr-panel mtm-stat" data-tone="${k % 4}">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
       <div><div class="dr-title mtm-stat__big">${esc(s.big)}</div><div class="dr-body-sm">${esc(s.small)}</div></div></div>`;
   };
   const dayBand = (d) => {
@@ -87,12 +87,12 @@ export function renderRecap(data, S, photoUrl) {
         <div class="mtm-bar mtm-bar--between"><h3 class="dr-heading">${esc(d.city || 'Somewhere')} <span class="mtm-dayband__go">›</span></h3><span class="mtm-snap">${esc(d.weather || '')}</span></div>
       </button>
       <div class="mtm-snap mtm-dayband__emojis">${d.blocks.map((b) => esc(b.emoji || '·')).join('')}</div>
-      ${pics.length ? `<div class="mtm-dayband__pics mtm-dayband__pics--${Math.min(pics.length, 4)}">${pics.map((p) => `<div class="dr-cover"><img src="${photoUrl(p)}" alt=""></div>`).join('')}</div>` : ''}
+      ${pics.length ? `<div class="mtm-dayband__pics mtm-dayband__pics--${Math.min(pics.length, 4)}">${pics.map((p, k) => `<div class="dr-cover"><img src="${photoUrl(p)}" alt="" style="${objectPosition(p, k === 0 && pics.length >= 3 ? 4 : 1, k === 0 && pics.length >= 3 ? 3 : 1)}"></div>`).join('')}</div>` : ''}
       <div class="mtm-dayband__titles">${d.blocks.slice(0, 10).map((b) => `<button data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}">${esc(b.emoji || '')} ${esc(titleOf(b))}</button>`).join('')}${d.blocks.length > 10 ? `<span class="dr-caption">+${d.blocks.length - 10} more</span>` : ''}</div>
     </section>`;
   };
   return `<div class="mtm-stack mtm-recap">
-    <div class="dr-cover dr-tile--wide mtm-recap__cover">${cover ? `<img src="${photoUrl(cover)}" alt="">` : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(trip.title || 'Your trip')}</span></div>`}</div>
+    <div class="dr-cover dr-tile--wide mtm-recap__cover">${cover ? `<img src="${photoUrl(cover)}" alt="" style="${objectPosition(cover, 16, 10)}">` : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(trip.title || 'Your trip')}</span></div>`}</div>
     <div><div class="dr-eyebrow">${trip.region ? esc(trip.region) + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
       <h1 class="dr-title-xl">${esc(trip.title || 'Your trip')}</h1>
       ${keeper || trip.companions?.length ? `<p class="dr-body-sm">${keeper ? `Kept by ${esc(keeper)}` : ''}${keeper && trip.companions?.length ? ' · ' : ''}${trip.companions?.length ? `with ${esc(joinNames(trip.companions))}` : ''}</p>` : ''}
@@ -128,13 +128,14 @@ function newPage() {
 function roundRect(g, x, y, w, h, r) {
   g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
 }
-function drawCover(g, im, x, y, w, h, r) {
+function drawCover(g, im, x, y, w, h, r, photo) {
   g.save(); roundRect(g, x, y, w, h, r); g.clip();
   g.fillStyle = C.raised; g.fillRect(x, y, w, h);
   if (im) {
     const s = Math.max(w / im.naturalWidth, h / im.naturalHeight);
     const dw = im.naturalWidth * s, dh = im.naturalHeight * s;
-    g.drawImage(im, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+    const f = focusOf(photo || { w: im.naturalWidth, h: im.naturalHeight }, w, h);
+    g.drawImage(im, x + (w - dw) * f.x, y + (h - dh) * f.y, dw, dh);
   }
   g.restore();
 }
@@ -166,7 +167,7 @@ export async function drawPages(data, S) {
   // 1. Cover
   {
     const { c, g } = newPage();
-    drawCover(g, await img(cover), 0, 0, W, Math.round(H * 0.58), 0);
+    drawCover(g, await img(cover), 0, 0, W, Math.round(H * 0.58), 0, cover);
     const grad = g.createLinearGradient(0, H * 0.3, 0, H * 0.6); grad.addColorStop(0, 'rgba(21,16,14,0)'); grad.addColorStop(1, C.bg);
     g.fillStyle = grad; g.fillRect(0, H * 0.3, W, H * 0.3);
     let y = Math.round(H * 0.62);
@@ -187,7 +188,7 @@ export async function drawPages(data, S) {
     for (const s of S.slice(i, i + 7)) {
       const ph = s.photoId ? pmap[s.photoId] : null;
       const im = await img(ph);
-      if (im) drawCover(g, im, P, y, 150, 150, 24);
+      if (im) drawCover(g, im, P, y, 150, 150, 24, ph);
       else { g.fillStyle = C.panel; roundRect(g, P, y, 150, 150, 24); g.fill(); g.font = `80px ${F.body}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = C.cream; g.fillText(s.emoji || '', P + 75, y + 80); g.textBaseline = 'alphabetic'; }
       const bigFont = s.big.length > 12 ? `700 44px ${F.display}` : `700 64px ${F.display}`;
       text(g, s.big, P + 190, y + 70, { font: bigFont, maxWidth: W - 2 * P - 190, maxLines: 1 });
@@ -229,12 +230,12 @@ export async function drawPages(data, S) {
     g.font = `34px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 70), P, y + 122);
     y += 130;
     const ims = await Promise.all(pics.map(img));
-    if (ims.length === 1) drawCover(g, ims[0], P, y, inner, 400, 24);
-    else if (ims.length === 2) { const w2 = (inner - 24) / 2; drawCover(g, ims[0], P, y, w2, w2, 24); drawCover(g, ims[1], P + w2 + 24, y, w2, w2, 24); }
+    if (ims.length === 1) drawCover(g, ims[0], P, y, inner, 400, 24, pics[0]);
+    else if (ims.length === 2) { const w2 = (inner - 24) / 2; drawCover(g, ims[0], P, y, w2, w2, 24, pics[0]); drawCover(g, ims[1], P + w2 + 24, y, w2, w2, 24, pics[1]); }
     else if (ims.length >= 3) {
-      drawCover(g, ims[0], P, y, inner, 380, 24);
+      drawCover(g, ims[0], P, y, inner, 380, 24, pics[0]);
       const n = ims.length - 1; const w2 = (inner - 24 * (n - 1)) / n;
-      ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w2 + 24), y + 404, w2, 200, 20));
+      ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w2 + 24), y + 404, w2, 200, 20, pics[k + 1]));
     }
     if (picH) y += picH + 24;
     for (const b of d.blocks.slice(0, 6)) { text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}`, P, y + 32, { font: `500 30px ${F.body}`, maxLines: 1 }); y += 44; }
@@ -280,18 +281,20 @@ export async function drawDayCard(data, dayIndex) {
 
   // Pictures fill the middle: 1 wide, 2 side by side, 3 as one tall and two stacked, 4 as a 2×2.
   const pics = pickFour(d, pmap);
-  const ims = (await Promise.all(pics.map((p) => loadImage(p.blob)))).filter(Boolean);
+  const loaded = await Promise.all(pics.map(async (p) => ({ p, im: await loadImage(p.blob) })));
+  const shots = loaded.filter((x) => x.im);
+  const ims = shots.map((x) => x.im), ps = shots.map((x) => x.p);
   const r = 26;
-  if (ims.length === 1) drawCover(g, ims[0], P, picTop, inner, picArea, r);
-  else if (ims.length === 2) { const w2 = (inner - gap) / 2; drawCover(g, ims[0], P, picTop, w2, picArea, r); drawCover(g, ims[1], P + w2 + gap, picTop, w2, picArea, r); }
+  if (ims.length === 1) drawCover(g, ims[0], P, picTop, inner, picArea, r, ps[0]);
+  else if (ims.length === 2) { const w2 = (inner - gap) / 2; drawCover(g, ims[0], P, picTop, w2, picArea, r, ps[0]); drawCover(g, ims[1], P + w2 + gap, picTop, w2, picArea, r, ps[1]); }
   else if (ims.length === 3) {
     const wl = Math.round(inner * 0.6), wr = inner - wl - gap, h2 = (picArea - gap) / 2;
-    drawCover(g, ims[0], P, picTop, wl, picArea, r);
-    drawCover(g, ims[1], P + wl + gap, picTop, wr, h2, r);
-    drawCover(g, ims[2], P + wl + gap, picTop + h2 + gap, wr, h2, r);
+    drawCover(g, ims[0], P, picTop, wl, picArea, r, ps[0]);
+    drawCover(g, ims[1], P + wl + gap, picTop, wr, h2, r, ps[1]);
+    drawCover(g, ims[2], P + wl + gap, picTop + h2 + gap, wr, h2, r, ps[2]);
   } else if (ims.length >= 4) {
     const w2 = (inner - gap) / 2, h2 = (picArea - gap) / 2;
-    ims.slice(0, 4).forEach((im, k) => drawCover(g, im, P + (k % 2) * (w2 + gap), picTop + Math.floor(k / 2) * (h2 + gap), w2, h2, r));
+    ims.slice(0, 4).forEach((im, k) => drawCover(g, im, P + (k % 2) * (w2 + gap), picTop + Math.floor(k / 2) * (h2 + gap), w2, h2, r, ps[k]));
   }
   y = ims.length ? picTop + picArea + 24 : picTop;
 

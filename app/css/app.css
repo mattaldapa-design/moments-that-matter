@@ -192,6 +192,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-photo__empty { display: grid; gap: 6px; justify-items: center; color: var(--cream-dim); text-align: center; padding: 20px; }
 .mtm-photo__empty b { font-family: var(--font-display); font-size: 20px; color: var(--cream); }
 .mtm-photo input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+.mtm-focus { position: absolute; width: 22px; height: 22px; border-radius: var(--radius-disc); transform: translate(-50%, -50%); border: 3px solid var(--cream); box-shadow: 0 0 0 2px rgba(0,0,0,.55), 0 0 18px var(--glow); pointer-events: none; transition: left var(--dur-move) var(--ease-out), top var(--dur-move) var(--ease-out); }
 .mtm-fields { display: grid; gap: var(--space-4); }
 @media (min-width: 520px) { .mtm-fields--two { grid-template-columns: 1fr 1fr; } }
 .mtm-chips { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -209,19 +210,23 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-recap__hero { color: var(--accent); margin-top: var(--space-3); }
 .mtm-stats { display: grid; gap: 12px; margin-top: var(--space-3); }
 @media (min-width: 520px) { .mtm-stats { grid-template-columns: 1fr 1fr; } }
-.mtm-stat { display: flex; align-items: center; gap: 16px; padding: 16px; }
+.mtm-stat { display: flex; align-items: center; gap: 16px; padding: 16px; box-shadow: inset 4px 0 0 var(--kind, var(--accent)), var(--shadow-rest); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out); }
+.mtm-stat:hover { transform: translateY(-4px) rotate(-0.6deg); box-shadow: inset 4px 0 0 var(--kind, var(--accent)), 0 24px 48px -20px color-mix(in srgb, var(--kind, var(--accent)) 70%, transparent), 0 0 0 1px color-mix(in srgb, var(--kind, var(--accent)) 45%, transparent); }
 .mtm-stat__art { width: 72px; height: 72px; border-radius: var(--radius-md); overflow: hidden; flex: none; background: var(--room-200); display: grid; place-items: center; font-size: 40px; }
 .mtm-stat__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .mtm-stat__big { font-size: 28px; line-height: 1.1; }
-.mtm-emojifield { display: flex; flex-wrap: wrap; gap: 8px 10px; font-size: 32px; line-height: 1.2; margin-top: var(--space-3); padding: var(--space-4); background: var(--room-100); border-radius: var(--radius-lg); }
-.mtm-dayband { display: grid; gap: 10px; }
+.mtm-emojifield { display: flex; flex-wrap: wrap; gap: 8px 10px; font-size: 32px; line-height: 1.2; margin-top: var(--space-3); padding: var(--space-4); border-radius: var(--radius-lg); background: radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%), var(--room-100); box-shadow: inset 0 0 0 1px var(--line); }
+.mtm-dayband { display: grid; gap: 10px; box-shadow: var(--shadow-rest); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out); }
+.mtm-dayband:hover { transform: translateY(-4px) rotate(-0.4deg); box-shadow: var(--shadow-lift); }
+.mtm-dayband__pics .dr-cover { transition: transform var(--dur-move) var(--ease-out); }
+.mtm-dayband__pics .dr-cover:hover { transform: translateY(-4px) rotate(-1deg) scale(1.02); }
 .mtm-dayband__emojis { font-size: 24px; }
 .mtm-dayband__pics { display: grid; gap: 8px; }
 .mtm-dayband__pics .dr-cover { aspect-ratio: 1; }
 .mtm-dayband__pics--1 .dr-cover { aspect-ratio: 16 / 10; }
 .mtm-dayband__pics--2 { grid-template-columns: 1fr 1fr; }
 .mtm-dayband__pics--3 { grid-template-columns: 1fr 1fr 1fr; }
-.mtm-dayband__pics--3 .dr-cover:first-child, .mtm-dayband__pics--4 .dr-cover:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
+.mtm-dayband__pics--3 .dr-cover:first-child, .mtm-dayband__pics--4 .dr-cover:first-child { grid-column: 1 / -1; aspect-ratio: 4 / 3; }
 .mtm-dayband__pics--4 { grid-template-columns: 1fr 1fr 1fr; }
 .mtm-dayband__titles { display: flex; flex-wrap: wrap; gap: 6px 10px; }
 .mtm-dayband__titles button { border: 0; background: var(--room-200); color: var(--cream-dim); font: inherit; font-size: 16px; padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; }

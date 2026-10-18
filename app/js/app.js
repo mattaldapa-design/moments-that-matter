@@ -3,7 +3,7 @@ import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
 import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures } from './recap.js';
-import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph } from './util.js';
+import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph, objectPosition } from './util.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 31; // keep in step with VERSION in sw.js
+const APP_VERSION = 32; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -256,7 +256,7 @@ async function trips() {
   trail([{ t: 'Trips', h: '/' }], null);
   const tiles = await Promise.all(list.map(async (t, idx) => {
     const cover = t.coverPhotoId ? await db.get('photos', t.coverPhotoId) : null;
-    const face = cover ? `<img src="${photoUrl(cover)}" alt="">`
+    const face = cover ? `<img src="${photoUrl(cover)}" alt="" style="${objectPosition(cover, 1, 1)}">`
       : `<div class="dr-cover--type" data-tone="${idx % 4}" style="position:absolute;inset:0"><span>${esc(t.title || 'Untitled trip')}</span></div>`;
     return `<button class="dr-tile" data-go="/t/${t.id}">
       <div class="dr-cover mtm-trip-cover">${face}<span class="dr-badge mtm-days">${t.dayCount} day${t.dayCount === 1 ? '' : 's'}</span></div>
@@ -489,7 +489,7 @@ async function tripPage(trip) {
     const bs = (byDay[i] || []).sort((a, b) => a.order - b.order);
     const withPhoto = bs.find((b) => b.photoId);
     const ph = (d.keyPhotos[0] && photos.find((p) => p.id === d.keyPhotos[0])) || (withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null);
-    const art = ph ? `<div class="dr-row__art dr-row__art--disc"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${i + 1}</div>`;
+    const art = ph ? `<div class="dr-row__art dr-row__art--disc"><img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"></div>` : `<div class="mtm-daynum">${i + 1}</div>`;
     const meta = bs.length ? `${d.city ? esc(d.city) + ' · ' : ''}${bs.length} moment${bs.length === 1 ? '' : 's'}` : (d.city ? esc(d.city) + ' · nothing yet' : 'Nothing yet');
     const snap = bs.slice(0, 8).map((b) => esc(b.emoji || '·')).join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
     rows.push(`<div class="dr-row ${bs.length ? '' : 'is-empty'}" data-go="/t/${trip.id}/d/${i}" role="button" tabindex="0" aria-label="Day ${i + 1}">${art}
@@ -636,7 +636,7 @@ async function board(trip, i) {
   const tile = (b) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
     const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
-    const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
+    const face = ph ? `<img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
       : (b.emoji ? `<div class="mtm-block__emoji">${esc(b.emoji)}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
     return `<div class="dr-tile mtm-block" data-id="${b.id}" data-kind="${esc(b.kind || 'other')}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
       <div class="dr-cover">${face}</div>
@@ -645,7 +645,7 @@ async function board(trip, i) {
   };
   const row = (b, idx) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
-    const art = ph ? `<div class="dr-row__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${esc(b.emoji || '•')}</div>`;
+    const art = ph ? `<div class="dr-row__art"><img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"></div>` : `<div class="mtm-daynum">${esc(b.emoji || '•')}</div>`;
     return `<div class="dr-row mtm-rowblock" data-id="${b.id}" data-kind="${esc(b.kind || 'other')}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">${art}
       <div class="dr-row__text"><div class="dr-row__title">${esc(titleOf(b))}</div><div class="dr-row__meta">${esc(blockMeta(b))}</div></div>
       <div class="dr-row__end mtm-move">
@@ -882,11 +882,15 @@ async function editor(trip, i, bid) {
       ${b.emoji ? `<span class="mtm-big">${esc(b.emoji)}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
-    <label class="mtm-photo ${ph ? 'has-picture' : ''}" ${ph && ph.w && ph.h ? `style="aspect-ratio: ${ph.w} / ${ph.h}"` : ''}>
-      ${ph ? `<img src="${photoUrl(ph)}" alt="">` : '<div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>'}
+    ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}" role="button" tabindex="0" aria-label="Tap where the picture should stay in frame">
+      <img src="${photoUrl(ph)}" alt=""><span class="mtm-focus" id="focusDot" style="left:${Math.round((ph.focus?.x ?? 0.5) * 100)}%;top:${Math.round((ph.focus?.y ?? 0.5) * 100)}%"></span>
+    </div>
+    <div class="dr-caption">Tap the picture where it matters most, and every crop keeps that in frame.</div>
+    <div class="mtm-bar"><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><label class="dr-btn dr-btn--ghost dr-btn--sm">Replace picture<input type="file" accept="image/*" id="photoFile" hidden aria-label="Choose a picture"></label><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>`
+    : `<label class="mtm-photo">
+      <div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>
       <input type="file" accept="image/*" id="photoFile" aria-label="Choose a picture">
-    </label>
-    ${ph ? `<div class="mtm-bar"><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
+    </label>`}
     <div class="mtm-fields">
       <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(autoTitle(b) || kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
@@ -992,6 +996,19 @@ async function editor(trip, i, bid) {
     await attachPhoto(trip, b, f);
     render();
   };
+  const frame = $('#photoFrame');
+  if (frame && ph) {
+    const setFocus = async (clientX, clientY) => {
+      const r = frame.getBoundingClientRect();
+      const x = Math.min(1, Math.max(0, (clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (clientY - r.top) / r.height));
+      ph.focus = { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
+      const dot = $('#focusDot'); if (dot) { dot.style.left = `${Math.round(x * 100)}%`; dot.style.top = `${Math.round(y * 100)}%`; }
+      await db.put('photos', ph); await touch(trip);
+      toast('Crops will keep that spot in frame.');
+    };
+    frame.addEventListener('click', (e) => setFocus(e.clientX, e.clientY));
+    frame.addEventListener('keydown', (e) => { if (e.key === 'Enter') setFocus(frame.getBoundingClientRect().left + frame.clientWidth / 2, frame.getBoundingClientRect().top + frame.clientHeight / 2); });
+  }
   const kp = $('#keyPhoto');
   if (kp) kp.onclick = async () => {
     const at = day.keyPhotos.indexOf(b.photoId);

@@ -14,3 +14,13 @@ export const titleOf = (b) => b.title || autoTitle(b) || cap(b.label) || kindOf(
 const ID_OK = /^[A-Za-z0-9_:.-]{1,64}$/;
 export const safeId = (v) => (typeof v === 'string' && ID_OK.test(v) ? v : null);
 export const safeGlyph = (v) => (typeof v === 'string' && v.length <= 16 && !/[<>&"'\\/]/.test(v) ? v : '');
+
+// Where a crop should look. A chosen focal point wins; otherwise a tall picture in a wide frame favours its top third,
+// where faces usually are; everything else centres.
+export function focusOf(photo, frameW = 1, frameH = 1) {
+  if (photo?.focus && Number.isFinite(photo.focus.x) && Number.isFinite(photo.focus.y)) return { x: photo.focus.x, y: photo.focus.y };
+  const tall = photo?.w && photo?.h ? photo.h > photo.w : false;
+  const wide = frameW / frameH > 1.05;
+  return { x: 0.5, y: tall && wide ? 0.3 : 0.5 };
+}
+export const objectPosition = (photo, frameW, frameH) => { const f = focusOf(photo, frameW, frameH); return `object-position:${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`; };
