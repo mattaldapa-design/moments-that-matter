@@ -15,6 +15,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
+const APP_VERSION = 19; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
@@ -245,9 +246,22 @@ async function trips() {
     </div>
     <label class="dr-check"><input type="checkbox" id="autoLookup" ${await autoLookupOn() ? 'checked' : ''}> Look up place names automatically when online</label>
     <div class="mtm-foot" id="storage"></div>
+    <div class="mtm-foot mtm-bar mtm-bar--between"><span>Moments That Matter · version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" id="checkUpdate">Check for an update</button></div>
   </div>`;
   bindGo();
   if (!$('#autoLookup')) return; // the screen moved on while the list was loading
+  $('#checkUpdate').onclick = async () => {
+    const btn = $('#checkUpdate'); btn.disabled = true; toast('Checking…');
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration();
+      if (!reg) { toast('No offline worker here; just reload.'); btn.disabled = false; return; }
+      await reg.update();
+      const fresh = reg.installing || reg.waiting;
+      if (fresh) { toast('Update found. Reopening…'); fresh.addEventListener('statechange', () => { if (fresh.state === 'activated') location.reload(); }); }
+      else toast(`You have the latest: version ${APP_VERSION}.`);
+    } catch { toast('Could not check right now.'); }
+    btn.disabled = false;
+  };
   $('#autoLookup').onchange = async (e) => { await db.setSetting('autoLookup', e.target.checked); toast(e.target.checked ? 'Place names will be looked up when online.' : 'Place names are yours to type.'); };
   $('#importFile').onchange = (e) => importTrip(e.target.files[0]);
   storageGauge().then((h) => { const el = $('#storage'); if (el) el.innerHTML = h; });

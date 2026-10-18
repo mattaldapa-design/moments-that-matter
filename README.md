@@ -1034,6 +1034,13 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — Casing.** Matt asked whether "Food & drink" with a small
+  d was a miss. It is the app's sentence case, the Dark Room copy rule.
+  Matt: *"Let's just follow the rules [...] We don't need to change any
+  rules for it."* He also noted his phone was slow to pick up a new
+  version; a version label and "Check for an update" were added the same
+  day.
+
 - **2026-10-17 — Seventh look.** The day picture's header: *"day one
   doesn't need to be as take up so much space. I think, like, the more
   important thing is, like, the day, date, and location, and day one can be

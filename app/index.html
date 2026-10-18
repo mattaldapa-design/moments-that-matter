@@ -24,7 +24,10 @@
   <div id="toast" class="mtm-toast" hidden></div>
   <script type="module" src="js/app.js"></script>
   <script>
+    // Register the offline worker; when a newer one takes over, reopen once so the new files are in use.
     if ('serviceWorker' in navigator) {
+      let hadWorker = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker) location.reload(); hadWorker = true; });
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
   </script>
