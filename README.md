@@ -984,6 +984,20 @@ struck.
   with no picture shows its words, with the emoji as a small badge. A
   statement stands in for the note line on the recap's day cards.
 
+- **I35 — Done floats in the bottom corner of a moment, like the +.**
+  *(2026-10-18)* Matt: *"I'd like the done button, when I'm filling out
+  the memories, to follow much like how the plus sign follows in the bottom
+  corner. I want to be able to exit out of the item without having to scroll
+  all the way down to the bottom. I want that done to be kind of fixed to
+  that bottom right corner, similarly to the plus sign."*
+
+  **Settles when:** Done sits fixed at the bottom right of every moment,
+  visible wherever Matt has scrolled, and one tap takes him back to the day
+  with everything saved. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-18:** Done is a floating button in the + position; Delete
+  this moment stays at the end of the form.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

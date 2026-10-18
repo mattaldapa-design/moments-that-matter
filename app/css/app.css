@@ -158,6 +158,9 @@ body { min-height: 100%; overscroll-behavior-y: none; }
   z-index: 15; width: 64px; height: 64px; font-size: 34px; box-shadow: 0 18px 40px -12px var(--glow);
 }
 
+/* Done floats like the + (I35): leave a moment from anywhere on it, no scroll to the bottom. */
+.mtm-fab--done { width: auto; height: 56px; padding: 0 28px; font-size: 18px; font-family: var(--font-display); font-weight: 700; }
+
 /* Ask-first kinds */
 .mtm-ask { display: grid; gap: 10px; margin-top: 12px; }
 .mtm-kind.is-on { box-shadow: 0 0 0 2px var(--accent); background: var(--room-200); }

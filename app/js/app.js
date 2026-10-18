@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 40; // keep in step with VERSION in sw.js
+const APP_VERSION = 41; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -1056,11 +1056,11 @@ async function editor(trip, i, bid) {
         <div class="dr-field__hint">Tap a day to put this there too. The name and place travel with it; each day keeps its own picture, note and details.</div></div>
       <div class="dr-field"><label for="addDetail">Add a detail</label><select class="dr-select" id="addDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}${b.kind !== 'mind' && !b.mind.length && mindOpen !== b.id ? '<option value="__mind">I statement (mindfulness)</option>' : ''}<option value="__own">Your own…</option></select></div>
     </div>
-    <div class="mtm-bar mtm-bar--between">
+    <div class="mtm-bar">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="deleteBlock">Delete this moment</button>
-      <button class="dr-btn" id="done">Done</button>
     </div>
-  </div>`)) return;
+  </div>
+  <button class="dr-btn mtm-fab mtm-fab--done" id="done">Done</button>`)) return;
 
   const save = debounce(async () => { await db.put('blocks', b); await syncFamily(b); await touch(trip); }, 350);
   leaveHook = save.flush;
