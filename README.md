@@ -255,7 +255,7 @@ struck.
   its own, and merge a trip's moments into one already here. Today import
   does only the first.
 
-- **I3 — Trips back up to a cloud drive Matt chooses, and past trips can be
+- **I3 (settled 2026-10-17) — Trips back up to a cloud drive Matt chooses, and past trips can be
   offloaded to keep the app slim.** *(2026-10-17)* Matt, after hearing how a
   home-screen web app stores data on the phone: *"that's what I'm thinking,
   is that it just automatically kind of backs up onto a like linked cloud
@@ -270,8 +270,12 @@ struck.
   no equivalent) or a one-tap save that he can send to any drive. (The
   settling condition is the agent's draft.)
 
-  **Settled in part, 2026-10-17:** one-tap backup with a reminder, see the
-  Decision of that date. Offloading past trips to free space is still open.
+  **Settled 2026-10-17:** one-tap backup with a reminder (Decision of that
+  date), and "Archive to a file" on the trip page, which backs the trip up,
+  asks whether the file is safe, and only then removes the trip from the
+  phone; Import brings it back. Verified in the preview on a copy of the
+  test trip: backup file produced, trip and its pictures gone, one trip
+  left.
 
 - **I4 — A day is built from emoji-icon blocks; a block can hold blocks;
   some things span days.** *(2026-10-17)* Asked to walk through one real
@@ -757,6 +761,13 @@ decided, where it is enforced, and what it **serves**.
   whole as well."* The symbol is a label, not a currency conversion; a trip
   in another currency still shows "$" (the agent's simplification). Enforced:
   the Cost field and `stats()` in `app/js/recap.js`. **Serves →** I13.
+
+- **2026-10-17 — Next in order: offload a past trip (I3), then place
+  levels (I7), then words instead of emojis (I5).** Chosen from three the
+  agent laid out with costs. Matt: *"let's go in the order you're
+  recommending right there. One, then two. And then we'll look at three."*
+  Enforced: this list; each lands as its own entry when built. **Serves →**
+  I3, I7, I5.
 
 **Open decisions — waiting on Matt, oldest first:**
 

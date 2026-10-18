@@ -289,11 +289,13 @@ async function tripPage(trip) {
     <div class="mtm-bar">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="addDay">Add a day at the end</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="rename">Rename</button>
+      <button class="dr-btn dr-btn--ghost dr-btn--sm" id="archive">Archive to a file</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="delete">Delete trip</button>
     </div>
   </div>`;
   bindGo();
   $('#backup').onclick = () => backupTrip(trip);
+  $('#archive').onclick = () => archiveTrip(trip);
   $('#addDay').onclick = async () => { trip.dayCount += 1; await touch(trip); render(); };
   $$('[data-more]').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
@@ -809,7 +811,7 @@ async function backupTrip(trip) {
   let shared = false;
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: name }); shared = true; }
-    catch (e) { if (e.name === 'AbortError') return toast('Backup cancelled.'); }
+    catch (e) { if (e.name === 'AbortError') { toast('Backup cancelled.'); return false; } }
   }
   if (!shared) {
     const a = document.createElement('a');
@@ -822,6 +824,20 @@ async function backupTrip(trip) {
   await db.put('trips', trip);
   toast('Backed up. Keep that file somewhere safe.');
   render();
+  return true;
+}
+// Archive (I3): back the trip up, then, once Matt says the file is safe, take it off the phone.
+async function archiveTrip(trip) {
+  const went = await backupTrip(trip);
+  if (!went) return;
+  const k = await sheet('Is that backup saved somewhere safe?', [
+    { k: 'remove', label: 'Yes. Remove the trip from this phone', danger: true },
+    { k: '', label: 'Not yet, keep it here' },
+  ]);
+  if (k !== 'remove') return toast('Kept on the phone.');
+  await deleteTrip(trip.id);
+  toast('Archived. Import brings it back any time.');
+  go('/');
 }
 async function importTrip(file) {
   if (!file) return;
