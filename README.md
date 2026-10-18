@@ -547,6 +547,17 @@ decided, where it is enforced, and what it **serves**.
   editor in `app/js/app.js`. **Serves →**
   the Goal's "a few taps", and I4.
 
+- **2026-10-17 — The app is served from GitHub Pages.** Chosen: the app's
+  code lives in a public GitHub repository and Pages serves it over https,
+  so the iPhone can add it to the home screen; trips never leave the phone.
+  Alternatives: Netlify or Cloudflare Pages (same result, more moving parts),
+  or serving from the PC over home Wi-Fi (no https, no offline, no reach
+  away from home). Matt, shown the three with costs: *"Yeah, I think option
+  one is the best. We can do GitHub pages."* Matt creates the account and
+  repository himself; the agent pushes and wires the deploy. Enforced: the
+  git remote and the Pages deploy workflow, once added (see Runbook).
+  **Serves →** Goal ("use on his iPhone"), and the three Open items.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **The backup reminder threshold:** what counts as
@@ -557,11 +568,8 @@ decided, where it is enforced, and what it **serves**.
   what the import a trip is going to look like and, and what that
   necessarily means [...] I guess I'm just importing like an exported file
   from this."* Tied to I2 and I3.
-- *2026-10-17* — **Where the app lives on the web, so the iPhone can install
-  it.** It needs an https address. Options the agent sees: GitHub Pages
-  (free; needs a GitHub account and, on a free account, a public repository
-  for the app's code, not its data), or another static host. Matt's trips
-  stay on the phone either way.
+- *2026-10-17* — **The GitHub repository for Pages:** Matt to create it and
+  give the agent its address. (Decided GitHub Pages the same day.)
 
 ## Not now
 
