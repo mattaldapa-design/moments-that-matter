@@ -44,7 +44,7 @@ phone's position on request, When, Cost, Note, nothing required, saved as he
 types); a Stay carries across its nights; a trail at the top of every screen,
 each level tappable; one-tap backup to the share sheet (or a download) as a
 `.json` with the pictures inside, and a reminder once 10 changes or 8 MB have
-piled up since the last backup (a placeholder threshold, see Open decisions);
+piled up since the last backup (10 changes or 8 MB, Decision of 2026-10-17);
 import of a backup, as a copy if the trip is already there; an offline shell
 through a service worker.
 
