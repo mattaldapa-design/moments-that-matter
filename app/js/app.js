@@ -2,6 +2,7 @@
 import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor } from './words.js';
+import { gather, stats, renderRecap, drawPages, pagesToPdf, pagesToPictures } from './recap.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -162,6 +163,7 @@ async function render() {
       const trip = await db.get('trips', p[1]);
       if (!trip) return await trips();
       if (p.length === 2) return await tripPage(trip);
+      if (p[2] === 'recap') return await recapPage(trip);
       if (p[2] === 'd') {
         const i = +p[3];
         if (p.length === 4) return await board(trip, i);
@@ -272,6 +274,7 @@ async function tripPage(trip) {
   app.innerHTML = `<div class="mtm-stack">
     <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1></div>
     <div class="mtm-backup">
+      <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
       <button class="dr-btn ${due ? '' : 'dr-btn--quiet'} dr-btn--sm" id="backup">Back up this trip</button>
       <span class="dr-caption">${last ? `Backed up ${ago(last)}` : 'Never backed up'}${due ? ' · <b style="color:var(--state-warn)">new moments since</b>' : ''}</span>
     </div>
@@ -318,6 +321,46 @@ async function tripPage(trip) {
   $('#delete').onclick = async () => {
     if (!confirm(`Delete “${trip.title || 'this trip'}” and everything in it? Back it up first if you want to keep it.`)) return;
     await deleteTrip(trip.id); go('/');
+  };
+}
+
+// The Recap: the trip summed up, and exported as a PDF or pictures (Decision, 2026-10-17).
+async function recapPage(trip) {
+  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: 'Recap' }], `/t/${trip.id}`);
+  const data = await gather(trip);
+  const S = stats(data);
+  app.innerHTML = renderRecap(data, S, photoUrl);
+  const baseName = `${(trip.title || 'Trip').replace(/[\/:*?"<>|]+/g, ' ').trim()} recap`;
+  const busy = (on) => $$('#savePdf, #sharePics').forEach((b) => { b.disabled = on; });
+  const deliver = async (files, title) => {
+    if (navigator.canShare && navigator.canShare({ files })) {
+      try { await navigator.share({ files, title }); return true; } catch (e) { if (e.name === 'AbortError') return false; }
+    }
+    for (const f of files) {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(f); a.download = f.name; document.body.appendChild(a); a.click();
+      await new Promise((r) => setTimeout(r, 400)); URL.revokeObjectURL(a.href); a.remove();
+    }
+    return true;
+  };
+  $('#savePdf').onclick = async () => {
+    busy(true); toast('Drawing the pages…');
+    try {
+      const pages = await drawPages(data, S);
+      const pdf = await pagesToPdf(pages);
+      const ok = await deliver([new File([pdf], `${baseName}.pdf`, { type: 'application/pdf' })], baseName);
+      toast(ok ? `PDF ready: ${pages.length} page${pages.length === 1 ? '' : 's'}.` : 'Cancelled.');
+    } catch (e) { console.error(e); toast('Could not make the PDF.'); }
+    busy(false);
+  };
+  $('#sharePics').onclick = async () => {
+    busy(true); toast('Drawing the pages…');
+    try {
+      const pages = await drawPages(data, S);
+      const files = await pagesToPictures(pages, baseName);
+      const ok = await deliver(files, baseName);
+      toast(ok ? `${files.length} picture${files.length === 1 ? '' : 's'} ready.` : 'Cancelled.');
+    } catch (e) { console.error(e); toast('Could not make the pictures.'); }
+    busy(false);
   };
 }
 

@@ -67,7 +67,10 @@ the dates renumber. Checked: sliding a day in before Day 3 made Day 3 empty
 and moved Sydney and its 3 moments to Day 4; a block with no details shows
 Title, Where, Note and the list; choosing Cost added the field.
 
-Later the same evening: a day's key picture (I10), chosen from a block.
+Later the same evening: a day's key picture (I10); details removable, with
+Website and Menu links (I11); optional place-name lookup (Decision); one
+item on several days (I12); and the Recap with PDF and picture export
+(I13), in `app/js/recap.js`.
 
 **Published 2026-10-17 (late evening, 2026-10-18 UTC):** workflow run 6 on
 commit `9efdc81` succeeded; `curl -s -o /dev/null -w "%{http_code}"
@@ -440,6 +443,37 @@ struck.
   details and order are each day's own. Verified in the preview: hotel added to day 6, renamed
   there, day 4 followed.
 
+- **I13 — The end-of-trip summary is a recap like Apple Music's year in
+  review: fun stats with pictures, a scrollable overview of the trip's
+  emojis, a day-by-day photo collage, and an export as a PDF or other visual
+  file to share.** *(2026-10-17)* Matt, asked what he sees when he opens the
+  summary: *"I want to like press a button that gives me almost like how in
+  like Apple Music they do like your year in summary [...] it gives you fun
+  stats about your trip. So you know you I don't know, spent this much on
+  food. You met this many new people. You ate at this many restaurants. But
+  like I imagine that it's like it will like show you like a little picture
+  next to it [...] a nice like little scrollable thing. Like it could be
+  like maybe like a couple of different export options. So like your trip at
+  a high level [...] it can like show you the little icons of like all the
+  things you did, the little emojis, like as an overview kind of version of
+  it. And like, you know, it can like give you cool stats on your trip. And
+  then you can kind of have like more of a photo export version of like show
+  me a day by day, like collage version [...] maybe even are able to like
+  turn it into a like slide book version or a like a long scroll version.
+  You know, we can play around with like a couple of these first, but
+  ultimately too, I would like this to be able to like be able to export out
+  as like a PDF or some sort of visual file that you can share with somebody
+  to give them some highlights on your trip."*
+
+  **Settles when:** the first recap's sections, its stats and its export
+  format are a Decision. (The settling condition is the agent's draft.)
+
+  **Decided and built 2026-10-17:** see the Decision of that date. Verified
+  in the preview on the test trip: the Recap screen rendered 7 stats, the
+  emoji field and 4 day bands; "Save as PDF" produced a 7-page, 466 KB PDF
+  whose cross-reference table checks out; "Share as pictures" produced the
+  same 7 pages as JPEGs. Not yet opened on the iPhone.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -641,6 +675,18 @@ decided, where it is enforced, and what it **serves**.
   share a group id and saving one writes the shared fields to the others
   (`syncFamily` in `app/js/app.js`). **Serves →** I12.
 
+- **2026-10-17 — The first recap is one long scroll (cover, stats with
+  pictures, the trip's emojis, then day by day), exported as a PDF made of
+  pictures of those bands.** Chosen: a Recap button on the trip page opens
+  the scroll; "Save as PDF" draws each band to an image and wraps the images
+  into a PDF on the phone, and the same images can go to the share sheet.
+  Stats show only when there is something to count. Alternatives: a text
+  PDF (needs emoji fonts; skipped), a slide-book layout (Not now). Matt,
+  shown the shape with costs: *"Yeah, that does. Let's let's go for it."*
+  The stat list beyond his three (spent on food, people met, places eaten
+  at) is the agent's, to keep or strike. Enforced: `app/js/recap.js`.
+  **Serves →** I13, and the Goal's "export a summary of the trip".
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **The backup reminder threshold:** what counts as
@@ -653,6 +699,11 @@ decided, where it is enforced, and what it **serves**.
   from this."* Tied to I2 and I3.
 
 ## Not now
+
+- **Slide-book and separate long-scroll layouts for the recap.** Deferred
+  2026-10-17. Reason: Matt: *"we can play around with like a couple of these
+  first"*; the first recap is one long scroll. Trigger: once Matt has used
+  the first recap on a real trip and asks.
 
 - **Blocks inside blocks (the boat lunch with its food nested in it).**
   Deferred 2026-10-17. Reason: the agent proposed logging such things as
