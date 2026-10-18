@@ -101,6 +101,21 @@ const DETAILS = [
   { k: 'host', label: 'Guide or host', hint: 'Their name, if they were good' },
 ];
 const stars = (n) => '★'.repeat(Number(n) || 0) + '☆'.repeat(5 - (Number(n) || 0));
+// Trip-wide details (I18): the big-picture things that are not any one day's.
+const TRIP_DETAILS = [
+  { k: 'carrier', label: 'Airline or cruise line', hint: 'Qantas, Royal Caribbean' },
+  { k: 'booking', label: 'Booking reference', hint: 'ABC123' },
+  { k: 'budget', label: 'Budget', hint: '2500', money: true },
+  { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
+  { k: 'insurance', label: 'Insurance', hint: 'Company and policy number' },
+];
+function normalizeTrip(t) {
+  t.companions = t.companions || []; t.details = t.details || {}; t.extras = t.extras || []; t.custom = t.custom || []; t.packing = t.packing || [];
+  return t;
+}
+let ownTripOpen = null;
+let aboutOpen = false;
+try { aboutOpen = localStorage.getItem('mtm-about') === '1'; } catch { /* default closed */ }
 const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
 // Bring an older block up to the current shape (time/cost used to be fields on every card).
 function normalize(b) {
@@ -270,6 +285,73 @@ function newTrip() {
   };
 }
 
+function aboutPanel(trip) {
+  normalizeTrip(trip);
+  const shown = TRIP_DETAILS.filter((d) => (trip.details[d.k] !== undefined && trip.details[d.k] !== '') || trip.extras.includes(d.k));
+  const hidden = TRIP_DETAILS.filter((d) => !shown.includes(d));
+  const field = (d) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="t-${d.k}">${esc(d.label)}</label><button type="button" class="mtm-x" data-tdrop="${d.k}" aria-label="Remove ${esc(d.label)}">×</button></div>
+    <div class="mtm-bar"><span class="mtm-grow ${d.money ? 'mtm-money' : ''}"><input class="dr-input" id="t-${d.k}" data-tdetail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} ${d.money ? 'inputmode="decimal"' : ''} value="${esc(trip.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></span>${d.type === 'url' && trip.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(trip.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div></div>`;
+  const customRow = (c, k) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="tc-${k}">${esc(c.label)}</label><button type="button" class="mtm-x" data-tdropcustom="${k}" aria-label="Remove ${esc(c.label)}">×</button></div>
+    <input class="dr-input" id="tc-${k}" data-tcustom="${k}" value="${esc(c.value || '')}" placeholder="${esc(c.label)}" autocomplete="off"></div>`;
+  const packed = trip.packing.filter((p) => p.done).length;
+  const bits = [];
+  if (trip.companions.length) bits.push(`with ${joinNames(trip.companions)}`);
+  if (trip.packing.length) bits.push(`${packed} of ${trip.packing.length} packed`);
+  return `<details class="dr-panel mtm-about" id="about" ${aboutOpen ? 'open' : ''}>
+    <summary><span class="dr-heading">About this trip</span><span class="dr-caption">${esc(bits.join(' · ') || 'who, what, and what to pack')}</span></summary>
+    <div class="mtm-stack mtm-stack--tight mtm-about__body">
+      <div class="dr-field"><label for="newCompanion">Travelled with</label>
+        ${trip.companions.length ? `<div class="mtm-chips">${trip.companions.map((n, k) => `<span class="mtm-person">${esc(n)}<button type="button" data-uncompanion="${k}" aria-label="Remove ${esc(n)}">×</button></span>`).join('')}</div>` : ''}
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newCompanion" placeholder="${trip.companions.length ? 'Add another person' : 'Add a person'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addCompanion">Add</button></div></div>
+      ${shown.map(field).join('')}
+      ${trip.custom.map(customRow).join('')}
+      ${ownTripOpen === trip.id ? `<div class="dr-field mtm-detail"><label for="ownTripLabel">Your own detail</label>
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownTripLabel" placeholder="Name it: Visa, Currency, Car hire…" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownTripAdd">Add</button></div></div>` : ''}
+      <div class="dr-field"><label for="addTripDetail">Add a trip detail</label><select class="dr-select" id="addTripDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
+      <div class="dr-field"><label for="newPack">Packing list${trip.packing.length ? ` <span class="dr-caption">· ${packed} of ${trip.packing.length} packed</span>` : ''}</label>
+        ${trip.packing.length ? `<div class="mtm-pack">${trip.packing.map((p, k) => `<div class="mtm-pack__item ${p.done ? 'is-done' : ''}"><label class="dr-check"><input type="checkbox" data-pack="${k}" ${p.done ? 'checked' : ''}><span>${esc(p.text)}</span></label><button type="button" class="mtm-x" data-unpack="${k}" aria-label="Remove ${esc(p.text)}">×</button></div>`).join('')}</div>` : ''}
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Something to pack" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div></div>
+    </div>
+  </details>`;
+}
+function bindAbout(trip) {
+  const about = $('#about');
+  if (!about) return;
+  about.addEventListener('toggle', () => { aboutOpen = about.open; try { localStorage.setItem('mtm-about', aboutOpen ? '1' : '0'); } catch { /* fine */ } });
+  const saveText = debounce(async () => { await touch(trip); }, 400);
+  const commit = async () => { await touch(trip); render(); };
+  const nc = $('#newCompanion');
+  const addCompanion = async () => { const n = (nc.value || '').trim(); if (!n) return; trip.companions.push(n); nc.value = ''; await commit(); setTimeout(() => $('#newCompanion')?.focus(), 50); };
+  nc.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addCompanion(); } };
+  $('#addCompanion').onclick = addCompanion;
+  $$('[data-uncompanion]').forEach((x) => { x.onclick = async () => { trip.companions.splice(Number(x.dataset.uncompanion), 1); await commit(); }; });
+  $$('[data-tdetail]').forEach((inp) => {
+    inp.oninput = () => { trip.details[inp.dataset.tdetail] = inp.value; saveText(); };
+    if (inp.type === 'url') inp.onchange = async () => { await saveText.flush(); render(); };
+  });
+  $$('[data-tdrop]').forEach((x) => { x.onclick = async () => { const k = x.dataset.tdrop; delete trip.details[k]; trip.extras = trip.extras.filter((e) => e !== k); await commit(); }; });
+  $$('[data-tcustom]').forEach((inp) => { inp.oninput = () => { trip.custom[Number(inp.dataset.tcustom)].value = inp.value; saveText(); }; });
+  $$('[data-tdropcustom]').forEach((x) => { x.onclick = async () => { trip.custom.splice(Number(x.dataset.tdropcustom), 1); await commit(); }; });
+  const add = $('#addTripDetail');
+  add.onchange = async () => {
+    if (!add.value) return;
+    if (add.value === '__own') { ownTripOpen = trip.id; render(); setTimeout(() => $('#ownTripLabel')?.focus(), 50); return; }
+    trip.extras.push(add.value); await commit(); setTimeout(() => $(`#t-${add.value}`)?.focus(), 50);
+  };
+  const ol = $('#ownTripLabel');
+  if (ol) {
+    const addOwn = async () => { const label = (ol.value || '').trim(); if (!label) return; trip.custom.push({ label, value: '' }); ownTripOpen = null; await commit(); setTimeout(() => $(`#tc-${trip.custom.length - 1}`)?.focus(), 50); };
+    ol.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addOwn(); } };
+    $('#ownTripAdd').onclick = addOwn;
+  }
+  const np = $('#newPack');
+  const addPack = async () => { const t = (np.value || '').trim(); if (!t) return; trip.packing.push({ text: t, done: false }); np.value = ''; await commit(); setTimeout(() => $('#newPack')?.focus(), 50); };
+  np.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPack(); } };
+  $('#addPack').onclick = addPack;
+  $$('[data-pack]').forEach((cb) => { cb.onchange = async () => { trip.packing[Number(cb.dataset.pack)].done = cb.checked; await commit(); }; });
+  $$('[data-unpack]').forEach((x) => { x.onclick = async () => { trip.packing.splice(Number(x.dataset.unpack), 1); await commit(); }; });
+}
+
 async function tripPage(trip) {
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Untitled trip' }], '/');
   const blocks = await db.where('blocks', 'tripId', trip.id);
@@ -294,6 +376,7 @@ async function tripPage(trip) {
   app.innerHTML = `<div class="mtm-stack">
     <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1>
       <input class="mtm-city mtm-region" id="region" placeholder="Where in the world?" value="${esc(trip.region || '')}" autocomplete="off" aria-label="Country or region"></div>
+    ${aboutPanel(trip)}
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
       <button class="dr-btn ${due ? '' : 'dr-btn--quiet'} dr-btn--sm" id="backup">Back up this trip</button>
@@ -308,6 +391,7 @@ async function tripPage(trip) {
     </div>
   </div>`;
   bindGo();
+  bindAbout(trip);
   const region = $('#region');
   const saveRegion = debounce(async () => { trip.region = region.value.trim(); await touch(trip); }, 400);
   region.oninput = saveRegion;

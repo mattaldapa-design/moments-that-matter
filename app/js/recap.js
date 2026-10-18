@@ -94,6 +94,7 @@ export function renderRecap(data, S, photoUrl) {
     <div class="dr-cover dr-tile--wide mtm-recap__cover">${cover ? `<img src="${photoUrl(cover)}" alt="">` : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(trip.title || 'Your trip')}</span></div>`}</div>
     <div><div class="dr-eyebrow">${trip.region ? esc(trip.region) + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
       <h1 class="dr-title-xl">${esc(trip.title || 'Your trip')}</h1>
+      ${trip.companions?.length ? `<p class="dr-body-sm">With ${esc(joinNames(trip.companions))}</p>` : ''}
       <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p></div>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
     ${S.length ? `<div><div class="dr-eyebrow">The numbers</div><div class="mtm-stats">${S.map(statCard).join('')}</div></div>` : ''}
@@ -170,6 +171,7 @@ export async function drawPages(data, S) {
     let y = Math.round(H * 0.62);
     y = eyebrow(g, `${trip.region ? trip.region + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}`, y);
     y = text(g, trip.title || 'Your trip', P, y + 60, { font: `700 84px ${F.display}`, lineHeight: 1.05, maxLines: 3 });
+    if (trip.companions?.length) y = text(g, `With ${joinNames(trip.companions)}`, P, y + 24, { font: `400 32px ${F.body}`, color: C.dim, maxLines: 2 }) - 30;
     text(g, `${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.`, P, y + 70, { font: `800 56px ${F.loud}`, color: C.signal, lineHeight: 1.1 });
     text(g, 'Moments That Matter', P, H - P, { font: `700 26px ${F.display}`, color: C.dim });
     pages.push(c);

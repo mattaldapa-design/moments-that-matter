@@ -93,7 +93,8 @@ open their moment or day (I15).
 Then, in the agreed order: Archive to a file (I3) and place levels (I7),
 both verified in the preview.
 Then the longer detail list with "Your own" (I17) and "Share this day" as
-one picture (I19).
+one picture (I19). Then stars in the recap (I20) and "About this trip" with the
+packing list (I18).
 
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
@@ -603,6 +604,14 @@ struck.
   **Settles when:** the trip page has a place for trip-wide details and a
   packing list, and Matt has said what the first version holds. (The
   settling condition is the agent's draft.)
+
+  **Built 2026-10-17:** an "About this trip" panel on the trip page, folded
+  by default: travelled with (names one at a time), trip details from a
+  list (Airline or cruise line, Booking reference, Budget, Website,
+  Insurance, Your own), and a packing list with ticks and a "1 of 2 packed"
+  count. Companions show on the recap's cover. Verified in the preview,
+  including after a reload. The first version's contents are the agent's
+  reading of Matt's examples; he has not yet said what else it should hold.
 
 - **I19 — A one-day recap as a single picture, to send or post.**
   *(2026-10-17)* Matt: *"it would be cool if you can like do almost the
