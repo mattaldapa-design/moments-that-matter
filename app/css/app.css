@@ -183,6 +183,13 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-dayband__pics--4 { grid-template-columns: 1fr 1fr 1fr; }
 .mtm-dayband__titles { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 16px; color: var(--cream-dim); }
 
+/* Money and people */
+.mtm-money { position: relative; display: block; }
+.mtm-money::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--cream-dim); font-size: 18px; pointer-events: none; }
+.mtm-money input { padding-left: 32px; }
+.mtm-person { display: inline-flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; border-radius: var(--radius-pill); background: var(--room-200); font-family: var(--font-display); font-weight: 700; font-size: 17px; box-shadow: 0 0 0 1px var(--line); }
+.mtm-person button { width: 28px; height: 28px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream-dim); font-size: 18px; line-height: 1; cursor: pointer; }
+
 /* Stepper */
 .mtm-stepper { justify-self: start; display: inline-flex; align-items: center; gap: 6px; background: var(--room-200); border-radius: var(--radius-pill); padding: 4px; }
 .mtm-stepper button { width: 44px; height: 44px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream); font-size: 22px; cursor: pointer; }

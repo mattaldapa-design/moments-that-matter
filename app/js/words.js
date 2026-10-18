@@ -8,12 +8,12 @@ export const KINDS = [
       { k: 'seat', label: 'Seat or number', hint: 'Seat 23A, flight QF12' },
     ] },
   { key: 'food', emoji: '🍽️', name: 'Food & drink', hint: 'Flat white and a scone', fields: [] },
-  { key: 'activity', emoji: '🚴', name: 'Activity', hint: 'Bike ride along the harbour',
+  { key: 'activity', emoji: '✨', name: 'Activity', hint: 'Bike ride along the harbour',
     fields: [] },
   { key: 'place', emoji: '📍', name: 'Place', hint: 'Taronga Zoo', fields: [] },
   { key: 'people', emoji: '👋', name: 'People', hint: 'The couple at the fireworks',
     fields: [
-      { k: 'names', label: 'Names' }, { k: 'from', label: 'Where from' },
+      { k: 'people', label: 'Who', type: 'people' }, { k: 'from', label: 'Where from' },
       { k: 'contact', label: 'Contact', hint: 'Number, email, handle' },
       { k: 'recommended', label: 'What they recommended' },
     ] },
@@ -66,4 +66,23 @@ export function emojiFor(word) {
   if (exact) return exact.emoji;
   const start = WORDS.find((w) => w.word.startsWith(q) && q.length >= 3);
   return start ? start.emoji : '';
+}
+
+// Pick an emoji from free text: two-word phrases first, then single words, exact matches only.
+export function emojiFromText(text) {
+  const words = String(text || '').toLowerCase().replace(/[^a-z\s'-]/g, ' ').split(/\s+/).filter(Boolean);
+  for (let i = 0; i < words.length - 1; i++) {
+    const hit = WORDS.find((w) => w.word === words[i] + ' ' + words[i + 1]);
+    if (hit) return hit.emoji;
+  }
+  // Each word, left to right, with its simple stems: surfing → surf, hikes → hike, kayaked → kayak.
+  const stems = (x) => [x, x.replace(/ies$/, 'y'), x.replace(/e?s$/, ''), x.replace(/ing$/, ''), x.replace(/ing$/, 'e'), x.replace(/ed$/, ''), x.replace(/ed$/, 'e')];
+  for (const word of words) {
+    for (const st of stems(word)) {
+      if (st.length < 3) continue;
+      const hit = WORDS.find((w) => w.word === st);
+      if (hit) return hit.emoji;
+    }
+  }
+  return '';
 }

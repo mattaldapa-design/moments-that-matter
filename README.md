@@ -78,6 +78,14 @@ https://mattaldapa-design.github.io/moments-that-matter/` returned 200, and
 in the desktop app's browser the page loaded with the manifest and the
 service worker "activated" at that scope, no console errors.
 
+After Matt's fourth look (same evening): a fixed "$" on Cost and whole
+dollars in the recap; People added one name at a time, with "Met Larry and
+Diane" as the automatic title (I14); the picture picker forgets its last
+choice; Activity starts as ✨ and a block's title steers its emoji ("Surfing
+lesson" → 🏄); the recap drops "pictures kept", counts every block's named
+place, and packs several days onto a page (the test trip's export went from
+7 pages to 5). Verified in the preview, 2026-10-17.
+
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
 touch, and whether iOS marks the storage persistent are all untested.
@@ -474,6 +482,21 @@ struck.
   whose cross-reference table checks out; "Share as pictures" produced the
   same 7 pages as JPEGs. Not yet opened on the iPhone.
 
+- **I14 — People are added one at a time, by name; maybe into contacts one
+  day.** *(2026-10-17)* Matt: *"it says title Larry and Diane, but I guess it
+  could be like met Larry and Diane or something like that. And the name's
+  Larry and Diane [...] maybe with people you can like you can add first
+  name, like you can add a person, add a person [...] because names is, is
+  indicating always two people as opposed to like, you might be one person
+  and like add a person. You know, maybe you can even add them to your
+  contacts. Who knows? [...] but that's that's a later kind of thing."*
+
+  **Settles when:** a People block takes one name at a time and reads "Met
+  Larry and Diane" on its own; contacts stay under Not now. (The settling
+  condition is the agent's draft.)
+
+  **Built 2026-10-17**, verified in the preview; contacts are under Not now.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -687,6 +710,16 @@ decided, where it is enforced, and what it **serves**.
   at) is the agent's, to keep or strike. Enforced: `app/js/recap.js`.
   **Serves →** I13, and the Goal's "export a summary of the trip".
 
+- **2026-10-17 — Costs are plain numbers shown with a dollar sign; the
+  recap rounds them to whole dollars.** Chosen: the Cost field carries a
+  fixed "$" in front, and stats read "$35". Alternative: no symbol, as in
+  the first build. Matt: *"when adding cost be nice if like it just showed
+  the dollar sign already in front of it [...] 35 spent on food. It doesn't
+  say dollars. It just says 35. Um, I wonder, it just, just round to the
+  whole as well."* The symbol is a label, not a currency conversion; a trip
+  in another currency still shows "$" (the agent's simplification). Enforced:
+  the Cost field and `stats()` in `app/js/recap.js`. **Serves →** I13.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **The backup reminder threshold:** what counts as
@@ -699,6 +732,16 @@ decided, where it is enforced, and what it **serves**.
   from this."* Tied to I2 and I3.
 
 ## Not now
+
+- **Adding a person met to the phone's contacts.** Deferred 2026-10-17.
+  Matt: *"maybe you can even add them to your contacts. Who knows? [...] but
+  that's that's a later kind of thing."* Trigger: Matt asks, after People
+  blocks have been used on a trip.
+- **Choosing what the recap pictures include, or fewer pages by option.**
+  Deferred 2026-10-17. Matt: *"it'd be nice if it could either be maybe
+  like less pages [...] or give you the option."* The first fix packs
+  several days onto a page; an option waits. Trigger: Matt asks after
+  seeing the packed pages on a fuller trip.
 
 - **Slide-book and separate long-scroll layouts for the recap.** Deferred
   2026-10-17. Reason: Matt: *"we can play around with like a couple of these
@@ -749,6 +792,18 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Fourth look on the iPhone, with the Recap**, while
+  building a real trip: *"overall, overall, pretty successful. I, I, I like
+  the changes so far."* Liked: the scroll, the PDF (*"works well"*),
+  "everything you did", the weather, day by day. Asked for: a dollar sign on
+  costs and whole dollars in stats (Decision); people one at a time (I14);
+  a wrongly chosen picture is hard to back out of, and a picker dismissed
+  with nothing selected still added the earlier picture; Activity's bike
+  emoji *"makes it feel like I'm biking"*, the title should steer the emoji;
+  "pictures kept" unclear; "places visited" should count every block's
+  location, not just Place blocks; eleven export pictures is a lot, with
+  blank space. Fixed the same day: see Current state.
 
 - **2026-10-17 — Third look on the iPhone**, after the detail and link
   changes: *"everything else looks really good though. This is a good first

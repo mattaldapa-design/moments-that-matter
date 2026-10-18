@@ -1,7 +1,7 @@
 // Moments That Matter — the app. Trips → days (boards) → blocks (moments).
 import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
-import { KINDS, kindOf, WEATHER, WORDS, emojiFor } from './words.js';
+import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
 import { gather, stats, renderRecap, drawPages, pagesToPdf, pagesToPictures } from './recap.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -83,7 +83,9 @@ async function deleteTrip(id) {
   await db.delWhere('days', 'tripId', id);
   await db.del('trips', id);
 }
-const titleOf = (b) => b.title || cap(b.label) || kindOf(b.kind)?.name || 'Moment';
+const joinNames = (arr) => (arr.length <= 1 ? arr.join('') : arr.length === 2 ? `${arr[0]} and ${arr[1]}` : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
+const autoTitle = (b) => (b.kind === 'people' && b.fields?.people?.length ? `Met ${joinNames(b.fields.people)}` : '');
+const titleOf = (b) => b.title || autoTitle(b) || cap(b.label) || kindOf(b.kind)?.name || 'Moment';
 // Optional details, added to a card from a list (Decision, 2026-10-17). Not on every card.
 const DETAILS = [
   { k: 'time', label: 'Time', type: 'time' },
@@ -99,6 +101,11 @@ function normalize(b) {
   if (b.time) { b.details.time = b.time.includes('T') ? b.time.slice(11, 16) : b.time; delete b.time; }
   if (b.cost) { b.details.cost = b.cost; delete b.cost; }
   if (b.fields.duration) { b.details.duration = b.fields.duration; delete b.fields.duration; }
+  if (b.kind === 'people' && typeof b.fields.names === 'string') {
+    b.fields.people = (b.fields.people || []).concat(b.fields.names.split(/,|&|\band\b/).map((x) => x.trim()).filter(Boolean));
+    delete b.fields.names;
+  }
+  if (b.kind === 'people' && !Array.isArray(b.fields.people)) b.fields.people = [];
   return b;
 }
 function blockMeta(b) {
@@ -505,6 +512,7 @@ function addPage(trip, i) {
   </div>`;
   const q = $('#q'), gal = $('#gallery');
   const draw = () => {
+    if (!q.isConnected) return; // the screen moved on while this was drawing
     const s = q.value.trim().toLowerCase();
     const list = (s ? WORDS.filter((w) => w.word.includes(s)) : WORDS).slice(0, 80);
     const exact = s && WORDS.some((w) => w.word === s);
@@ -551,6 +559,12 @@ async function editor(trip, i, bid) {
 
   const field = (f) => {
     const v = b.fields[f.k] ?? '';
+    if (f.type === 'people') {
+      const list = b.fields.people || [];
+      return `<div class="dr-field"><label for="newPerson">${esc(f.label)}</label>
+        ${list.length ? `<div class="mtm-chips">${list.map((n, k) => `<span class="mtm-person">${esc(n)}<button type="button" data-unperson="${k}" aria-label="Remove ${esc(n)}">×</button></span>`).join('')}</div>` : ''}
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPerson" placeholder="${list.length ? 'Add another person' : 'Add a person'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPerson">Add</button></div></div>`;
+    }
     if (f.type === 'chips') {
       return `<div class="dr-field"><label>${esc(f.label)}</label><div class="mtm-chips">${
         f.options.map((o) => `<button type="button" class="mtm-chip mtm-chip--text ${v === o ? 'is-on' : ''}" data-chip="${f.k}" data-val="${esc(o)}">${esc(o)}</button>`).join('')
@@ -562,7 +576,7 @@ async function editor(trip, i, bid) {
   const shown = DETAILS.filter((d) => b.details[d.k] || b.extras.includes(d.k));
   const hidden = DETAILS.filter((d) => !shown.includes(d));
   const detail = (d) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="d-${d.k}">${esc(d.label)}</label><button type="button" class="mtm-x" data-drop="${d.k}" aria-label="Remove ${esc(d.label)}">×</button></div>
-    <div class="mtm-bar"><input class="dr-input mtm-grow" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off">${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div></div>`;
+    <div class="mtm-bar"><span class="mtm-grow ${d.k === 'cost' ? 'mtm-money' : ''}"><input class="dr-input" id="d-${d.k}" data-detail="${d.k}" type="${d.type || 'text'}" ${d.type === 'url' ? 'inputmode="url" autocapitalize="none"' : ''} ${d.k === 'cost' ? 'inputmode="decimal"' : ''} value="${esc(b.details[d.k] || '')}" placeholder="${esc(d.hint || '')}" autocomplete="off"></span>${d.type === 'url' && b.details[d.k] ? `<a class="dr-btn dr-btn--ghost dr-btn--sm" href="${esc(asLink(b.details[d.k]))}" target="_blank" rel="noopener">Open</a>` : ''}</div></div>`;
 
   app.innerHTML = `<div class="mtm-stack">
     <div class="mtm-editor-head">
@@ -575,7 +589,7 @@ async function editor(trip, i, bid) {
     </label>
     ${ph ? `<div class="mtm-bar"><button class="dr-btn ${isKey ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${isKey ? 'disabled' : ''}>${isKey ? 'This is the day’s picture' : 'Make this the day’s picture'}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
     <div class="mtm-fields">
-      <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(kind?.hint || cap(b.label))}" autocomplete="off"></div>
+      <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(autoTitle(b) || kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
       <div class="dr-field mtm-where"><label for="where">Where</label>
         <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="${b.kind === 'place' ? 'Address or area' : 'Café, street, neighbourhood'}" autocomplete="off">
@@ -612,7 +626,20 @@ async function editor(trip, i, bid) {
       render();
     };
   });
-  $('#title').oninput = (e) => { b.title = e.target.value; save(); };
+  $('#title').oninput = (e) => {
+    b.title = e.target.value;
+    if (kind) { const em = emojiFromText(b.title) || kind.emoji; if (em !== b.emoji) { b.emoji = em; const big = $('.mtm-editor-head .mtm-big'); if (big) big.textContent = em; } }
+    save();
+  };
+  const np = $('#newPerson');
+  const addPerson = async () => {
+    const n = (np.value || '').trim(); if (!n) return;
+    b.fields.people = (b.fields.people || []).concat(n); np.value = '';
+    await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); render();
+    setTimeout(() => $('#newPerson')?.focus(), 50);
+  };
+  if (np) { np.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPerson(); } }; $('#addPerson').onclick = addPerson; }
+  $$('[data-unperson]').forEach((x) => { x.onclick = async () => { b.fields.people.splice(Number(x.dataset.unperson), 1); await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); render(); }; });
   $('#where').oninput = (e) => { b.place.name = e.target.value; save(); };
   $('#note').oninput = (e) => { b.note = e.target.value; save(); };
   $$('[data-field]').forEach((inp) => { inp.oninput = () => { b.fields[inp.dataset.field] = inp.value; save(); }; });
@@ -634,7 +661,9 @@ async function editor(trip, i, bid) {
     };
   });
   $('#photoFile').onchange = async (e) => {
-    const f = e.target.files[0]; if (!f) return;
+    const f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
     await save.flush();
     await attachPhoto(trip, b, f);
     render();

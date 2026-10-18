@@ -8,8 +8,9 @@ const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d
 const fmtDay = (d) => d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtLong = (d) => d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
-const money = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 2 });
-const titleOf = (b) => b.title || cap(b.label) || 'Moment';
+const money = (n) => '$' + Math.round(n).toLocaleString();
+const joinNames = (arr) => (arr.length <= 1 ? arr.join('') : arr.length === 2 ? `${arr[0]} and ${arr[1]}` : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
+const titleOf = (b) => b.title || (b.kind === 'people' && b.fields?.people?.length ? `Met ${joinNames(b.fields.people)}` : '') || cap(b.label) || 'Moment';
 
 // ---------- data ----------
 export async function gather(trip) {
@@ -36,13 +37,13 @@ export function stats(data) {
 
   const foodSpend = food.reduce((s, b) => s + num(b.details?.cost), 0);
   add(foodSpend > 0, '💸', money(foodSpend), 'spent on food and drink, as entered', firstPhoto(food));
-  const peopleCount = people.reduce((s, b) => s + Math.max(1, (b.fields?.names || '').split(/,|&|\band\b/).filter((x) => x.trim()).length), 0);
+  const peopleCount = people.reduce((s, b) => s + (Array.isArray(b.fields?.people) && b.fields.people.length ? b.fields.people.length : Math.max(1, (b.fields?.names || '').split(/,|&|\band\b/).filter((x) => x.trim()).length)), 0);
   add(people.length, '👋', peopleCount, `new ${peopleCount === 1 ? 'person' : 'people'} met`, firstPhoto(people));
   const eateries = new Set(food.map((b) => (b.place?.name || b.title || '').trim().toLowerCase()).filter(Boolean)).size;
   add(eateries, '🍽️', eateries, `place${eateries === 1 ? '' : 's'} you ate or drank at`, firstPhoto(food.slice().reverse()));
   add(food.length && !eateries, '🍽️', food.length, `meal${food.length === 1 ? '' : 's'} and drinks logged`, firstPhoto(food));
-  add(places.length, '📍', places.length, `place${places.length === 1 ? '' : 's'} visited`, firstPhoto(places));
-  add(photos.length, '📸', photos.length, `picture${photos.length === 1 ? '' : 's'} kept`, photos[0]?.id);
+  const named = new Set(blocks.map((b) => (b.place?.name || '').trim().toLowerCase()).filter(Boolean));
+  add(named.size > 1, '📍', named.size, 'different places, by name', firstPhoto(blocks.filter((b) => b.place?.name)));
   const emojiCount = {};
   blocks.forEach((b) => { if (b.emoji) emojiCount[b.emoji] = (emojiCount[b.emoji] || 0) + 1; });
   const top = Object.entries(emojiCount).sort((a, b) => b[1] - a[1])[0];
@@ -197,33 +198,37 @@ export async function drawPages(data, S) {
     pages.push(c);
   }
 
-  // 4. Day by day, one page per day with moments
+  // 4. Day by day, packed: a new page only when the next day will not fit
+  let page = null, y = 0;
+  const inner = W - 2 * P;
+  const startPage = (first) => { page = newPage(); y = eyebrow(page.g, first ? 'Day by day' : 'Day by day, continued', P + 20) + 10; pages.push(page.c); };
   for (const d of days.filter((dd) => dd.blocks.length)) {
-    const { c, g } = newPage();
-    let y = eyebrow(g, `Day ${d.index + 1} · ${fmtDay(d.date)}`, P + 20);
-    g.font = `48px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; if (d.weather) g.fillText(d.weather, W - P, y + 20);
-    y = text(g, d.city || 'Somewhere', P, y + 30, { font: `700 60px ${F.display}`, maxLines: 1, maxWidth: W - 2 * P - 90 });
-    g.font = `44px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 30);
-    y += 90;
     const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
     const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
-    const pics = [key, ...others].filter(Boolean);
+    const pics = [key, ...others].filter(Boolean).slice(0, 4);
+    const picH = pics.length === 0 ? 0 : pics.length === 1 ? 400 : pics.length === 2 ? (inner - 24) / 2 : 380 + 24 + 200;
+    const lines = Math.min(d.blocks.length, 6);
+    const need = 130 + (picH ? picH + 24 : 0) + lines * 44 + (d.blocks.length > 6 ? 40 : 0) + 50;
+    if (!page || y + need > H - P) startPage(!page);
+    const g = page.g;
+    text(g, `Day ${d.index + 1} · ${fmtDay(d.date)}`.toUpperCase(), P, y + 26, { font: `700 24px ${F.display}`, color: C.signal });
+    if (d.weather) { g.font = `40px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, W - P, y + 76); }
+    text(g, d.city || 'Somewhere', P, y + 78, { font: `700 48px ${F.display}`, maxLines: 1, maxWidth: inner - 90 });
+    g.font = `34px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 70), P, y + 122);
+    y += 130;
     const ims = await Promise.all(pics.map(img));
-    const inner = W - 2 * P;
-    if (ims.length === 1) { drawCover(g, ims[0], P, y, inner, 620, 28); y += 650; }
-    else if (ims.length === 2) { const w = (inner - 24) / 2; drawCover(g, ims[0], P, y, w, w, 28); drawCover(g, ims[1], P + w + 24, y, w, w, 28); y += w + 30; }
+    if (ims.length === 1) drawCover(g, ims[0], P, y, inner, 400, 24);
+    else if (ims.length === 2) { const w2 = (inner - 24) / 2; drawCover(g, ims[0], P, y, w2, w2, 24); drawCover(g, ims[1], P + w2 + 24, y, w2, w2, 24); }
     else if (ims.length >= 3) {
-      drawCover(g, ims[0], P, y, inner, 480, 28); y += 504;
-      const n = ims.length - 1; const w = (inner - 24 * (n - 1)) / n;
-      ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w + 24), y, w, Math.min(w, 300), 24));
-      y += Math.min(w, 300) + 30;
+      drawCover(g, ims[0], P, y, inner, 380, 24);
+      const n = ims.length - 1; const w2 = (inner - 24 * (n - 1)) / n;
+      ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w2 + 24), y + 404, w2, 200, 20));
     }
-    y += 20;
-    for (const b of d.blocks.slice(0, 12)) {
-      if (y > H - P - 40) { text(g, `+${d.blocks.length - d.blocks.indexOf(b)} more`, P, y, { font: `400 28px ${F.body}`, color: C.dim }); break; }
-      y = text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}`, P, y + 12, { font: `500 32px ${F.body}`, maxLines: 1 }) + 8;
-    }
-    pages.push(c);
+    if (picH) y += picH + 24;
+    for (const b of d.blocks.slice(0, 6)) { text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}`, P, y + 32, { font: `500 30px ${F.body}`, maxLines: 1 }); y += 44; }
+    if (d.blocks.length > 6) { text(g, `+${d.blocks.length - 6} more`, P, y + 28, { font: `400 26px ${F.body}`, color: C.dim }); y += 40; }
+    y += 50;
+    g.fillStyle = 'rgba(255,228,206,0.10)'; g.fillRect(P, y - 26, inner, 2);
   }
   return pages;
 }
