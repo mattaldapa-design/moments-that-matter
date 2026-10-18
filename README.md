@@ -339,9 +339,11 @@ struck.
   happen when the photo carries no location. (The settling condition is the
   agent's draft.)
 
-  **Built 2026-10-17**, verified only on the PC with a synthetic photo (see
-  Current state). When a photo carries no position the editor offers "Use my
-  location" and a typed place; what Matt wants there is still his to say.
+  **Built 2026-10-17**, verified on the PC with a synthetic photo and then
+  on Matt's iPhone with a library picture: time and coordinates filled in.
+  Names: see the Decision of 2026-10-17 on place lookup; "Look up the name"
+  turned 33.8438°S 151.2412°E into "Rainforest Trail, Mosman" in the
+  preview.
 
 - **I7 — Places nest: country, city, down to the building or park; a block
   folds into that, and Matt can always get back out to the top fast.**
@@ -591,14 +593,22 @@ decided, where it is enforced, and what it **serves**.
   git remote and the Pages deploy workflow, once added (see Runbook).
   **Serves →** Goal ("use on his iPhone"), and the three Open items.
 
+- **2026-10-17 — Place names can be looked up from coordinates with an
+  online service, as an option; nothing is sent unless Matt asks.** Chosen:
+  a "Look up the name" button beside a block's coordinates asks
+  OpenStreetMap's Nominatim service for a name and fills Where, editable;
+  a switch on the Trips screen, "Look up place names automatically when
+  online", does the same without the tap and starts **off**. Alternative:
+  no lookup, names typed by hand (what he had). Matt: *"allow it to look it
+  up using an online service if um, you know, if the user wants to. The
+  user doesn't have to. Um, so it should be an option."* The agent's
+  choices, not Matt's words: the service (OpenStreetMap, free, no account,
+  asks for light use), the switch starting off, and the button being there
+  regardless of the switch. Enforced: the lookup in `app/js/app.js`; the
+  switch is stored on the phone. **Serves →** I6, I7.
+
 **Open decisions — waiting on Matt, oldest first:**
 
-- *2026-10-17* — **Place names from coordinates.** A picture or "Use my
-  location" gives coordinates, not a name; Matt: *"it gave coordinates, not
-  not the exact location, because I imagine it's not connected to a map or
-  something."* Turning them into "Taronga Zoo" needs an online lookup
-  service, which means sending the coordinates to that service. The agent
-  has asked whether he wants that.
 - *2026-10-17* — **The backup reminder threshold:** what counts as
   "substantial new content". The first build uses 10 changes or 8 MB as a
   placeholder.

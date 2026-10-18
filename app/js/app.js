@@ -205,9 +205,11 @@ async function trips() {
       <button class="dr-btn" data-go="/new">Start a trip</button>
       <label class="dr-btn dr-btn--ghost">Import a trip<input type="file" accept=".json,application/json" hidden id="importFile"></label>
     </div>
+    <label class="dr-check"><input type="checkbox" id="autoLookup" ${await autoLookupOn() ? 'checked' : ''}> Look up place names automatically when online</label>
     <div class="mtm-foot" id="storage"></div>
   </div>`;
   bindGo();
+  $('#autoLookup').onchange = async (e) => { await db.setSetting('autoLookup', e.target.checked); toast(e.target.checked ? 'Place names will be looked up when online.' : 'Place names are yours to type.'); };
   $('#importFile').onchange = (e) => importTrip(e.target.files[0]);
   storageLine().then((s) => { const el = $('#storage'); if (el) el.textContent = s; });
 }
@@ -531,7 +533,7 @@ async function editor(trip, i, bid) {
       ${(kind?.fields || []).map(field).join('')}
       <div class="dr-field mtm-where"><label for="where">Where</label>
         <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="${b.kind === 'place' ? 'Address or area' : 'Café, street, neighbourhood'}" autocomplete="off">
-        <div class="mtm-bar"><span class="mtm-coords" id="coords">${coordsText(b.place)}</span><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="locate">Use my location</button></div>
+        <div class="mtm-bar"><span class="mtm-coords" id="coords">${coordsText(b.place)}</span><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="locate">Use my location</button>${b.place.lat != null ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="lookup">Look up the name</button>' : ''}</div>
       </div>
       <div class="dr-field"><label for="note">Note</label><textarea class="dr-textarea" id="note" rows="3" placeholder="Only if you want to.">${esc(b.note)}</textarea></div>
       ${shown.map(detail).join('')}
@@ -591,11 +593,23 @@ async function editor(trip, i, bid) {
     const btn = $('#locate'); btn.disabled = true;
     navigator.geolocation.getCurrentPosition(async (pos) => {
       b.place.lat = pos.coords.latitude; b.place.lon = pos.coords.longitude; b.place.from = 'phone';
-      $('#coords').textContent = coordsText(b.place); btn.disabled = false;
+      const named = await maybeAutoName(b);
       await db.put('blocks', b); await touch(trip);
-      toast('Position saved. Name the place if you like.');
+      toast(named ? `Position saved: ${b.place.name}` : 'Position saved. Name the place if you like.');
+      render();
     }, () => { btn.disabled = false; toast('Could not get a position. Type the place instead.'); },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+  };
+  const lu = $('#lookup');
+  if (lu) lu.onclick = async () => {
+    if (!navigator.onLine) return toast('No internet right now. Try again later or type the place.');
+    lu.disabled = true; toast('Looking up the name…');
+    try {
+      const n = await lookupName(b.place.lat, b.place.lon);
+      if (n) { b.place.name = n; $('#where').value = n; await save.flush(); await db.put('blocks', b); await touch(trip); toast('Found it. Change it if it is wrong.'); }
+      else toast('No name found here. Type one.');
+    } catch { toast('Could not reach the lookup service.'); }
+    lu.disabled = false;
   };
   $('#deleteBlock').onclick = async () => {
     if (!confirm('Delete this moment?')) return;
@@ -605,6 +619,26 @@ async function editor(trip, i, bid) {
     go(`/t/${trip.id}/d/${i}`);
   };
   $('#done').onclick = async () => { await save.flush(); go(`/t/${trip.id}/d/${i}`); };
+}
+
+// ---------- place names (Decision, 2026-10-17: optional, OpenStreetMap's Nominatim) ----------
+async function lookupName(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&accept-language=en`;
+  const r = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!r.ok) throw new Error('lookup failed');
+  const j = await r.json();
+  const a = j.address || {};
+  const what = j.name || a.tourism || a.amenity || a.shop || a.leisure || a.historic || a.building || a.road || '';
+  const where = a.suburb || a.neighbourhood || a.city || a.town || a.village || a.county || '';
+  return [what, where].filter(Boolean).join(', ') || (j.display_name || '').split(',').slice(0, 2).join(',').trim();
+}
+async function autoLookupOn() { return db.setting('autoLookup', false); }
+// Fill a block's place name from its coordinates when the switch is on and the phone is online.
+async function maybeAutoName(b) {
+  if (b.place?.lat == null || b.place.name || !navigator.onLine) return false;
+  if (!(await autoLookupOn())) return false;
+  try { const n = await lookupName(b.place.lat, b.place.lon); if (n) { b.place.name = n; return true; } } catch { /* offline or refused: leave it */ }
+  return false;
 }
 
 // ---------- photos ----------
@@ -618,10 +652,11 @@ async function attachPhoto(trip, b, file) {
   normalize(b);
   if (!b.details.time && exif.takenAt) { const t = exifDateToLocal(exif.takenAt); if (t) b.details.time = t.slice(11, 16); }
   if (b.place.lat == null && exif.lat != null) { b.place.lat = exif.lat; b.place.lon = exif.lon; b.place.from = 'photo'; }
+  const named = await maybeAutoName(b);
   await db.put('blocks', b);
   if (!trip.coverPhotoId) trip.coverPhotoId = photo.id;
   await touch(trip, blob.size);
-  toast(exif.lat != null ? 'Picture added, with its place and time.'
+  toast(named ? `Picture added: ${b.place.name}.` : exif.lat != null ? 'Picture added, with its position and time.'
     : exif.takenAt ? 'Picture added, with its time. No place in this photo.'
       : 'Picture added. No place or time in this photo.');
 }
