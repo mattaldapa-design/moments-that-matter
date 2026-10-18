@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 27; // keep in step with VERSION in sw.js
+const APP_VERSION = 28; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -286,7 +286,7 @@ const HOW_IT_WORKS = [
   ['Pictures', 'Every moment can carry one picture from your photo library. When the photo has a time and a place in it, they fill in by themselves. On each day you can mark up to four pictures as key pictures; those lead on the day’s card and in the recap, in the order you tapped them.'],
   ['Where', 'Each moment can say where it was. A picture or "Use my location" gives a position; "Look up the name" turns that into a place name using an online map service, only when you ask, or always if you switch that on below. Under About this trip you can list the countries and cities of the trip, and the boards offer them as you type.'],
   ['Back up, Archive, Pass the notebook', 'All three make the same file: the whole trip, pictures included, which you save to Files, iCloud Drive, Google Drive, or send by Messages. Back up keeps the trip here; do that whenever the reminder shows. Archive makes the file and then takes the trip off this phone, to free space; Import a trip brings it back whole. Pass the notebook sends the file to someone and locks the trip here until their file comes back through Import a trip, which then replaces yours with everything they added. One person writes at a time, and the notebook always comes home.'],
-  ['Import a trip', 'On the Trips screen. Opens one of those files. A trip you don’t have arrives as itself. A trip you already have arrives as a copy beside it, unless it is one you passed on, which comes home in its place.'],
+  ['Send this day, Import a trip', 'Send this day, in a day’s ⋯ menu, sends just that day and its pictures to someone. Import a trip, on the Trips screen, opens any of these files. A whole trip you don’t have arrives as itself; one you already have arrives as a copy, unless you passed it on, in which case it comes home in its place. A day asks which trip it joins, then adds its moments to the day with the same date, or as a new day at the end; moments already there from an earlier send are skipped, and you remove what you don’t want.'],
   ['Recap and Share this day', 'Recap, on a trip’s page, sums the trip up: the numbers, every icon, then day by day. Save it as a PDF or as pictures. Share this day, on a board, makes one picture of that day for Messages or a post. Both are made on the phone; nothing is uploaded.'],
   ['Storage and updates', 'Everything lives on this phone, inside the app. The gauge below shows how much of what the phone allows is in use; archive a finished trip when it fills. New versions arrive when you reopen the app, or from Check for an update. If the app ever reopens by itself, that was an update taking over between screens.'],
 ];
@@ -534,6 +534,7 @@ async function tripPage(trip) {
       const i = Number(btn.dataset.more);
       const n = (byDay[i] || []).length;
       const k = await sheet(`Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}`, [
+        { k: 'send', label: n ? `Send this day to someone (${n} moment${n === 1 ? '' : 's'})` : 'Send this day to someone', disabled: !n },
         { k: 'before', label: 'Slide a day in before' },
         { k: 'after', label: 'Slide a day in after' },
         { k: 'earlier', label: 'Move earlier', disabled: i === 0 },
@@ -541,6 +542,7 @@ async function tripPage(trip) {
         { k: 'remove', label: n ? `Remove this day and its ${n} moment${n === 1 ? '' : 's'}` : 'Remove this day', danger: true, disabled: trip.dayCount <= 1 },
       ]);
       if (!k) return;
+      if (k === 'send') { await sendDay(trip, i); return; }
       const c = trip.dayCount;
       if (k === 'before') await remapDays(trip, (o) => (o >= i ? o + 1 : o), c + 1);
       if (k === 'after') await remapDays(trip, (o) => (o > i ? o + 1 : o), c + 1);
@@ -1206,10 +1208,80 @@ async function takeBack(trip) {
   render();
 }
 
+// ---------- one day on its own (I25) ----------
+const DAY_FORMAT = 'moments-that-matter-day';
+const isoOf = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+async function sendDay(trip, i) {
+  toast('Packing the day…');
+  const day = await getDay(trip.id, i);
+  const blocks = await blocksForDay(day.id);
+  const photos = (await db.where('photos', 'tripId', trip.id)).filter((p) => blocks.some((b) => b.photoId === p.id));
+  const photoData = await Promise.all(photos.map(async (p) => ({ ...p, blob: undefined, data: await blobToDataUrl(p.blob) })));
+  const date = isoOf(addDays(trip.startDate, i));
+  const payload = { format: DAY_FORMAT, version: 1, exportedAt: new Date().toISOString(),
+    from: { tripId: trip.id, tripTitle: trip.title || '', dayIndex: i, date },
+    day: { city: day.city || '', weather: day.weather || '', keyPhotos: day.keyPhotos || [] }, blocks, photos: photoData };
+  const who = await db.setting('yourName', '');
+  const name = `${(trip.title || 'Trip').replace(/[\\/:*?"<>|]+/g, ' ').trim()} day ${i + 1} - ${date}.json`;
+  const note = `${who ? who + ' sent you' : "Here's"} day ${i + 1} (${fmtDay(addDays(trip.startDate, i))}) from ${trip.title || 'the trip'}. Open Moments That Matter, tap Import a trip, and choose which trip it joins. Keep what you like, remove the rest. ${APP_URL}`;
+  const file = new File([JSON.stringify(payload)], name, { type: 'application/json' });
+  const went = await deliverFiles([file], name, note);
+  toast(went ? 'Day sent.' : 'Cancelled.');
+}
+async function importDay(data) {
+  // Tidy what came in, then ask where it goes.
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(String(data.from?.date || '')) ? data.from.date : null;
+  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: undefined }));
+  const photosIn = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/'));
+  if (!blocksIn.length) return toast('That day file has no moments in it.');
+  const trips = (await db.all('trips')).filter((t) => !isPassed(t)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  if (!trips.length) return toast('Start a trip first, then import the day into it.');
+  const label = `${data.from?.tripTitle ? data.from.tripTitle + ', ' : ''}day ${(data.from?.dayIndex ?? 0) + 1}${date ? ' · ' + fmtDay(new Date(date + 'T00:00:00')) : ''}`;
+  const tk = trips.length === 1 ? trips[0].id : await sheet(`Add ${label} to which trip?`, trips.slice(0, 8).map((t) => ({ k: t.id, label: t.title || 'Untitled trip' })));
+  if (!tk) return toast('Nothing added.');
+  const trip = trips.find((t) => t.id === tk);
+  normalizeTrip(trip);
+  // Same date already in the trip? Offer to join that day.
+  let at = -1;
+  if (date) for (let i = 0; i < trip.dayCount; i++) if (isoOf(addDays(trip.startDate, i)) === date) { at = i; break; }
+  let mode = 'new';
+  if (at >= 0) {
+    mode = await sheet(`${trip.title || 'This trip'} already has Day ${at + 1} on that date.`, [
+      { k: 'join', label: `Add these ${blocksIn.length} moment${blocksIn.length === 1 ? '' : 's'} to Day ${at + 1}` },
+      { k: 'new', label: 'Add as a new day at the end' },
+    ]);
+    if (!mode) return toast('Nothing added.');
+  }
+  const index = mode === 'join' ? at : trip.dayCount;
+  const day = await getDay(trip.id, index);
+  if (mode === 'new') { trip.dayCount += 1; if (!day.city) day.city = data.day?.city || ''; if (!day.weather) day.weather = safeGlyph(data.day?.weather); }
+  const existing = await blocksForDay(day.id);
+  const seen = new Set(existing.flatMap((b) => [b.id, b.srcId].filter(Boolean)));
+  const fresh = blocksIn.filter((b) => !seen.has(b.id) && !seen.has(b.srcId));
+  const photoMap = {};
+  const photos = [];
+  for (const p of photosIn) {
+    if (!fresh.some((b) => b.photoId === p.id)) continue;
+    const nid = uid(); photoMap[p.id] = nid;
+    photos.push({ ...p, id: nid, tripId: trip.id, blob: await (await fetch(p.data)).blob(), data: undefined });
+  }
+  const blocks = fresh.map((b, k) => ({ ...normalize({ ...b }), id: uid(), srcId: b.srcId || b.id, tripId: trip.id, dayId: day.id, dayIndex: index, order: existing.length + k,
+    photoId: b.photoId && photoMap[b.photoId] ? photoMap[b.photoId] : null }));
+  photos.forEach((p) => { const owner = blocks.find((b) => b.photoId === p.id); if (owner) p.blockId = owner.id; });
+  if (mode === 'new') day.keyPhotos = (data.day?.keyPhotos || []).map((id) => photoMap[id]).filter(Boolean).slice(0, KEY_MAX);
+  keyify(day);
+  await db.batch(['days', 'blocks', 'photos'], (s) => { s.days.put(day); blocks.forEach((b) => s.blocks.put(b)); photos.forEach((p) => s.photos.put(p)); });
+  if (!trip.coverPhotoId && photos[0]) trip.coverPhotoId = photos[0].id;
+  await touch(trip, photos.reduce((n, p) => n + (p.bytes || 0), 0));
+  toast(fresh.length ? `${fresh.length} moment${fresh.length === 1 ? '' : 's'} added to Day ${index + 1}.` : `Day ${index + 1} already had all of these.`);
+  go(`/t/${trip.id}/d/${index}`);
+}
+
 async function importTrip(file) {
   if (!file) return;
   try {
     const data = JSON.parse(await file.text());
+    if (data.format === DAY_FORMAT) return await importDay(data);
     if (data.format !== 'moments-that-matter' || !data.trip || !safeId(data.trip.id)) throw new Error('That is not a Moments backup file.');
     cleanImport(data);
     const existing = await db.get('trips', data.trip.id);

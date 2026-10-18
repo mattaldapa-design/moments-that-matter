@@ -736,6 +736,26 @@ struck.
   switch, saved packing list, storage gauge, version and update check.
   Verified in the preview; the name signs the pass note and the recap.
 
+- **I25 — Send one day, not the whole trip, and drop it into another
+  trip.** *(2026-10-18)* Matt: *"imagine person A has the trip they're
+  making it on their phone. And person B also has the same trip and they're
+  making it on their phone [...] they plan on, like, having one master one
+  at the end [...] Would they be able to export like the activity. So so
+  not just the trip, but instead like how we shared the day, maybe they can
+  share a day and you can add it into your trip and reorder it and and and
+  somehow add just the day into the trip [...] as opposed to just like
+  trying to merge the trips?"*
+
+  **Settles when:** a day can be sent as a file from the day menu, and
+  Import a trip recognises it and offers to add it to a trip of Matt's
+  choosing, either into the day with the same date or as a new day. (The
+  settling condition is the agent's draft.)
+
+  **Built 2026-10-18** (see the Decision of that date). Verified in the
+  preview: a day sent, added to another trip as a new day with its
+  pictures, then offered to the same-dated day of its own trip and skipped
+  as already there. The help text covers it.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1024,6 +1044,21 @@ decided, where it is enforced, and what it **serves**.
   a name is enough for now: *"Yeah, I think that's good. Let's proceed."*
   Enforced: `settingsPage` in `app/js/app.js`. **Serves →** I24, I23, I13.
 
+- **2026-10-18 — A day can be sent on its own and added to another trip,
+  into the day with the same date or as a new day; the receiver keeps or
+  removes what arrives.** Chosen: "Send this day" in the day menu packs
+  the day, its moments and pictures into a file for the share sheet;
+  Import a trip recognises it, asks which trip, then adds the moments to
+  the same-dated day (skipping any already there from an earlier send) or
+  appends a new day. Alternative: merging whole trips (I2), which Matt now
+  sees as the rarer need. Matt: *"I think that's that's better [...] I
+  think that would be a rarer occasion being used uh, other than somebody
+  just having a day logged better than another person does and just being
+  like, okay, well, let me just add my events to yours. And send you the
+  day, basically. Um, and you can add those elements and remove the ones
+  that you don't want."* Enforced: `sendDay` and `importDay` in
+  `app/js/app.js`. **Serves →** I25, I2.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **What "Import a trip" means and where it lives.** Today
@@ -1113,6 +1148,7 @@ limits before I break them."*
 | Recap PDF day band | 4 pictures, 6 titles then "+n" | `drawPages` |
 | Key pictures on a day | 4, in tap order; the cards draw them first | `KEY_MAX` |
 | One-day picture | 4 pictures (key pictures first), 6 titles then "+n", one note line each | `drawDayCard` |
+| Day file | one day, its moments and pictures; joins the same-dated day or becomes a new last day; repeats are skipped by id | `sendDay`, `importDay` |
 | Backup file | the whole trip in one JSON with pictures inside, about 1.35× the picture bytes; built in memory, so very large trips (thousands of pictures) may strain the phone | `backupTrip` |
 | Backup reminder | 10 changes or 8 MB since the last backup | `BACKUP_DUE` |
 | Gallery words | about 300 | `words.js` |
