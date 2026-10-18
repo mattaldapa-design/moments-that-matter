@@ -245,43 +245,64 @@ export async function drawPages(data, S) {
   return pages;
 }
 
-// One day as a single 4:5 picture, for sending or posting (I19).
+// One day as a single 4:5 picture, for sending or posting (I19). Photo-first: the pictures fill what the words leave.
 export async function drawDayCard(data, dayIndex) {
   await ensureFonts();
   const { trip, pmap } = data;
   const d = data.days[dayIndex];
-  const CW = 1080, CH = 1350, inner = CW - 2 * P;
+  const CW = 1080, CH = 1350, inner = CW - 2 * P, gap = 20;
   const c = document.createElement('canvas'); c.width = CW; c.height = CH;
   const g = c.getContext('2d');
   const bg = g.createLinearGradient(0, 0, 0, CH); bg.addColorStop(0, '#1f1715'); bg.addColorStop(1, C.bg);
   g.fillStyle = bg; g.fillRect(0, 0, CW, CH);
-  const glow = g.createRadialGradient(CW * 0.85, CH * 0.1, 0, CW * 0.85, CH * 0.1, 520); glow.addColorStop(0, 'rgba(255,77,46,0.35)'); glow.addColorStop(1, 'rgba(255,77,46,0)');
+  const glow = g.createRadialGradient(CW * 0.85, CH * 0.08, 0, CW * 0.85, CH * 0.08, 480); glow.addColorStop(0, 'rgba(255,77,46,0.32)'); glow.addColorStop(1, 'rgba(255,77,46,0)');
   g.fillStyle = glow; g.fillRect(0, 0, CW, CH);
-  let y = P + 10;
-  y = eyebrow(g, `${trip.title || 'My trip'}${trip.region ? ' · ' + trip.region : ''}`, y);
-  y = text(g, `Day ${d.index + 1}`, P, y + 70, { font: `800 72px ${F.loud}`, color: C.signal, lineHeight: 1 });
-  if (d.weather) { g.font = `72px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, CW - P, y - 10); }
-  y = text(g, `${fmtDay(d.date)}${d.city ? ' · ' + d.city : ''}`, P, y + 44, { font: `700 44px ${F.display}`, maxLines: 1, maxWidth: inner });
-  g.font = `44px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 50);
-  y += 90;
+
+  // Header: trip, Day N, date · city, weather, emojis
+  let y = P;
+  y = eyebrow(g, `${trip.title || 'My trip'}${trip.region && trip.region !== trip.title ? ' · ' + trip.region : ''}`, y);
+  text(g, `Day ${d.index + 1}`, P, y + 58, { font: `800 68px ${F.loud}`, color: C.signal, lineHeight: 1 });
+  if (d.weather) { g.font = `64px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, CW - P, y + 58); }
+  y += 112;
+  y = text(g, `${fmtDay(d.date)}${d.city ? ' · ' + d.city : ''}`, P, y, { font: `700 40px ${F.display}`, maxLines: 1, maxWidth: inner });
+  g.font = `38px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 10);
+  y += 50;
+
+  // Words at the bottom: title · place, and a note line when there is one. Up to six moments.
+  const shown = d.blocks.slice(0, 6);
+  const noteOf = (b) => (b.note || '').split(String.fromCharCode(10)).map((x) => x.trim()).filter(Boolean)[0] || '';
+  const linesNeed = shown.reduce((n, b) => n + 46 + (noteOf(b) ? 32 : 0), 0) + (d.blocks.length > 6 ? 36 : 0);
+  const footer = 54;
+  const picTop = y + 12;
+  const picArea = Math.max(420, CH - P - footer - linesNeed - 24 - picTop);
+
+  // Pictures fill the middle: 1 wide, 2 side by side, 3 as one tall and two stacked, 4 as a 2×2.
   const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
   const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
   const pics = [key, ...others].filter(Boolean).slice(0, 4);
-  const ims = await Promise.all(pics.map((p) => loadImage(p.blob)));
-  const titlesNeed = Math.min(d.blocks.length, 7) * 46 + 40;
-  const picArea = Math.max(300, CH - P - y - titlesNeed - 30);
-  if (ims.length === 1) { drawCover(g, ims[0], P, y, inner, picArea, 28); y += picArea + 30; }
-  else if (ims.length === 2) { const w2 = (inner - 24) / 2; const h2 = Math.min(Math.round(w2 * 1.35), picArea); drawCover(g, ims[0], P, y, w2, h2, 28); drawCover(g, ims[1], P + w2 + 24, y, w2, h2, 28); y += h2 + 30; }
-  else if (ims.length >= 3) {
-    const big = Math.round(picArea * 0.62), small = picArea - big - 24;
-    drawCover(g, ims[0], P, y, inner, big, 28);
-    const n = ims.length - 1; const w2 = (inner - 24 * (n - 1)) / n;
-    ims.slice(1).forEach((im, k) => drawCover(g, im, P + k * (w2 + 24), y + big + 24, w2, small, 22));
-    y += picArea + 30;
+  const ims = (await Promise.all(pics.map((p) => loadImage(p.blob)))).filter(Boolean);
+  const r = 26;
+  if (ims.length === 1) drawCover(g, ims[0], P, picTop, inner, picArea, r);
+  else if (ims.length === 2) { const w2 = (inner - gap) / 2; drawCover(g, ims[0], P, picTop, w2, picArea, r); drawCover(g, ims[1], P + w2 + gap, picTop, w2, picArea, r); }
+  else if (ims.length === 3) {
+    const wl = Math.round(inner * 0.6), wr = inner - wl - gap, h2 = (picArea - gap) / 2;
+    drawCover(g, ims[0], P, picTop, wl, picArea, r);
+    drawCover(g, ims[1], P + wl + gap, picTop, wr, h2, r);
+    drawCover(g, ims[2], P + wl + gap, picTop + h2 + gap, wr, h2, r);
+  } else if (ims.length >= 4) {
+    const w2 = (inner - gap) / 2, h2 = (picArea - gap) / 2;
+    ims.slice(0, 4).forEach((im, k) => drawCover(g, im, P + (k % 2) * (w2 + gap), picTop + Math.floor(k / 2) * (h2 + gap), w2, h2, r));
   }
-  for (const b of d.blocks.slice(0, 7)) { text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}`, P, y + 34, { font: `500 32px ${F.body}`, maxLines: 1 }); y += 46; }
-  if (d.blocks.length > 7) text(g, `+${d.blocks.length - 7} more`, P, y + 30, { font: `400 28px ${F.body}`, color: C.dim });
-  text(g, 'Moments That Matter', P, CH - P + 20, { font: `700 24px ${F.display}`, color: C.dim });
+  y = ims.length ? picTop + picArea + 24 : picTop;
+
+  for (const b of shown) {
+    text(g, `${b.emoji || '•'}  ${titleOf(b)}${b.place?.name ? '  ·  ' + b.place.name : ''}${b.details?.rating ? '  ' + '★'.repeat(Number(b.details.rating)) : ''}`, P, y + 34, { font: `600 32px ${F.body}`, maxLines: 1 });
+    y += 46;
+    const n = noteOf(b);
+    if (n) { text(g, n, P + 54, y + 20, { font: `400 26px ${F.body}`, color: C.dim, maxLines: 1, maxWidth: inner - 54 }); y += 32; }
+  }
+  if (d.blocks.length > 6) { text(g, `+${d.blocks.length - 6} more`, P, y + 26, { font: `400 26px ${F.body}`, color: C.dim }); y += 36; }
+  text(g, 'Moments That Matter', P, CH - P + 24, { font: `700 24px ${F.display}`, color: C.dim });
   return c;
 }
 

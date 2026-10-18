@@ -130,21 +130,14 @@ function normalize(b) {
   if (b.kind === 'people' && !Array.isArray(b.fields.people)) b.fields.people = [];
   return b;
 }
+// What a tile says under its title: the place and the stars, nothing bookkeeping-ish (Matt, sixth look).
 function blockMeta(b) {
   normalize(b);
   const parts = [];
-  if (b.details.time) parts.push(b.details.time);
   if (b.place?.name) parts.push(b.place.name);
-  if (b.details.cost) parts.push(b.details.cost);
-  if (b.details.duration) parts.push(b.details.duration);
   if (b.details.rating) parts.push(stars(b.details.rating));
-  if (b.details.distance) parts.push(b.details.distance);
-  if (b.details.steps) parts.push(`${b.details.steps} steps`);
-  if (b.details.room) parts.push(`Room ${b.details.room}`);
-  if (b.details.host) parts.push(`with ${b.details.host}`);
-  (b.custom || []).forEach((c) => { if (c.value) parts.push(`${c.label} ${c.value}`); });
-  if (b.details.website || b.details.menu) parts.push('🔗');
   if (b.kind === 'stay' && b.fields?.nights) parts.push(`${b.fields.nights} night${+b.fields.nights === 1 ? '' : 's'}`);
+  if (b.details.host) parts.push(`with ${b.details.host}`);
   return parts.join(' · ');
 }
 function coordsText(p) {

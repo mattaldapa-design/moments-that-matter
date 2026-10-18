@@ -94,7 +94,10 @@ Then, in the agreed order: Archive to a file (I3) and place levels (I7),
 both verified in the preview.
 Then the longer detail list with "Your own" (I17) and "Share this day" as
 one picture (I19). Then stars in the recap (I20) and "About this trip" with the
-packing list (I18).
+packing list (I18). After Matt's sixth look: the day picture is photo-first
+(one, two side by side, one tall and two stacked, or a 2×2 fill the middle,
+words below with place, stars and a note line) and tile captions show only
+place and stars.
 
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
@@ -973,6 +976,22 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Sixth look: the day picture and the board, with
+  screenshots.** The one-day picture: *"I have three pictures in it, and it,
+  none of them are really easily viewable. So it's not a good way of kind
+  of encapsulating the excitement [...] I'm not liking the utilization of
+  the space. I feel like there's a lot of empty space that's not being
+  used, as well as, like, it's just the layout could just be better. And
+  maybe more photo-centric, I guess. But I still do want that information
+  to be visible."* Likes that details show on the card, finds what shows
+  *"kind of odd"*. The board tiles: *"the times, like, as metadata
+  underneath, like, that's not super important [...] there's a 35 for, like,
+  the cost of the food underneath it [...] It just says 35 under it [...] I
+  don't think it needs to be on the day view."* Changed the same day: the
+  day picture is rebuilt photo-first with the pictures filling the space
+  and a note line under each title; tile captions show the place and stars,
+  not time or cost.
 
 - **2026-10-17 — Archive and import on the iPhone:** *"It all worked.
   Everything repopulated relatively easily."* The same look struck I5.
