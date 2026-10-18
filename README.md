@@ -88,7 +88,9 @@ changed file does not reach an installed phone until `VERSION` in
    <https://github.com/mattaldapa-design/moments-that-matter>. Pushing to the
    remote branch `main` runs `.github/workflows/pages.yml`, which serves the
    `app/` folder at <https://mattaldapa-design.github.io/moments-that-matter/>.
-   The workflow turns Pages on by itself on its first run. Warning: the local default branch is `master` (the seed only);
+   One-time setting, Matt's: repository Settings → Pages → Source → "GitHub
+   Actions" (the workflow's token may not turn Pages on itself; tried
+   2026-10-17, both runs failed at configure-pages). Warning: the local default branch is `master` (the seed only);
    the work is on `claude/journaling-app-0aafd1`, pushed as remote `main`.
    Bump `VERSION` in `app/sw.js` with every publish or phones keep the old
    files.
@@ -569,6 +571,9 @@ decided, where it is enforced, and what it **serves**.
 
 **Open decisions — waiting on Matt, oldest first:**
 
+- *2026-10-17* — **Pages source setting:** Matt to set Settings → Pages →
+  Source to "GitHub Actions" in the repository, once; then the publish
+  workflow can run.
 - *2026-10-17* — **The backup reminder threshold:** what counts as
   "substantial new content". The first build uses 10 changes or 8 MB as a
   placeholder.
