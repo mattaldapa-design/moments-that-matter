@@ -39,7 +39,7 @@ export function stats(data) {
   const add = (cond, emoji, big, small, photoId) => { if (cond) S.push({ emoji, big: String(big), small, photoId }); };
 
   const foodSpend = food.reduce((s, b) => s + num(b.details?.cost), 0);
-  add(foodSpend > 0, '💸', money(foodSpend), 'spent on food and drink, as entered', firstPhoto(food));
+  add(foodSpend > 0, '💸', money(foodSpend), 'spent on food and drink', firstPhoto(food));
   const peopleCount = people.reduce((s, b) => s + (Array.isArray(b.fields?.people) && b.fields.people.length ? b.fields.people.length : Math.max(1, (b.fields?.names || '').split(/,|&|\band\b/).filter((x) => x.trim()).length)), 0);
   add(people.length, '👋', peopleCount, `new ${peopleCount === 1 ? 'person' : 'people'} met`, firstPhoto(people));
   const eateries = new Set(food.map((b) => (b.place?.name || b.title || '').trim().toLowerCase()).filter(Boolean)).size;
@@ -66,7 +66,7 @@ export function stats(data) {
   const hosts = blocks.map((b) => b.details?.host).filter(Boolean);
   add(hosts.length, '🙌', hosts.length, `guide${hosts.length === 1 ? '' : 's'} and hosts worth remembering: ${hosts.slice(0, 3).join(', ')}${hosts.length > 3 ? '…' : ''}`, null);
   const total = blocks.reduce((s, b) => s + num(b.details?.cost), 0);
-  add(total > 0 && total !== foodSpend, '🧾', money(total), 'spent in all, as entered', null);
+  add(total > 0 && total !== foodSpend, '🧾', money(total), 'spent in total', null);
   return S;
 }
 

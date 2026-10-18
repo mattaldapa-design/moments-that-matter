@@ -806,6 +806,38 @@ struck.
   card crop around it; untouched tall pictures in wide frames favour their
   top third. Verified in the preview with a focal point at 15% from the top.
 
+- **I29 — Change a trip's first day and have every day move with it.**
+  *(2026-10-18)* Matt: *"be able to change the trip start date and then it
+  will adjust the days along with it. So that way um, if I needed to delay,
+  if a trip got delayed or something happened or it moved up or anything
+  uh, maybe I, I entered a, a start date wrong, I can edit that. And then
+  it will shift and not lose anything."*
+
+  **Settles when:** the first day can be changed on the trip page and every
+  day's date follows, with all moments in place. (The settling condition is
+  the agent's draft.)
+
+  **Built 2026-10-18:** "First day" in About this trip; days are numbered,
+  not dated, so moving the first day moves them all. Verified in the
+  preview: Day 8 went from Nov 17 to Nov 19 with its six moments.
+
+- **I30 — Several airlines or cruise lines on a trip, and a way to put one
+  on a day.** *(2026-10-18)* Matt: *"you should be able to add multiple um
+  airlines and cruises basically like the idea of like sometimes you take
+  multiple flights and, and use multiple airlines and and uh, maybe you do
+  take flights into a cruise so I think that should be um um able to be
+  added on the trip details uh, uh, on the top and then you should be able
+  to add that to specific days as well."*
+
+  **Settles when:** About this trip takes airlines and lines one at a time,
+  and one can be put on a chosen day as a Travel moment. (The settling
+  condition is the agent's draft.)
+
+  **Built 2026-10-18:** "Airlines and lines" in About this trip, one at a
+  time, each with a 📅 that puts it on a chosen day as a Travel moment;
+  Travel's Company field offers them. The old single "Airline or cruise
+  line" detail migrates into the list. Verified in the preview.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1220,6 +1252,12 @@ limits before I break them."*
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-18 — "As entered" goes.** Matt, on the recap's money lines:
+  *"it's just kind of a weird phrase there [...] spent in total [...] spent
+  on food and drinks and like I don't think we need the as entered thing
+  [...] it's going to be up to the person to just infer that."* Changed the
+  same day.
 
 - **2026-10-18 — The help text read like work.** Matt: *"let's change it
   from how it works to like user guide [...] This this app should be fun

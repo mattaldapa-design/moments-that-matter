@@ -242,6 +242,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-money input { padding-left: 32px; }
 .mtm-person { display: inline-flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; border-radius: var(--radius-pill); background: var(--room-200); font-family: var(--font-display); font-weight: 700; font-size: 17px; box-shadow: 0 0 0 1px var(--line); }
 .mtm-person button { width: 28px; height: 28px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream-dim); font-size: 18px; line-height: 1; cursor: pointer; }
+.mtm-person .mtm-person__go { font-size: 14px; }
 
 /* About this trip */
 .mtm-about { padding: 0; overflow: hidden; }

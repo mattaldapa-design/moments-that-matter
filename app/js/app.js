@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 33; // keep in step with VERSION in sw.js
+const APP_VERSION = 34; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -116,7 +116,6 @@ const DETAILS = [
 const stars = (n) => '★'.repeat(Number(n) || 0) + '☆'.repeat(5 - (Number(n) || 0));
 // Trip-wide details (I18): the big-picture things that are not any one day's.
 const TRIP_DETAILS = [
-  { k: 'carrier', label: 'Airline or cruise line', hint: 'Who you flew or sailed with' },
   { k: 'booking', label: 'Booking reference', hint: 'The code' },
   { k: 'budget', label: 'Budget', hint: 'For the whole trip', money: true },
   { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
@@ -125,6 +124,7 @@ const TRIP_DETAILS = [
 function normalizeTrip(t) {
   t.companions = t.companions || []; t.details = t.details || {}; t.extras = t.extras || []; t.custom = t.custom || []; t.packing = t.packing || [];
   if (!Array.isArray(t.places)) t.places = t.region ? [{ name: t.region, cities: [] }] : [];
+  if (!Array.isArray(t.carriers)) { t.carriers = t.details.carrier ? String(t.details.carrier).split(',').map((x) => x.trim()).filter(Boolean) : []; delete t.details.carrier; t.extras = t.extras.filter((e) => e !== 'carrier'); }
   t.region = t.places.map((p) => p.name).join(', ');
   return t;
 }
@@ -399,6 +399,11 @@ function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
   return `<details class="dr-panel mtm-about" id="about" ${aboutOpen ? 'open' : ''}>
     <summary><span class="dr-heading">About this trip</span><span class="dr-caption">${esc(bits.join(' · ') || 'who, what, and what to pack')}</span></summary>
     <div class="mtm-stack mtm-stack--tight mtm-about__body">
+      <div class="dr-field"><label for="firstDay">First day</label><input class="dr-input" type="date" id="firstDay" value="${esc(trip.startDate)}"><div class="dr-field__hint">Move it and every day moves with it. Nothing is lost.</div></div>
+      <div class="dr-field"><label for="newCarrier">Airlines and lines</label>
+        ${trip.carriers.length ? `<div class="mtm-chips">${trip.carriers.map((n, k) => `<span class="mtm-person">${esc(n)}<button type="button" class="mtm-person__go" data-carrierday="${k}" title="Put on a day">📅</button><button type="button" data-uncarrier="${k}" aria-label="Remove ${esc(n)}">×</button></span>`).join('')}</div>` : ''}
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newCarrier" placeholder="${trip.carriers.length ? 'Add another airline or line' : 'Add an airline or cruise line'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addCarrier">Add</button></div>
+        ${trip.carriers.length ? '<div class="dr-field__hint">Tap 📅 to put one on a day as a Travel moment.</div>' : ''}</div>
       <div class="dr-field"><label for="newPlace">Places</label>
         ${placesHtml}
         <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPlace" placeholder="${trip.places.length ? 'Add another country or region' : 'Add a country or region'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPlace">Add</button></div></div>
@@ -424,6 +429,27 @@ function bindAbout(trip) {
   const saveText = debounce(async () => { await touch(trip); }, 400);
   leaveHook = saveText.flush;
   const commit = async () => { await saveText.flush(); await touch(trip); render(); };
+  const fd = $('#firstDay');
+  fd.onchange = async () => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fd.value)) return;
+    const was = trip.startDate; trip.startDate = fd.value; await touch(trip);
+    toast(`Every day moved: ${fmtDay(addDays(was, 0))} is now ${fmtDay(addDays(trip.startDate, 0))}.`); render();
+  };
+  const ncar = $('#newCarrier');
+  const addCarrier = async () => { const n = (ncar.value || '').trim(); if (!n) return; trip.carriers.push(n); ncar.value = ''; await commit(); setTimeout(() => $('#newCarrier')?.focus(), 50); };
+  ncar.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addCarrier(); } };
+  $('#addCarrier').onclick = addCarrier;
+  $$('[data-uncarrier]').forEach((x) => { x.onclick = async () => { trip.carriers.splice(Number(x.dataset.uncarrier), 1); await commit(); }; });
+  $$('[data-carrierday]').forEach((x) => {
+    x.onclick = async () => {
+      const name = trip.carriers[Number(x.dataset.carrierday)];
+      const k = await sheet(`Put ${name} on which day?`, Array.from({ length: trip.dayCount }, (_, i) => ({ k: String(i), label: `Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}` })).slice(0, 60));
+      if (k === null || k === '') return;
+      const i = Number(k);
+      await placeBlock(trip, i, { kind: 'travel', emoji: '✈️', label: 'Travel', title: name, fields: { company: name } });
+      toast(`${name} is on Day ${i + 1} as a Travel moment.`); render();
+    };
+  });
   const npl = $('#newPlace');
   const addPlace = async () => { const n = (npl.value || '').trim(); if (!n) return; trip.places.push({ name: n, cities: [] }); npl.value = ''; await commit(); setTimeout(() => $(`[data-newcity="${trip.places.length - 1}"]`)?.focus(), 50); };
   npl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPlace(); } };
@@ -829,7 +855,7 @@ function askFirst(trip, i, kind) {
   setTimeout(() => panel.scrollIntoView({ block: 'center' }), 60);
 }
 
-async function createBlock(trip, i, partial) {
+async function placeBlock(trip, i, partial) {
   const day = await getDay(trip.id, i);
   if (!(await db.get('days', day.id))) await db.put('days', day);
   const existing = await blocksForDay(day.id);
@@ -837,6 +863,10 @@ async function createBlock(trip, i, partial) {
     fields: {}, details: {}, extras: [], place: { name: '', lat: null, lon: null }, photoId: null, createdAt: Date.now(), ...partial };
   await db.put('blocks', b);
   await touch(trip);
+  return b;
+}
+async function createBlock(trip, i, partial) {
+  const b = await placeBlock(trip, i, partial);
   go(`/t/${trip.id}/d/${i}/b/${b.id}`);
 }
 
@@ -869,8 +899,9 @@ async function editor(trip, i, bid) {
         f.options.map((o) => `<button type="button" class="mtm-chip mtm-chip--text ${v === o ? 'is-on' : ''}" data-chip="${f.k}" data-val="${esc(o)}">${esc(o)}</button>`).join('')
       }</div></div>`;
     }
+    const carriers = f.k === 'company' ? normalizeTrip(trip).carriers : [];
     return `<div class="dr-field"><label for="f-${f.k}">${esc(f.label)}</label>
-      <input class="dr-input" id="f-${f.k}" data-field="${f.k}" type="${f.type === 'number' ? 'number' : 'text'}" ${f.type === 'number' ? 'inputmode="numeric" min="1"' : ''} value="${esc(v)}" placeholder="${esc(f.hint || '')}" autocomplete="off"></div>`;
+      <input class="dr-input" id="f-${f.k}" data-field="${f.k}" type="${f.type === 'number' ? 'number' : 'text'}" ${f.type === 'number' ? 'inputmode="numeric" min="1"' : ''} value="${esc(v)}" placeholder="${esc(f.hint || '')}" autocomplete="off" ${carriers.length ? 'list="tripCarriers"' : ''}>${carriers.length ? `<datalist id="tripCarriers">${carriers.map((c) => `<option value="${esc(c)}">`).join('')}</datalist>` : ''}</div>`;
   };
   const shown = DETAILS.filter((d) => (b.details[d.k] !== undefined && b.details[d.k] !== '') || b.extras.includes(d.k));
   const hidden = DETAILS.filter((d) => !shown.includes(d));
