@@ -185,6 +185,12 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 /* Editor */
 .mtm-editor-head { display: flex; align-items: center; gap: 16px; }
 .mtm-editor-head .mtm-big { font-size: 56px; line-height: 1; }
+.mtm-emojiwrap { position: relative; display: inline-flex; flex: none; }
+.mtm-pencil--emoji { position: absolute; right: -10px; bottom: -6px; width: 30px; height: 30px; font-size: 14px; box-shadow: 0 0 0 2px var(--room-300); }
+.mtm-emojipick__row { display: flex; align-items: center; gap: 14px; margin: 4px 0 6px; }
+.mtm-emojipick__row .mtm-big { font-size: 44px; line-height: 1; flex: none; }
+.mtm-emojipick__words { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; min-height: 44px; }
+.mtm-emojipick .mtm-word { width: auto; }
 .mtm-editor-head .mtm-big--word { font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: -0.02em; }
 .mtm-photo { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden; background: var(--room-100); box-shadow: var(--shadow-rest); cursor: pointer; display: grid; place-items: center; }
 .mtm-photo.has-picture { max-height: 70vh; aspect-ratio: auto; }
@@ -249,6 +255,18 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-packlist summary::-webkit-details-marker { display: none; }
 .mtm-packlist summary .dr-label::after { content: "›"; color: var(--accent); display: inline-block; margin-left: 10px; transition: transform var(--dur-move) var(--ease-out); }
 .mtm-packlist[open] summary .dr-label::after { transform: rotate(90deg); }
+
+/* Day summary (I33): folded at the top of a day, out of the pictures' way */
+.mtm-daysum { padding: 0; overflow: hidden; }
+.mtm-daysum summary { list-style: none; cursor: pointer; padding: 14px var(--space-5); display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.mtm-daysum summary::-webkit-details-marker { display: none; }
+.mtm-daysum summary .dr-label { flex: none; }
+.mtm-daysum summary .dr-label::after { content: "›"; color: var(--accent); display: inline-block; margin-left: 10px; transition: transform var(--dur-move) var(--ease-out); }
+.mtm-daysum[open] summary .dr-label::after { transform: rotate(90deg); }
+.mtm-daysum summary .dr-caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.mtm-daysum__body { padding: 0 var(--space-5) var(--space-5); }
+.mtm-daysum__tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-radius: var(--radius-md); background: var(--room-200); }
+.mtm-daysum__tally b { font-family: var(--font-display); font-size: 22px; }
 
 /* About this trip */
 .mtm-about { padding: 0; overflow: hidden; }

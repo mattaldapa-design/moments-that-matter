@@ -854,6 +854,67 @@ struck.
 
   **Built 2026-10-18.**
 
+- **I32 — A moment's emoji can be changed without changing its title.**
+  *(2026-10-18)* Matt: *"have the option to change the emoji [...] let's say
+  I pick coffee, but I don't want a picture of the coffee on it. Maybe I want
+  to change the emoji to a heart but still have coffee be the title [...]
+  I'd like that option from when I create the moment, to change the emoji
+  icon. Especially [so] that way it shows on the summary of the day [...]
+  the emoji that I want it to be."* Told that the title steers the emoji
+  today: *"Yeah, I'm aware. So I think that the way it will work first is if
+  I'm typing surfing and it changes it to a surf emoji and I add the moment,
+  when I go into the moment, I can just go and only update the emoji if I
+  wanted to. So there's that little edit idea for the emoji. Kind of like,
+  you know, it could be a little pencil or something like that, that I can
+  at least recognize that I want to change this emoji once I make the
+  moment."*
+
+  **Settles when:** inside a moment, a pencil by the emoji lets Matt pick
+  another one; the title keeps its words; the picked emoji stays even if the
+  title is edited later, and it is what the day row, the board and the recap
+  show. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-18:** a pencil on the emoji in the moment opens a picker:
+  type a word the gallery knows or an emoji from the keyboard, or tap one of
+  a dozen favourites. A picked emoji stays through title edits; "Back to the
+  title's own" lets the title steer it again.
+
+- **I33 — Each day has a day summary that folds at the top: one place for
+  long notes and musings, with day-level extras such as what was spent,
+  miles and steps.** *(2026-10-18)* Matt: *"I want a day summary section
+  [...] if I want to summarize the day, let's say I can hit the plus sign,
+  my thoughts on the day, and then what that will do is it'll create a
+  collapsible section that has like daily summary on it, and it has just my
+  long notes and musing. So it's a little different than the notes moment,
+  which captures an individual story [...] maybe it's always on there, kind
+  of like how on the main page, the about the trip, is always there [...]
+  there is a daily summary that you can collapse at the top, and I don't
+  want it to take up too much space because this is really about the
+  photos, but if you do want to just have one musing about the day, you can
+  do that out of there. And if you really want to add another element, maybe
+  you can add to the daily summary, like if you want to add the budget you
+  spent for that day, the total amount you spent, or at least when you add
+  that it will automatically tally up all of the money that you had in those
+  moments [...] maybe you can log your miles and steps for the day at that
+  level."* Asked whether he wants it: *"Yes, it is a feature that I want. I
+  think I use the term maybe because I'm not sure how it's going to look on
+  the page, whether I want it at the top. I know I want it. I just don't
+  know exactly the layout that it's going to be. So I want you to use what I
+  said as that basis to incorporate it. And then what I can do is I can
+  change it if I don't like it."*
+
+  **Settles when:** every day has a Day summary fold at the top, closed by
+  default and one line tall when closed; open, it holds a long note, the
+  day's spend added up from its moments, and miles or steps if Matt adds
+  them; Matt has seen the layout and either kept it or said what to change.
+  (The settling condition is the agent's draft.)
+
+  **Built 2026-10-18**, the layout the agent's: the fold sits under the city
+  and weather, always there; closed, its line shows the first words of the
+  note, the spend and any miles or steps; open, a note box, "Spent today"
+  (only when a moment has a price), and "Add to the summary" for Miles and
+  Steps. A sent day carries its summary. Tallies are not yet in the recap.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

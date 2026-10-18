@@ -2,7 +2,7 @@
 import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
-import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures } from './recap.js';
+import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures, num, money } from './recap.js';
 import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph, objectPosition } from './util.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 35; // keep in step with VERSION in sw.js
+const APP_VERSION = 36; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -71,7 +71,36 @@ async function getDay(tripId, i) {
 function keyify(d) {
   if (!Array.isArray(d.keyPhotos)) d.keyPhotos = d.keyPhotoId ? [d.keyPhotoId] : [];
   d.keyPhotoId = d.keyPhotos[0] || null;
+  d.notes = cleanNotes(d.notes);
+  d.log = cleanLog(d.log);
   return d;
+}
+// The day summary (I33): long thoughts on the whole day, and a small log beside them.
+const LOGS = [{ k: 'miles', label: 'Miles', hint: 'How far you went' }, { k: 'steps', label: 'Steps', hint: 'From your watch or phone' }];
+const cleanNotes = (v) => (typeof v === 'string' ? v.slice(0, 20000) : '');
+const cleanLog = (v) => { const out = {}; if (v && typeof v === 'object') for (const { k } of LOGS) if (typeof v[k] === 'string' || typeof v[k] === 'number') out[k] = String(v[k]).slice(0, 20); return out; };
+let sumOpen = false;
+try { sumOpen = localStorage.getItem('mtm-daysum') === '1'; } catch { /* default closed */ }
+function daySummary(day, blocks) {
+  const priced = blocks.filter((b) => num(b.details?.cost) > 0);
+  const spent = priced.reduce((s, b) => s + num(b.details.cost), 0);
+  const on = LOGS.filter((x) => day.log[x.k] !== undefined);
+  const off = LOGS.filter((x) => day.log[x.k] === undefined);
+  const note = day.notes.trim().replace(/\s+/g, ' ');
+  const bits = [];
+  if (note) bits.push(note.length > 48 ? note.slice(0, 48).trimEnd() + '…' : note);
+  if (spent > 0) bits.push(`${money(spent)} spent`);
+  on.forEach((x) => { if (day.log[x.k]) bits.push(`${day.log[x.k]} ${x.label.toLowerCase()}`); });
+  return `<details class="dr-panel mtm-daysum" id="daysum" ${sumOpen ? 'open' : ''}>
+    <summary><span class="dr-label">Day summary</span><span class="dr-caption">${bits.length ? esc(bits.join(' · ')) : 'your thoughts on the day'}</span></summary>
+    <div class="mtm-stack mtm-stack--tight mtm-daysum__body">
+      <textarea class="dr-textarea" id="dayNotes" rows="4" placeholder="How the whole day felt. Long is fine here.">${esc(day.notes)}</textarea>
+      ${spent > 0 ? `<div class="mtm-daysum__tally"><span class="dr-label">Spent today</span><b>${money(spent)}</b><span class="dr-caption">added up from ${priced.length} moment${priced.length === 1 ? '' : 's'} with a price</span></div>` : ''}
+      ${on.map((x) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="log-${x.k}">${x.label}</label><button type="button" class="mtm-x" data-droplog="${x.k}" aria-label="Remove ${x.label}">×</button></div>
+        <input class="dr-input" id="log-${x.k}" data-log="${x.k}" inputmode="decimal" value="${esc(day.log[x.k])}" placeholder="${x.hint}" autocomplete="off"></div>`).join('')}
+      ${off.length ? `<div class="dr-field"><label for="addLog">Add to the summary</label><select class="dr-select" id="addLog"><option value="">Choose one…</option>${off.map((x) => `<option value="${x.k}">${x.label}</option>`).join('')}</select></div>` : ''}
+    </div>
+  </details>`;
 }
 const KEY_MAX = 4;
 async function touch(trip, bytes = 0) {
@@ -192,6 +221,45 @@ async function remapDays(trip, map, newCount) {
   await touch(trip);
 }
 // A bottom sheet of choices. Resolves with the chosen key, or null.
+// Pick an emoji for a moment (I32): a word the gallery knows, or any emoji straight from the keyboard.
+const PICTO = /\p{Extended_Pictographic}/u;
+const FAVOURITES = [['heart', '❤️'], ['love', '😍'], ['laugh', '😂'], ['wow', '🤩'], ['tired', '😴'], ['star', '⭐'], ['fire', '🔥'], ['party', '🥳'], ['rain', '🌧️'], ['sun', '☀️'], ['beer', '🍺'], ['coffee', '☕'], ['camera', '📸'], ['music', '🎶']].map(([word, emoji]) => ({ word, emoji }));
+function firstEmoji(s) {
+  const parts = typeof Intl !== 'undefined' && Intl.Segmenter ? [...new Intl.Segmenter().segment(s)].map((x) => x.segment) : [...s];
+  return parts.find((g) => PICTO.test(g)) || '';
+}
+function pickEmoji(current, titleEmoji) {
+  return new Promise((resolve) => {
+    const back = document.createElement('div'); back.className = 'mtm-backdrop';
+    const box = document.createElement('div'); box.className = 'dr-peek dr-peek--sheet mtm-sheet mtm-emojipick';
+    box.innerHTML = `<div class="dr-peek__title">Change the emoji</div>
+      <div class="mtm-emojipick__row"><span class="mtm-big" id="epFace">${esc(current || '🏷️')}</span><input class="dr-input mtm-grow" id="epIn" placeholder="A word, or an emoji from the keyboard" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
+      <div class="mtm-emojipick__words" id="epWords"></div>
+      <button class="dr-btn" data-act="use" id="epUse" disabled>Use it</button>
+      ${titleEmoji ? `<button class="dr-btn dr-btn--quiet" data-act="reset">Back to the title’s own, ${esc(titleEmoji)}</button>` : ''}
+      <button class="dr-btn dr-btn--ghost" data-act="">Never mind</button>`;
+    const face = $('#epFace', box), inp = $('#epIn', box), words = $('#epWords', box), use = $('#epUse', box);
+    let chosen = '';
+    const show = (e) => { chosen = e; face.textContent = e || current || '🏷️'; use.disabled = !e; };
+    const suggest = () => {
+      const q = inp.value.trim().toLowerCase();
+      const list = q && !firstEmoji(q) ? WORDS.filter((w) => w.word.includes(q)).slice(0, 12) : FAVOURITES;
+      words.innerHTML = list.map((w) => `<button type="button" class="mtm-word" data-pick="${w.emoji}"><em>${w.emoji}</em>${esc(w.word)}</button>`).join('');
+    };
+    const close = (k) => { back.remove(); box.remove(); resolve(k === 'use' ? chosen : k === 'reset' ? '' : null); };
+    inp.oninput = () => { show(firstEmoji(inp.value) || emojiFromText(inp.value) || ''); suggest(); };
+    inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); if (chosen) close('use'); } };
+    back.onclick = () => close(null);
+    box.onclick = (e) => {
+      const p = e.target.closest('[data-pick]'); if (p) { chosen = p.dataset.pick; close('use'); return; }
+      const b = e.target.closest('[data-act]'); if (b && !b.disabled) close(b.dataset.act);
+    };
+    document.body.append(back, box);
+    suggest();
+    requestAnimationFrame(() => box.classList.add('is-in'));
+  });
+}
+
 function sheet(title, actions) {
   return new Promise((resolve) => {
     const back = document.createElement('div'); back.className = 'mtm-backdrop';
@@ -284,8 +352,9 @@ async function trips() {
 // Settings & help (Decision, 2026-10-17): how it works, the settings, and your name.
 const HOW_IT_WORKS = [
   ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
-  ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever.'],
+  ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
   ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
+  ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Spent today adds itself up from the moments that have a price; add miles or steps if you keep count.'],
   ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
   ['Send this day', 'Had a better day than your friend logged? Send just that day. On their side it slides into the right date, and they keep what they like.'],
   ['Recap', 'When the trip’s done, or any night you like, Recap tells the story: the numbers, every icon, day by day. Save it as a PDF or pictures. Share this day makes one picture of today for a post.'],
@@ -700,6 +769,7 @@ async function board(trip, i) {
       <datalist id="plannedCities">${(normalizeTrip(trip).places || []).flatMap((p) => p.cities).map((c) => `<option value="${esc(c)}">`).join('')}</datalist>
       <div class="mtm-weather" id="weather">${WEATHER.map((w) => `<button class="mtm-chip ${day.weather === w ? 'is-on' : ''}" data-w="${w}" aria-label="Weather ${w}">${w}</button>`).join('')}</div>
     </div>
+    ${daySummary(day, blocks)}
     ${stays.length ? `<div class="mtm-carry">${stays.map((s) => `<button class="dr-magnet" data-go="/t/${trip.id}/d/${s.dayIndex}/b/${s.id}"><span style="font-size:22px">🏨</span>${esc(s.title || 'Stay')} · night ${i - s.dayIndex + 1}</button>`).join('')}</div>` : ''}
     <div class="mtm-bar mtm-bar--between">
       <span class="dr-caption">${blocks.length ? `${blocks.length} moment${blocks.length === 1 ? '' : 's'}` : 'Nothing here yet'}</span>
@@ -715,7 +785,15 @@ async function board(trip, i) {
   const city = $('#city');
   const saveCity = debounce(async () => { day.city = city.value.trim(); await db.put('days', day); await touch(trip); }, 400);
   city.oninput = saveCity;
-  leaveHook = saveCity.flush;
+  const saveDay = debounce(async () => { await db.put('days', day); await touch(trip); }, 400);
+  leaveHook = async () => { await saveCity.flush(); await saveDay.flush(); };
+  const ds = $('#daysum');
+  ds.addEventListener('toggle', () => { sumOpen = ds.open; try { localStorage.setItem('mtm-daysum', sumOpen ? '1' : '0'); } catch { /* fine */ } });
+  $('#dayNotes').oninput = (e) => { day.notes = e.target.value; saveDay(); };
+  $$('[data-log]').forEach((inp) => { inp.oninput = () => { day.log[inp.dataset.log] = inp.value; saveDay(); }; });
+  $$('[data-droplog]').forEach((x) => { x.onclick = async () => { delete day.log[x.dataset.droplog]; await db.put('days', day); await touch(trip); render(); }; });
+  const al = $('#addLog');
+  if (al) al.onchange = async () => { const k = al.value; if (!k) return; day.log[k] = ''; await db.put('days', day); await touch(trip); render(); setTimeout(() => $(`#log-${k}`)?.focus(), 50); };
   $('#weather').onclick = async (e) => {
     const b = e.target.closest('[data-w]'); if (!b) return;
     day.weather = day.weather === b.dataset.w ? '' : b.dataset.w;
@@ -924,7 +1002,7 @@ async function editor(trip, i, bid) {
 
   if (!paint(my, `<div class="mtm-stack">
     <div class="mtm-editor-head">
-      ${b.emoji ? `<span class="mtm-big">${esc(b.emoji)}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}
+      <span class="mtm-emojiwrap">${b.emoji ? `<span class="mtm-big">${esc(b.emoji)}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}<button type="button" class="mtm-pencil mtm-pencil--emoji" id="editEmoji" aria-label="Change the emoji">✎</button></span>
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
     ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}" role="button" tabindex="0" aria-label="Tap where the picture should stay in frame">
@@ -979,8 +1057,15 @@ async function editor(trip, i, bid) {
   });
   $('#title').oninput = (e) => {
     b.title = e.target.value;
-    if (kind) { const em = emojiFromText(b.title) || kind.emoji; if (em !== b.emoji) { b.emoji = em; const big = $('.mtm-editor-head .mtm-big'); if (big) big.textContent = em; } }
+    if (kind && !b.emojiPinned) { const em = emojiFromText(b.title) || kind.emoji; if (em !== b.emoji) { b.emoji = em; const big = $('.mtm-editor-head .mtm-big'); if (big) big.textContent = em; } }
     save();
+  };
+  $('#editEmoji').onclick = async () => {
+    const own = kind ? (emojiFromText(b.title) || kind.emoji) : '';
+    const r = await pickEmoji(b.emoji, b.emojiPinned && own !== b.emoji ? own : '');
+    if (r === null) return;
+    if (r === '') { b.emojiPinned = false; b.emoji = own; } else { b.emoji = r; b.emojiPinned = true; }
+    await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); render();
   };
   const np = $('#newPerson');
   const addPerson = async () => {
@@ -1113,7 +1198,7 @@ async function syncFamily(b) {
   if (!b.groupId) return;
   const sibs = (await familyOf(b)).filter((x) => x.id !== b.id);
   if (!sibs.length) return;
-  sibs.forEach((x) => { x.title = b.title; x.place = { ...b.place }; x.fields = { ...b.fields }; x.emoji = b.emoji; x.label = b.label; });
+  sibs.forEach((x) => { x.title = b.title; x.place = { ...b.place }; x.fields = { ...b.fields }; x.emoji = b.emoji; x.emojiPinned = !!b.emojiPinned; x.label = b.label; });
   await db.putMany('blocks', sibs);
 }
 async function copyToDay(trip, b, i) {
@@ -1237,10 +1322,10 @@ function cleanImport(data) {
   t.startDate = /^\d{4}-\d{2}-\d{2}$/.test(String(t.startDate || '')) ? t.startDate : todayIso();
   t.coverPhotoId = safeId(t.coverPhotoId);
   data.days = (Array.isArray(data.days) ? data.days : []).filter((d) => Number.isInteger(d?.index)).map((d) => ({
-    ...d, weather: safeGlyph(d.weather), keyPhotos: (Array.isArray(d.keyPhotos) ? d.keyPhotos : [d.keyPhotoId]).map(safeId).filter(Boolean), keyPhotoId: undefined,
+    ...d, weather: safeGlyph(d.weather), keyPhotos: (Array.isArray(d.keyPhotos) ? d.keyPhotos : [d.keyPhotoId]).map(safeId).filter(Boolean), keyPhotoId: undefined, notes: cleanNotes(d.notes), log: cleanLog(d.log),
   }));
   data.blocks = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id) && Number.isInteger(b.dayIndex)).map((b) => ({
-    ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
+    ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
   }));
   data.photos = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/')).map((p) => ({ ...p, blockId: idOr(p.blockId, undefined) }));
 }
@@ -1258,7 +1343,7 @@ async function sendDay(trip, i) {
   const date = isoOf(addDays(trip.startDate, i));
   const payload = { format: DAY_FORMAT, version: 1, exportedAt: new Date().toISOString(),
     from: { tripId: trip.id, tripTitle: trip.title || '', dayIndex: i, date },
-    day: { city: day.city || '', weather: day.weather || '', keyPhotos: day.keyPhotos || [] }, blocks, photos: photoData };
+    day: { city: day.city || '', weather: day.weather || '', keyPhotos: day.keyPhotos || [], notes: day.notes || '', log: day.log || {} }, blocks, photos: photoData };
   const who = await db.setting('yourName', '');
   const name = `${(trip.title || 'Trip').replace(/[\\/:*?"<>|]+/g, ' ').trim()} day ${i + 1} - ${date}.json`;
   const note = `${who ? who + ' sent you' : "Here's"} day ${i + 1} (${fmtDay(addDays(trip.startDate, i))}) from ${trip.title || 'the trip'}. Open Moments That Matter, tap Import a trip, and choose which trip it joins. Keep what you like, remove the rest. ${APP_URL}`;
@@ -1269,7 +1354,7 @@ async function sendDay(trip, i) {
 async function importDay(data) {
   // Tidy what came in, then ask where it goes.
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(data.from?.date || '')) ? data.from.date : null;
-  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: undefined }));
+  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, photoId: safeId(b.photoId), groupId: undefined }));
   const photosIn = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/'));
   if (!blocksIn.length) return toast('That day file has no moments in it.');
   const trips = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -1293,6 +1378,8 @@ async function importDay(data) {
   const index = mode === 'join' ? at : trip.dayCount;
   const day = await getDay(trip.id, index);
   if (mode === 'new') { trip.dayCount += 1; if (!day.city) day.city = data.day?.city || ''; if (!day.weather) day.weather = safeGlyph(data.day?.weather); }
+  if (!day.notes) day.notes = cleanNotes(data.day?.notes);
+  for (const [k, v] of Object.entries(cleanLog(data.day?.log))) if (day.log[k] === undefined) day.log[k] = v;
   const existing = await blocksForDay(day.id);
   const seen = new Set(existing.flatMap((b) => [b.id, b.srcId].filter(Boolean)));
   const fresh = blocksIn.filter((b) => !seen.has(b.id) && !seen.has(b.srcId));
