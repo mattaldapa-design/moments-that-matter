@@ -90,7 +90,8 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 }
 .mtm-chip:hover { transform: translateY(-2px); }
 .mtm-chip.is-on { background: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 10px 24px -10px var(--glow); }
-.mtm-chip--text { width: auto; padding: 0 16px; font-family: var(--font-display); font-weight: 700; font-size: 16px; }
+/* Text chips, gallery words and name chips are rounded tiles, not pills (Matt, 2026-10-18): the weather discs and the kit's own buttons keep their shape. */
+.mtm-chip--text { width: auto; padding: 0 16px; font-family: var(--font-display); font-weight: 700; font-size: 16px; border-radius: var(--radius-md); }
 
 /* Segmented toggle (Tiles / List) */
 .mtm-seg { display: inline-flex; background: var(--room-100); border-radius: var(--radius-pill); padding: 4px; gap: 2px; }
@@ -175,7 +176,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-kind__name { font-family: var(--font-display); font-weight: 700; font-size: 18px; }
 .mtm-gallery { display: flex; flex-wrap: wrap; gap: 8px; }
 .mtm-word {
-  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px 10px 12px; border: 0; border-radius: var(--radius-pill);
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px 10px 12px; border: 0; border-radius: var(--radius-md);
   background: var(--room-200); color: var(--cream); font-family: var(--font-display); font-weight: 700; font-size: 17px; cursor: pointer;
   box-shadow: 0 0 0 1px var(--line); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out);
 }
@@ -247,7 +248,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-money { position: relative; display: block; }
 .mtm-money::before { content: "$"; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--cream-dim); font-size: 18px; pointer-events: none; }
 .mtm-money input { padding-left: 32px; }
-.mtm-person { display: inline-flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; border-radius: var(--radius-pill); background: var(--room-200); font-family: var(--font-display); font-weight: 700; font-size: 17px; box-shadow: 0 0 0 1px var(--line); }
+.mtm-person { display: inline-flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; border-radius: var(--radius-md); background: var(--room-200); font-family: var(--font-display); font-weight: 700; font-size: 17px; box-shadow: 0 0 0 1px var(--line); }
 .mtm-person button { width: 28px; height: 28px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream-dim); font-size: 18px; line-height: 1; cursor: pointer; }
 .mtm-person .mtm-person__go { font-size: 14px; }
 

@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 39; // keep in step with VERSION in sw.js
+const APP_VERSION = 40; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -90,7 +90,6 @@ function daySummary(day, blocks) {
   const off = LOGS.filter((x) => day.log[x.k] === undefined);
   const minds = blocks.flatMap((b) => (b.mind.length ? b.mind.map((m) => ({ b, m })) : b.kind === 'mind' ? [{ b, m: null }] : []));
   const bits = [];
-  if (day.notes.trim()) bits.push('a note');
   if (minds.length) bits.push(`${minds.length} I statement${minds.length === 1 ? '' : 's'}`);
   on.forEach((x) => { if (x.auto) { if (spent > 0) bits.push(`${money(spent)} spent`); } else if (day.log[x.k]) bits.push(`${day.log[x.k]} ${x.label.toLowerCase()}`); });
   return `<details class="dr-panel mtm-daysum" id="daysum" ${sumOpen ? 'open' : ''}>

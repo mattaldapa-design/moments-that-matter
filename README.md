@@ -935,6 +935,12 @@ struck.
   Matt will meet (20,000 characters). The reading of "preview" as a marker
   rather than an excerpt is the agent's.
 
+  *Added 2026-10-18*, on that marker: *"next to it, it just says a note. I
+  don't like that [...] I would just say remove that [...] I like when I do
+  have like two statements or something like that."* **Changed the same
+  day:** the closed line no longer says "a note"; it shows only the counts
+  and sums that were added (I statements, Spent today, Miles, Steps).
+
 - **I34 — Mindfulness moments: I-statements Matt can add to a moment, as a
   moment of their own on the day, or to the day summary.** *(2026-10-18)*
   Matt: *"I would like this almost as any add item, a mindfulness option.
@@ -1316,6 +1322,20 @@ decided, where it is enforced, and what it **serves**.
   and dots, naming the moment it sits in. Enforced: the Mindfulness kind in
   `app/js/words.js`; the statements and the summary list in
   `app/js/app.js`. **Serves →** I34.
+
+- **2026-10-18 — Chips are rounded tiles, not pills.** Chosen: the text
+  chips (the I-statement prompts, Travel's How, the Also on days), the
+  gallery words and the name chips take the covers' 14px corners
+  (`--radius-md`); the weather discs and the kit's own buttons (Recap, Back
+  up, Done) keep their shape. Alternative: keep the Dark Room brief's rule
+  as written, *"Circles are the shape. Buttons and magnets are
+  radius-pill"*, which is where the pills came from, not from an inference.
+  Matt: *"the start with are like oval shape elongated circles which I feel
+  like doesn't necessarily fit with the theme [...] everything kind of is
+  tiles and nothing's really circles in that shape in this app."* Shown the
+  tiles: *"Looks good, keep the tiles."* Enforced: `.mtm-chip--text`, `.mtm-word`,
+  `.mtm-person` in `app/css/app.css`. **Serves →** I26 (the look) and the
+  Goal's quick capture, nothing more than taste.
 
 **Open decisions — waiting on Matt, oldest first:**
 
