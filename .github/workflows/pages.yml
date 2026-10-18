@@ -5,7 +5,9 @@ name: Publish to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    # The github-pages environment only lets the repository's default branch deploy.
+    # That is claude/journaling-app-0aafd1 (the first branch pushed). Add main here once it is the default.
+    branches: [claude/journaling-app-0aafd1, main]
   workflow_dispatch:
 
 permissions:
