@@ -419,7 +419,7 @@ struck.
   **Built 2026-10-17:** Website and Menu are in the list; a pasted address
   gets an Open button. Verified in the preview with "taronga.org.au".
 
-- **I12 — One item can sit on several days, consecutive or scattered,
+- **I12 (settled 2026-10-17) — One item can sit on several days, consecutive or scattered,
   keeping its place, with a different picture and details on each day.**
   *(2026-10-17)* Matt: *"what if we can add an item to each day so like I
   don't know we're staying at the hotel the same hotel for three days we can
@@ -434,10 +434,10 @@ struck.
   picture, note and details, and Matt has said whether renaming one renames
   them all. (The settling condition is the agent's draft.)
 
-  **Built 2026-10-17** as an "Also on" row of day chips in the editor.
-  The agent's reading, asked: name, place and the kind's own fields travel
-  together (renaming one renames all); picture, note, details and order are
-  each day's own. Verified in the preview: hotel added to day 6, renamed
+  **Built 2026-10-17** as an "Also on" row of day chips in the editor, and
+  **settled** by the Decision of the same date: name, place and the kind's
+  own fields travel together (renaming one renames all); picture, note,
+  details and order are each day's own. Verified in the preview: hotel added to day 6, renamed
   there, day 4 followed.
 
 ## Decisions
@@ -627,6 +627,19 @@ decided, where it is enforced, and what it **serves**.
   asks for light use), the switch starting off, and the button being there
   regardless of the switch. Enforced: the lookup in `app/js/app.js`; the
   switch is stored on the phone. **Serves →** I6, I7.
+
+- **2026-10-17 — An item on several days shares one name and place;
+  renaming one renames them all.** Chosen: name, place and the kind's own
+  fields travel together across an item's days; picture, note, added
+  details and order belong to each day. Alternative: each day's copy stands
+  alone once made. Matt: *"I think you should be able to name them all
+  [...] I don't want like if I spell something wrong, I don't want to have
+  to change it on like five different things. So um, I imagine it should
+  rename all of them."* He floated, tentatively, an unlink: *"Maybe you can
+  uncheck it or something, and then it will make them individual [...] but I
+  don't see why."* Not built; noted here, not as a rule. Enforced: the copies
+  share a group id and saving one writes the shared fields to the others
+  (`syncFamily` in `app/js/app.js`). **Serves →** I12.
 
 **Open decisions — waiting on Matt, oldest first:**
 
