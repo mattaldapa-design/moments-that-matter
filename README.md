@@ -975,6 +975,27 @@ decided, where it is enforced, and what it **serves**.
 
 ---
 
+## Limits, as built (2026-10-17)
+
+Measured from the code, so the next reader knows the edges before Matt
+hits them. Matt asked: *"I'd rather set the limits, you know, and know the
+limits before I break them."*
+
+| Thing | Limit | Where |
+|---|---|---|
+| Days in a trip | 120 on the stepper; "Add a day at the end" has no cap | `newTrip`, `tripPage` |
+| Moments on a day | none; the board scrolls | `board` |
+| Pictures on a moment | one | `attachPhoto` |
+| Picture size kept | longest side 1600 px, JPEG quality 0.82, roughly 150–400 KB each | `shrink` |
+| Day row snapshot | 8 emojis, then "+n" | `tripPage` |
+| Recap day band on screen | 4 pictures (key photo first), 10 titles then "+n" | `renderRecap` |
+| Recap PDF day band | 4 pictures, 6 titles then "+n" | `drawPages` |
+| One-day picture | 4 pictures (key photo first), 6 titles then "+n", one note line each | `drawDayCard` |
+| Backup file | the whole trip in one JSON with pictures inside, about 1.35× the picture bytes; built in memory, so very large trips (thousands of pictures) may strain the phone | `backupTrip` |
+| Backup reminder | 10 changes or 8 MB since the last backup | `BACKUP_DUE` |
+| Gallery words | about 300 | `words.js` |
+| Storage on the phone | the browser's quota for the app; the Trips screen shows what is used | `storageLine` |
+
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
