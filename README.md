@@ -126,8 +126,10 @@ changed file does not reach an installed phone until `VERSION` in
    GitHub Actions); the `github-pages` environment only lets the default
    branch deploy, so a push to remote `main` is a copy, not a publish, until
    `main` is made the default. The local default branch is `master` (the seed
-   only). Bump `VERSION` in `app/sw.js` with every publish or phones keep the
-   old files.
+   only). Bump `VERSION` in `app/sw.js` and `APP_VERSION` in `app/js/app.js`
+   together with every publish, or phones keep the old files. The Trips
+   screen shows the version it is running and has "Check for an update";
+   when a newer worker takes over, the app reopens itself once.
 3. **On the phone.** Open the address above in Chrome on the iPhone, Share →
    Add to Home Screen, then open it from the icon.
 
