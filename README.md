@@ -812,6 +812,18 @@ struck.
   card crop around it; untouched tall pictures in wide frames favour their
   top third. Verified in the preview with a focal point at 15% from the top.
 
+  *Added 2026-10-18*, after a week's use: *"I accidentally tap the crop
+  button by accident when I'm just scrolling through and I don't even
+  realize it. So it would be nice to either activate that feature so it
+  doesn't happen by accident, or just make it very clear that that's going
+  to be the focal point of the photo. Because it's not very clear from just
+  it being a little white circle."* Options put to him the same day; he
+  chose the Reframe button (Decision of 2026-10-18). **Changed the same
+  day:** the picture ignores taps until Reframe is pressed; the ring has
+  crosshairs and a "Kept in frame" label; while reframing the frame and ring
+  turn signal red and the hint says where to tap; the tap sets the point and
+  ends the mode. Never mind cancels.
+
 - **I29 — Change a trip's first day and have every day move with it.**
   *(2026-10-18)* Matt: *"be able to change the trip start date and then it
   will adjust the days along with it. So that way um, if I needed to delay,
@@ -1350,6 +1362,21 @@ decided, where it is enforced, and what it **serves**.
   tiles: *"Looks good, keep the tiles."* Enforced: `.mtm-chip--text`, `.mtm-word`,
   `.mtm-person` in `app/css/app.css`. **Serves →** I26 (the look) and the
   Goal's quick capture, nothing more than taste.
+
+- **2026-10-18 — Reframing a picture takes a Reframe button first.**
+  Chosen: the picture in the editor ignores taps until Reframe is pressed;
+  the ring that marks the kept spot has crosshairs and a "Kept in frame"
+  label at all times; in reframe mode the frame and ring turn signal red,
+  the hint reads "Tap the picture where it matters most", and the tap sets
+  the point and ends the mode. Alternatives: press and hold on the picture
+  (nothing on screen says it is there), or a clearer marker alone (the
+  accidental taps would continue). Matt: *"I accidentally tap the crop
+  button by accident when I'm just scrolling through [...] either activate
+  that feature so it doesn't happen by accident, or just make it very clear
+  [...] it's not very clear from just it being a little white circle"*,
+  then *"Go with the Reframe button."* Enforced: `#reframe` and
+  `.is-reframing` in `app/js/app.js` and `app/css/app.css`. **Serves →**
+  I28.
 
 **Open decisions — waiting on Matt, oldest first:**
 

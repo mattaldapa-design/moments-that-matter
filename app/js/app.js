@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 41; // keep in step with VERSION in sw.js
+const APP_VERSION = 42; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -367,7 +367,7 @@ async function trips() {
 const HOW_IT_WORKS = [
   ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
-  ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
+  ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story. The ring on a picture is the spot every crop keeps; tap Reframe, then the picture, to move it.'],
   ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Add to it if you want: Spent today adds itself up from the moments that have a price; Miles and Steps are yours to type.'],
   ['Mindfulness', 'A kind of moment of its own, 💭, or an I statement inside any other moment: I was surprised, I felt, I reflected, I learned, I noticed, I’m grateful for, or your own. The day summary lists the day’s statements and opens each one; Add to the summary → Mindfulness starts a new one. A Note or Mindfulness tile with no picture shows its words.'],
   ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
@@ -1030,11 +1030,11 @@ async function editor(trip, i, bid) {
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
     ${b.kind === 'mind' ? `<div class="mtm-fields">${mindSection}</div>` : ''}
-    ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}" role="button" tabindex="0" aria-label="Tap where the picture should stay in frame">
-      <img src="${photoUrl(ph)}" alt=""><span class="mtm-focus" id="focusDot" style="left:${Math.round((ph.focus?.x ?? 0.5) * 100)}%;top:${Math.round((ph.focus?.y ?? 0.5) * 100)}%"></span>
+    ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}">
+      <img src="${photoUrl(ph)}" alt=""><span class="mtm-focus" id="focusDot" style="left:${Math.round((ph.focus?.x ?? 0.5) * 100)}%;top:${Math.round((ph.focus?.y ?? 0.5) * 100)}%"><i>Kept in frame</i></span>
     </div>
-    <div class="dr-caption">Tap the picture where it matters most, and every crop keeps that in frame.</div>
-    <div class="mtm-bar"><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><label class="dr-btn dr-btn--ghost dr-btn--sm">Replace picture<input type="file" accept="image/*" id="photoFile" hidden aria-label="Choose a picture"></label><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>`
+    <div class="dr-caption" id="frameHint">The ring marks what every crop keeps in frame. Reframe to move it.</div>
+    <div class="mtm-bar"><button class="dr-btn dr-btn--ghost dr-btn--sm" id="reframe">Reframe</button><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><label class="dr-btn dr-btn--ghost dr-btn--sm">Replace picture<input type="file" accept="image/*" id="photoFile" hidden aria-label="Choose a picture"></label><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>`
     : `<label class="mtm-photo">
       <div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>
       <input type="file" accept="image/*" id="photoFile" aria-label="Choose a picture">
@@ -1156,18 +1156,28 @@ async function editor(trip, i, bid) {
     await attachPhoto(trip, b, f);
     render();
   };
+  // Reframe (I28, Decision 2026-10-18): the picture ignores taps until Reframe is pressed, so a scroll never moves the point.
   const frame = $('#photoFrame');
   if (frame && ph) {
+    const rf = $('#reframe'), hint = $('#frameHint');
+    const arm = (on) => {
+      frame.classList.toggle('is-reframing', on);
+      rf.textContent = on ? 'Never mind' : 'Reframe';
+      rf.classList.toggle('dr-btn--quiet', on); rf.classList.toggle('dr-btn--ghost', !on);
+      hint.textContent = on ? 'Tap the picture where it matters most.' : 'The ring marks what every crop keeps in frame. Reframe to move it.';
+      if (on) frame.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
     const setFocus = async (clientX, clientY) => {
       const r = frame.getBoundingClientRect();
       const x = Math.min(1, Math.max(0, (clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (clientY - r.top) / r.height));
       ph.focus = { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
       const dot = $('#focusDot'); if (dot) { dot.style.left = `${Math.round(x * 100)}%`; dot.style.top = `${Math.round(y * 100)}%`; }
+      arm(false);
       await db.put('photos', ph); await touch(trip);
       toast('Crops will keep that spot in frame.');
     };
-    frame.addEventListener('click', (e) => setFocus(e.clientX, e.clientY));
-    frame.addEventListener('keydown', (e) => { if (e.key === 'Enter') setFocus(frame.getBoundingClientRect().left + frame.clientWidth / 2, frame.getBoundingClientRect().top + frame.clientHeight / 2); });
+    rf.onclick = () => arm(!frame.classList.contains('is-reframing'));
+    frame.addEventListener('click', (e) => { if (frame.classList.contains('is-reframing')) setFocus(e.clientX, e.clientY); });
   }
   const kp = $('#keyPhoto');
   if (kp) kp.onclick = async () => {
