@@ -517,7 +517,7 @@ async function editor(trip, i, bid) {
       ${b.emoji ? `<span class="mtm-big">${b.emoji}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
-    <label class="mtm-photo">
+    <label class="mtm-photo ${ph ? 'has-picture' : ''}" ${ph && ph.w && ph.h ? `style="aspect-ratio: ${ph.w} / ${ph.h}"` : ''}>
       ${ph ? `<img src="${photoUrl(ph)}" alt="">` : '<div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>'}
       <input type="file" accept="image/*" id="photoFile" aria-label="Choose a picture">
     </label>

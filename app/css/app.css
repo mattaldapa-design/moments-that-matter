@@ -145,7 +145,8 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-editor-head .mtm-big { font-size: 56px; line-height: 1; }
 .mtm-editor-head .mtm-big--word { font-family: var(--font-display); font-weight: 800; font-size: 30px; letter-spacing: -0.02em; }
 .mtm-photo { position: relative; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); overflow: hidden; background: var(--room-100); box-shadow: var(--shadow-rest); cursor: pointer; display: grid; place-items: center; }
-.mtm-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mtm-photo.has-picture { max-height: 70vh; aspect-ratio: auto; }
+.mtm-photo img { width: 100%; height: 100%; max-height: 70vh; object-fit: contain; display: block; }
 .mtm-photo__empty { display: grid; gap: 6px; justify-items: center; color: var(--cream-dim); text-align: center; padding: 20px; }
 .mtm-photo__empty b { font-family: var(--font-display); font-size: 20px; color: var(--cream); }
 .mtm-photo input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }

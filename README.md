@@ -635,6 +635,15 @@ decided, where it is enforced, and what it **serves**.
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — First run on Matt's iPhone**, from the home-screen icon
+  added through Chrome, with a portrait picture from his photo library:
+  *"Looks good on the phone."* The picture is cropped badly in the block
+  editor's frame (*"it kind of makes them like out of the frame"*), fine in
+  the day row's circle and the tile. He mostly shoots portrait and would like
+  landscape to work too. Whether the picture's place and time filled in was
+  not said; asked. Fix the same day: the editor frame takes the picture's
+  own shape and shows all of it.
+
 - **2026-10-17 — Matt's first look at the first build** (in the desktop
   preview). Kept: *"I like the little icons. I like that it does default to
   the picture. List looks good."* Changed by the Decision of the same date:
