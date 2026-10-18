@@ -181,7 +181,13 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-dayband__pics--3 { grid-template-columns: 1fr 1fr 1fr; }
 .mtm-dayband__pics--3 .dr-cover:first-child, .mtm-dayband__pics--4 .dr-cover:first-child { grid-column: 1 / -1; aspect-ratio: 16 / 9; }
 .mtm-dayband__pics--4 { grid-template-columns: 1fr 1fr 1fr; }
-.mtm-dayband__titles { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 16px; color: var(--cream-dim); }
+.mtm-dayband__titles { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.mtm-dayband__titles button { border: 0; background: var(--room-200); color: var(--cream-dim); font: inherit; font-size: 16px; padding: 6px 12px; border-radius: var(--radius-pill); cursor: pointer; }
+.mtm-dayband__titles button:hover { color: var(--cream); }
+.mtm-dayband__head { display: block; width: 100%; border: 0; background: none; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.mtm-dayband__go { color: var(--accent); font-weight: 800; }
+.mtm-emojifield__item { border: 0; background: transparent; padding: 2px 4px; font: inherit; font-size: 32px; line-height: 1.2; cursor: pointer; border-radius: var(--radius-sm); transition: transform var(--dur-move) var(--ease-out), background var(--dur-quick); }
+.mtm-emojifield__item:hover { transform: translateY(-3px) scale(1.1); background: var(--room-200); }
 
 /* Money and people */
 .mtm-money { position: relative; display: block; }

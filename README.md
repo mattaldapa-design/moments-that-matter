@@ -86,6 +86,10 @@ lesson" → 🏄); the recap drops "pictures kept", counts every block's named
 place, and packs several days onto a page (the test trip's export went from
 7 pages to 5). Verified in the preview, 2026-10-17.
 
+After the fifth look: the recap's "most-used icon" stat is replaced by
+moments a day on average, and the recap's emojis, day headings and titles
+open their moment or day (I15).
+
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
 touch, and whether iOS marks the storage persistent are all untested.
@@ -497,6 +501,21 @@ struck.
 
   **Built 2026-10-17**, verified in the preview; contacts are under Not now.
 
+- **I15 — The recap is also a way to move through the trip: tap an emoji
+  or a day and land there, to look or to edit.** *(2026-10-17)* Matt: *"the
+  everything you did [...] what if you can tap each of those things and go
+  to it to see which one it was [...] it might be cool if you can tap it and
+  go to that day and you can just kind of like look at your whole trip at,
+  as a whole that way as well another way of looking at it [...] the
+  day-by-day view is is is just an interesting way of navigating through
+  your trip and being able to edit it as well."*
+
+  **Settles when:** on the Recap, an emoji opens its moment and a day band
+  opens its board. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-17**, verified in the preview: an emoji opened "New
+  Friends" on Day 1; the Day 1 band opened its board.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -792,6 +811,16 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Fifth look, the packed recap on the iPhone.** Pages: *"two
+  less from when I when I did it, but I did add a couple more photos."* The
+  "most-used icon" stat goes: *"it kind of makes the default icon the most
+  used [...] this was biking was f- times four"*; wanted instead something
+  like total events or *"you average this many events per day"*; loved
+  *"day one was your most active day"* and big numbers that *"really
+  helping drive that"*. Asked for the recap to be tappable (I15). Changed
+  the same day: the icon stat is replaced by moments a day on average; the
+  emoji field and the day bands open their moment or day.
 
 - **2026-10-17 — Fourth look on the iPhone, with the Recap**, while
   building a real trip: *"overall, overall, pretty successful. I, I, I like

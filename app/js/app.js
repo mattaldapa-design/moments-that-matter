@@ -337,6 +337,7 @@ async function recapPage(trip) {
   const data = await gather(trip);
   const S = stats(data);
   app.innerHTML = renderRecap(data, S, photoUrl);
+  bindGo();
   const baseName = `${(trip.title || 'Trip').replace(/[\/:*?"<>|]+/g, ' ').trim()} recap`;
   const busy = (on) => $$('#savePdf, #sharePics').forEach((b) => { b.disabled = on; });
   const deliver = async (files, title) => {

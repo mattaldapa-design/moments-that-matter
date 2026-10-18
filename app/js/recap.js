@@ -44,10 +44,9 @@ export function stats(data) {
   add(food.length && !eateries, '🍽️', food.length, `meal${food.length === 1 ? '' : 's'} and drinks logged`, firstPhoto(food));
   const named = new Set(blocks.map((b) => (b.place?.name || '').trim().toLowerCase()).filter(Boolean));
   add(named.size > 1, '📍', named.size, 'different places, by name', firstPhoto(blocks.filter((b) => b.place?.name)));
-  const emojiCount = {};
-  blocks.forEach((b) => { if (b.emoji) emojiCount[b.emoji] = (emojiCount[b.emoji] || 0) + 1; });
-  const top = Object.entries(emojiCount).sort((a, b) => b[1] - a[1])[0];
-  add(top && top[1] > 1, top?.[0], `×${top?.[1]}`, 'your most-used icon', null);
+  const daysLogged = days.filter((d) => d.blocks.length).length;
+  const avg = daysLogged ? blocks.length / daysLogged : 0;
+  add(daysLogged > 1, '🧮', Number.isInteger(avg) ? avg : avg.toFixed(1), `moments a day, over ${daysLogged} days with something logged`, null);
   const biggest = days.reduce((m, d) => (d.blocks.length > (m ? m.blocks.length : 0) ? d : m), null);
   add(biggest && biggest.blocks.length > 1, '🔥', `Day ${(biggest?.index ?? 0) + 1}`, `was the biggest: ${biggest?.blocks.length} moments${biggest?.city ? ' in ' + biggest.city : ''}`, biggest ? firstPhoto(biggest.blocks) : null);
   const weather = {};
@@ -73,11 +72,13 @@ export function renderRecap(data, S, photoUrl) {
     const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
     const pics = [key, ...others].filter(Boolean);
     return `<section class="dr-panel mtm-dayband">
-      <div class="dr-eyebrow">Day ${d.index + 1} · ${fmtDay(d.date)}</div>
-      <div class="mtm-bar mtm-bar--between"><h3 class="dr-heading">${esc(d.city || 'Somewhere')}</h3><span class="mtm-snap">${d.weather || ''}</span></div>
+      <button class="mtm-dayband__head" data-go="/t/${trip.id}/d/${d.index}" aria-label="Open day ${d.index + 1}">
+        <div class="dr-eyebrow">Day ${d.index + 1} · ${fmtDay(d.date)}</div>
+        <div class="mtm-bar mtm-bar--between"><h3 class="dr-heading">${esc(d.city || 'Somewhere')} <span class="mtm-dayband__go">›</span></h3><span class="mtm-snap">${d.weather || ''}</span></div>
+      </button>
       <div class="mtm-snap mtm-dayband__emojis">${d.blocks.map((b) => b.emoji || '·').join('')}</div>
       ${pics.length ? `<div class="mtm-dayband__pics mtm-dayband__pics--${Math.min(pics.length, 4)}">${pics.map((p) => `<div class="dr-cover"><img src="${photoUrl(p)}" alt=""></div>`).join('')}</div>` : ''}
-      <div class="mtm-dayband__titles">${d.blocks.slice(0, 10).map((b) => `<span>${b.emoji || ''} ${esc(titleOf(b))}</span>`).join('')}${d.blocks.length > 10 ? `<span class="dr-caption">+${d.blocks.length - 10} more</span>` : ''}</div>
+      <div class="mtm-dayband__titles">${d.blocks.slice(0, 10).map((b) => `<button data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}">${b.emoji || ''} ${esc(titleOf(b))}</button>`).join('')}${d.blocks.length > 10 ? `<span class="dr-caption">+${d.blocks.length - 10} more</span>` : ''}</div>
     </section>`;
   };
   return `<div class="mtm-stack mtm-recap">
@@ -87,7 +88,7 @@ export function renderRecap(data, S, photoUrl) {
       <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p></div>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
     ${S.length ? `<div><div class="dr-eyebrow">The numbers</div><div class="mtm-stats">${S.map(statCard).join('')}</div></div>` : ''}
-    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<span title="${esc(titleOf(b))}">${b.emoji || '·'}</span>`).join('')}</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
+    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${b.emoji || '·'}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
     ${logged.length ? `<div><div class="dr-eyebrow">Day by day</div><div class="mtm-stack">${logged.map(dayBand).join('')}</div></div>` : ''}
   </div>`;
 }
