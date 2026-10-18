@@ -466,6 +466,8 @@ struck.
   **Built 2026-10-17:** a block with a picture has "Make this the day's
   picture"; the day row shows it. Verified in the preview: the button
   flips to "This is the day's picture" and Day 4's row took the picture.
+  **Grown 2026-10-17** to four key pictures in tap order (Decision of that
+  date); tiles show the number.
 
 - **I11 — A block can carry a website link, and a food block a menu link.**
   *(2026-10-17)* Matt, on the phone: *"it'd be cool if you could add a
@@ -653,6 +655,23 @@ struck.
   **Built 2026-10-17:** the recap shows how many moments got four stars or
   more and the top-rated one, plus a line of guides and hosts; "Guide or
   host" is a ready-made detail. Verified in the preview.
+
+- **I21 — A gauge of how much of the phone the app is using, with a
+  warning in time to archive.** *(2026-10-17)* Matt: *"some sort of warning
+  about how big it's getting and lets you know to like clear it out [...] I
+  don't want somebody to reach their limit and then it like not be able to
+  take any more or break or something. So, I mean, that's why we have the
+  offload feature, but, um, it'd be nice to like, see how much, like if
+  there's like a progress on it of, of how much you're using."*
+
+  **Settles when:** the Trips screen shows used against available with a
+  bar, each trip shows its own size, and a warning appears before the
+  phone's limit. (The settling condition is the agent's draft.)
+
+  **Built 2026-10-17:** a bar on the Trips screen (green, amber from 70%,
+  red from 90%, with a nudge to archive), and each trip page says its
+  pictures and their size. The "allowed" figure is what the phone reports;
+  the app cannot change it. Verified in the preview.
 
 ## Decisions
 
@@ -903,6 +922,20 @@ decided, where it is enforced, and what it **serves**.
   thinking of as as I, you know, as I need them."* Enforced: `DETAILS` and
   the custom details in `app/js/app.js`. **Serves →** I17.
 
+- **2026-10-17 — A day has up to four key pictures, chosen in tap order;
+  the cards show those first, and four is the limit.** Chosen: on a block
+  with a picture, "Make this key picture n of 4" adds it to the day's key
+  pictures in the order tapped; tapping again removes it; the day row, the
+  one-day picture and the recap use key pictures first, then fill to four
+  in day order. Alternative: one key picture and the rest by day order
+  (the first build), or no cap. Matt: *"you have a key one, key two, key
+  three, key four, and you just can mix in, you can mix them and, and match
+  them in that kind of order if you want them to show up in a specific
+  order [...] I'd rather just keep it like a four limit for the day. That's
+  just kind of what it is. It's made on your phone [...] this isn't a, a
+  photo dump app."* Enforced: `day.keyPhotos` in `app/js/app.js` and the
+  card drawing in `app/js/recap.js`. **Serves →** I10, I19, and the Do not.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **What "Import a trip" means and where it lives.** Today
@@ -990,7 +1023,8 @@ limits before I break them."*
 | Day row snapshot | 8 emojis, then "+n" | `tripPage` |
 | Recap day band on screen | 4 pictures (key photo first), 10 titles then "+n" | `renderRecap` |
 | Recap PDF day band | 4 pictures, 6 titles then "+n" | `drawPages` |
-| One-day picture | 4 pictures (key photo first), 6 titles then "+n", one note line each | `drawDayCard` |
+| Key pictures on a day | 4, in tap order; the cards draw them first | `KEY_MAX` |
+| One-day picture | 4 pictures (key pictures first), 6 titles then "+n", one note line each | `drawDayCard` |
 | Backup file | the whole trip in one JSON with pictures inside, about 1.35× the picture bytes; built in memory, so very large trips (thousands of pictures) may strain the phone | `backupTrip` |
 | Backup reminder | 10 changes or 8 MB since the last backup | `BACKUP_DUE` |
 | Gallery words | about 300 | `words.js` |

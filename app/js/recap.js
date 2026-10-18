@@ -10,6 +10,12 @@ const fmtLong = (d) => d.toLocaleDateString(undefined, { day: 'numeric', month: 
 const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
 const money = (n) => '$' + Math.round(n).toLocaleString();
 const joinNames = (arr) => (arr.length <= 1 ? arr.join('') : arr.length === 2 ? `${arr[0]} and ${arr[1]}` : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
+// The day's pictures for a card: key pictures in tap order, then the rest in day order, four at most.
+function pickFour(d, pmap) {
+  const keys = (d.keyPhotos || []).map((id) => pmap[id]).filter(Boolean);
+  const rest = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && !keys.includes(p));
+  return [...keys, ...rest].slice(0, 4);
+}
 const titleOf = (b) => b.title || (b.kind === 'people' && b.fields?.people?.length ? `Met ${joinNames(b.fields.people)}` : '') || cap(b.label) || 'Moment';
 
 // ---------- data ----------
@@ -20,6 +26,7 @@ export async function gather(trip) {
   const days = [];
   for (let i = 0; i < trip.dayCount; i++) {
     const d = (await db.get('days', `${trip.id}:${i}`)) || { index: i, city: '', weather: '' };
+    if (!Array.isArray(d.keyPhotos)) d.keyPhotos = d.keyPhotoId ? [d.keyPhotoId] : [];
     days.push({ ...d, index: i, date: addDays(trip.startDate, i), blocks: blocks.filter((b) => b.dayIndex === i) });
   }
   const cover = (trip.coverPhotoId && pmap[trip.coverPhotoId]) || photos[0] || null;
@@ -77,9 +84,7 @@ export function renderRecap(data, S, photoUrl) {
       <div><div class="dr-title mtm-stat__big">${esc(s.big)}</div><div class="dr-body-sm">${esc(s.small)}</div></div></div>`;
   };
   const dayBand = (d) => {
-    const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
-    const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
-    const pics = [key, ...others].filter(Boolean);
+    const pics = pickFour(d, pmap);
     return `<section class="dr-panel mtm-dayband">
       <button class="mtm-dayband__head" data-go="/t/${trip.id}/d/${d.index}" aria-label="Open day ${d.index + 1}">
         <div class="dr-eyebrow">Day ${d.index + 1} · ${fmtDay(d.date)}</div>
@@ -215,9 +220,7 @@ export async function drawPages(data, S) {
   const inner = W - 2 * P;
   const startPage = (first) => { page = newPage(); y = eyebrow(page.g, first ? 'Day by day' : 'Day by day, continued', P + 20) + 10; pages.push(page.c); };
   for (const d of days.filter((dd) => dd.blocks.length)) {
-    const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
-    const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
-    const pics = [key, ...others].filter(Boolean).slice(0, 4);
+    const pics = pickFour(d, pmap);
     const picH = pics.length === 0 ? 0 : pics.length === 1 ? 400 : pics.length === 2 ? (inner - 24) / 2 : 380 + 24 + 200;
     const lines = Math.min(d.blocks.length, 6);
     const need = 130 + (picH ? picH + 24 : 0) + lines * 44 + (d.blocks.length > 6 ? 40 : 0) + 50;
@@ -279,9 +282,7 @@ export async function drawDayCard(data, dayIndex) {
   const picArea = Math.max(420, CH - P - footer - linesNeed - 24 - picTop);
 
   // Pictures fill the middle: 1 wide, 2 side by side, 3 as one tall and two stacked, 4 as a 2×2.
-  const key = (d.keyPhotoId && pmap[d.keyPhotoId]) || null;
-  const others = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && p !== key).slice(0, key ? 3 : 4);
-  const pics = [key, ...others].filter(Boolean).slice(0, 4);
+  const pics = pickFour(d, pmap);
   const ims = (await Promise.all(pics.map((p) => loadImage(p.blob)))).filter(Boolean);
   const r = 26;
   if (ims.length === 1) drawCover(g, ims[0], P, picTop, inner, picArea, r);

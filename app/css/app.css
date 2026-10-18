@@ -110,6 +110,16 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-block.is-over .dr-cover { outline: 3px dashed var(--accent); outline-offset: 4px; }
 .mtm-block .dr-tile__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
+.mtm-block__key { position: absolute; right: 10px; top: 10px; width: 28px; height: 28px; border-radius: var(--radius-disc); display: grid; place-items: center; background: var(--accent); color: var(--on-accent); font-family: var(--font-display); font-weight: 800; font-size: 15px; }
+
+/* Storage gauge */
+.mtm-gauge { display: grid; gap: 6px; padding-top: var(--space-5); }
+.mtm-gauge__track { height: 8px; border-radius: var(--radius-pill); background: var(--room-200); overflow: hidden; }
+.mtm-gauge__fill { height: 100%; border-radius: var(--radius-pill); background: var(--state-good); transition: width var(--dur-slow) var(--ease-out); }
+.mtm-gauge--warn .mtm-gauge__fill { background: var(--state-warn); }
+.mtm-gauge--bad .mtm-gauge__fill { background: var(--state-bad); }
+.mtm-gauge--bad .dr-caption:last-child, .mtm-gauge--warn .dr-caption:last-child { color: var(--cream); }
+
 /* Stay ghosts carried across days */
 .mtm-carry { display: flex; gap: 10px; flex-wrap: wrap; }
 .mtm-carry .dr-magnet { position: static; cursor: pointer; }

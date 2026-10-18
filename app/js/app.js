@@ -56,8 +56,16 @@ const bindGo = () => $$('[data-go]').forEach((el) => {
 // ---------- model ----------
 const dayId = (tripId, i) => `${tripId}:${i}`;
 async function getDay(tripId, i) {
-  return (await db.get('days', dayId(tripId, i))) || { id: dayId(tripId, i), tripId, index: i, city: '', weather: '' };
+  const d = (await db.get('days', dayId(tripId, i))) || { id: dayId(tripId, i), tripId, index: i, city: '', weather: '' };
+  return keyify(d);
 }
+// Up to four key pictures per day, in tap order (Decision, 2026-10-17). Older days had one keyPhotoId.
+function keyify(d) {
+  if (!Array.isArray(d.keyPhotos)) d.keyPhotos = d.keyPhotoId ? [d.keyPhotoId] : [];
+  d.keyPhotoId = d.keyPhotos[0] || null;
+  return d;
+}
+const KEY_MAX = 4;
 async function touch(trip, bytes = 0) {
   trip.updatedAt = Date.now();
   trip.pending = trip.pending || { changes: 0, bytes: 0 };
@@ -239,19 +247,28 @@ async function trips() {
     <div class="mtm-foot" id="storage"></div>
   </div>`;
   bindGo();
+  if (!$('#autoLookup')) return; // the screen moved on while the list was loading
   $('#autoLookup').onchange = async (e) => { await db.setSetting('autoLookup', e.target.checked); toast(e.target.checked ? 'Place names will be looked up when online.' : 'Place names are yours to type.'); };
   $('#importFile').onchange = (e) => importTrip(e.target.files[0]);
-  storageLine().then((s) => { const el = $('#storage'); if (el) el.textContent = s; });
+  storageGauge().then((h) => { const el = $('#storage'); if (el) el.innerHTML = h; });
 }
 
-async function storageLine() {
+const mb = (n) => (n >= 1024 * 1048576 ? `${(n / 1073741824).toFixed(1)} GB` : `${Math.max(0.1, n / 1048576).toFixed(n < 10 * 1048576 ? 1 : 0)} MB`);
+// How much of the phone the app is using (I21). The quota is the browser's offer, which iOS keeps modest.
+async function storageGauge() {
   try {
-    const persisted = await navigator.storage?.persisted?.();
     const est = await navigator.storage?.estimate?.();
-    const parts = [];
-    if (est?.usage != null) parts.push(`Using ${(est.usage / 1048576).toFixed(1)} MB on this phone`);
-    if (persisted != null) parts.push(persisted ? 'storage is protected' : 'storage not yet marked protected');
-    return parts.join(' · ');
+    const persisted = await navigator.storage?.persisted?.();
+    if (!est || est.usage == null) return '';
+    const used = est.usage, quota = est.quota || 0;
+    const share = quota ? used / quota : 0;
+    const level = share >= 0.9 ? 'bad' : share >= 0.7 ? 'warn' : 'good';
+    const note = share >= 0.9 ? 'Nearly full. Archive a past trip to make room.' : share >= 0.7 ? 'Getting full. Think about archiving a past trip.' : (persisted === false ? 'Storage not yet marked protected by the phone.' : 'Plenty of room.');
+    return `<div class="mtm-gauge mtm-gauge--${level}">
+      <div class="mtm-bar mtm-bar--between"><span class="dr-caption">Using ${mb(used)}${quota ? ` of about ${mb(quota)} the phone allows` : ' on this phone'}</span>${quota ? `<span class="dr-caption">${Math.round(share * 100)}%</span>` : ''}</div>
+      ${quota ? `<div class="mtm-gauge__track"><div class="mtm-gauge__fill" style="width:${Math.max(1, Math.min(100, share * 100))}%"></div></div>` : ''}
+      <div class="dr-caption">${note}</div>
+    </div>`;
   } catch { return ''; }
 }
 
@@ -356,7 +373,7 @@ async function tripPage(trip) {
     const d = await getDay(trip.id, i);
     const bs = (byDay[i] || []).sort((a, b) => a.order - b.order);
     const withPhoto = bs.find((b) => b.photoId);
-    const ph = (d.keyPhotoId && photos.find((p) => p.id === d.keyPhotoId)) || (withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null);
+    const ph = (d.keyPhotos[0] && photos.find((p) => p.id === d.keyPhotos[0])) || (withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null);
     const art = ph ? `<div class="dr-row__art dr-row__art--disc"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${i + 1}</div>`;
     const meta = bs.length ? `${d.city ? esc(d.city) + ' · ' : ''}${bs.length} moment${bs.length === 1 ? '' : 's'}` : (d.city ? esc(d.city) + ' · nothing yet' : 'Nothing yet');
     const snap = bs.slice(0, 8).map((b) => b.emoji || '·').join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
@@ -366,8 +383,9 @@ async function tripPage(trip) {
   }
   const due = backupDue(trip);
   const last = trip.backup?.lastAt;
+  const tripBytes = photos.reduce((n, p) => n + (p.bytes || p.blob?.size || 0), 0);
   app.innerHTML = `<div class="mtm-stack">
-    <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1>
+    <div><div class="dr-eyebrow">${fmtRange(trip)}${photos.length ? ` · ${photos.length} picture${photos.length === 1 ? '' : 's'}, ${mb(tripBytes)}` : ''}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1>
       <input class="mtm-city mtm-region" id="region" placeholder="Where in the world?" value="${esc(trip.region || '')}" autocomplete="off" aria-label="Country or region"></div>
     ${aboutPanel(trip)}
     <div class="mtm-backup">
@@ -488,7 +506,8 @@ async function board(trip, i) {
 
   const tile = (b) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
-    const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${b.emoji || '🏷️'}</span>`
+    const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
+    const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${b.emoji || '🏷️'}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
       : (b.emoji ? `<div class="mtm-block__emoji">${b.emoji}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
     return `<div class="dr-tile mtm-block" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
       <div class="dr-cover">${face}</div>
@@ -693,7 +712,8 @@ async function editor(trip, i, bid) {
   const kind = kindOf(b.kind);
   const ph = b.photoId ? await db.get('photos', b.photoId) : null;
   const day = await getDay(trip.id, i);
-  const isKey = !!(ph && day.keyPhotoId === ph.id);
+  const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
+  const keyFull = day.keyPhotos.length >= KEY_MAX;
   const family = await familyOf(b);
   const onDays = new Set(family.map((x) => x.dayIndex));
   const dayChips = Array.from({ length: trip.dayCount }, (_, d) => `<button type="button" class="mtm-chip mtm-chip--text ${onDays.has(d) ? 'is-on' : ''}" data-day="${d}" ${d === i ? 'disabled' : ''}>Day ${d + 1}</button>`).join('');
@@ -735,7 +755,7 @@ async function editor(trip, i, bid) {
       ${ph ? `<img src="${photoUrl(ph)}" alt="">` : '<div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>'}
       <input type="file" accept="image/*" id="photoFile" aria-label="Choose a picture">
     </label>
-    ${ph ? `<div class="mtm-bar"><button class="dr-btn ${isKey ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${isKey ? 'disabled' : ''}>${isKey ? 'This is the day’s picture' : 'Make this the day’s picture'}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
+    ${ph ? `<div class="mtm-bar"><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
     <div class="mtm-fields">
       <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(autoTitle(b) || kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
@@ -843,15 +863,17 @@ async function editor(trip, i, bid) {
   };
   const kp = $('#keyPhoto');
   if (kp) kp.onclick = async () => {
-    day.keyPhotoId = b.photoId; await db.put('days', day); await touch(trip);
-    toast(`Day ${i + 1} now wears this picture.`); render();
+    const at = day.keyPhotos.indexOf(b.photoId);
+    if (at >= 0) { day.keyPhotos.splice(at, 1); toast(`Taken off day ${i + 1}’s key pictures.`); }
+    else if (day.keyPhotos.length < KEY_MAX) { day.keyPhotos.push(b.photoId); toast(`Key picture ${day.keyPhotos.length} of ${KEY_MAX} for day ${i + 1}.`); }
+    keyify(day); await db.put('days', day); await touch(trip); render();
   };
   const rp = $('#removePhoto');
   if (rp) rp.onclick = async () => {
     if (!b.photoId) return;
     await db.del('photos', b.photoId);
     if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null;
-    if (day.keyPhotoId === b.photoId) { day.keyPhotoId = null; await db.put('days', day); }
+    if (day.keyPhotos.includes(b.photoId)) { day.keyPhotos = day.keyPhotos.filter((k) => k !== b.photoId); keyify(day); await db.put('days', day); }
     b.photoId = null;
     await db.put('blocks', b); await touch(trip); render();
   };
@@ -880,7 +902,7 @@ async function editor(trip, i, bid) {
   };
   $('#deleteBlock').onclick = async () => {
     if (!confirm('Delete this moment?')) return;
-    if (b.photoId) { await db.del('photos', b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; if (day.keyPhotoId === b.photoId) { day.keyPhotoId = null; await db.put('days', day); } }
+    if (b.photoId) { await db.del('photos', b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; if (day.keyPhotos.includes(b.photoId)) { day.keyPhotos = day.keyPhotos.filter((k) => k !== b.photoId); keyify(day); await db.put('days', day); } }
     await db.del('blocks', b.id); await touch(trip);
     leaveHook = null;
     go(`/t/${trip.id}/d/${i}`);
