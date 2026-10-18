@@ -244,6 +244,17 @@ struck.
   a day. (The settling condition is the agent's draft.) Deferred under Not
   now until the solo version exists.
 
+  *Added 2026-10-17*, after finding he had one trip going in a Chrome tab
+  and another in the home-screen app: *"I don't know if that would be just
+  something that we look about like merging a project or merging one into
+  another. So like you can pick up on it or something like that, or
+  somebody can edit it and, and share it back and we can be working from a
+  copy of somebody else's, like I said, the import uh, feature [...] I know
+  that's a later thing [...] if I want to merge them, that would be nice to
+  be able to do."* So import has two meanings to settle: bring a trip in as
+  its own, and merge a trip's moments into one already here. Today import
+  does only the first.
+
 - **I3 — Trips back up to a cloud drive Matt chooses, and past trips can be
   offloaded to keep the app slim.** *(2026-10-17)* Matt, after hearing how a
   home-screen web app stores data on the phone: *"that's what I'm thinking,
