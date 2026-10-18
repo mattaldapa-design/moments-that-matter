@@ -29,7 +29,7 @@
       let hadWorker = !!navigator.serviceWorker.controller;
       // Tell the app; it reloads on the next screen change rather than while something is being typed.
       navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker) window.dispatchEvent(new Event('mtm-new-worker')); hadWorker = true; });
-      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}));
     }
   </script>
 </body>

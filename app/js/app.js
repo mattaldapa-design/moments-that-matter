@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 32; // keep in step with VERSION in sw.js
+const APP_VERSION = 33; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -322,7 +322,13 @@ async function settingsPage() {
       await reg.update();
       const fresh = reg.installing || reg.waiting;
       if (fresh) { toast('Update found. Reopening…'); fresh.addEventListener('statechange', () => { if (fresh.state === 'activated') location.reload(); }); }
-      else toast(`You have the latest: version ${APP_VERSION}.`);
+      else {
+        // Read what is really live, past any cache, so the message is honest about where the hold-up is.
+        let live = 0;
+        try { const txt = await (await fetch('sw.js', { cache: 'reload' })).text(); live = Number((txt.match(/mtm-v(\d+)/) || [])[1] || 0); } catch { /* offline */ }
+        if (live > APP_VERSION) toast(`Version ${live} is out, but this connection is still handing back the old files. Try again in a few minutes.`);
+        else toast(`You have the latest: version ${APP_VERSION}.`);
+      }
     } catch { toast('Could not check right now.'); }
     btn.disabled = false;
   };
