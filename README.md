@@ -1037,6 +1037,16 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — Back up versus archive.** Matt: *"What's the difference
+  between backup this trip and archive to a file? I feel like they're
+  almost kind of do the same thing."* Settled in his words: back up is
+  *"I'm not done with this, I want to keep working on it, I want to keep it
+  here for a little bit and keep using it"*; archive is *"get this thing off
+  my phone and, and it's going to go into the, place of record."* Same
+  file, different fate for the trip. Changed the same day: the button reads
+  "Archive: back up, then remove from this phone" and sits below the
+  everyday buttons.
+
 - **2026-10-17 — Ninth look, the trip page header.** *"I don't need the
   number of megabytes in this trip. That's that doesn't need to be up at
   the very top [...] The trip title, like I, I have one right now that I

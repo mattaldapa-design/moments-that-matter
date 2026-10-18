@@ -250,6 +250,9 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 /* Empty states */
 .mtm-empty { display: grid; gap: var(--space-3); justify-items: start; padding: var(--space-6) 0; }
 
+/* End-of-trip actions sit apart from the everyday ones */
+.mtm-endbar { padding-top: var(--space-5); border-top: 1px solid var(--line); }
+
 /* Backup line */
 .mtm-backup { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 

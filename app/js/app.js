@@ -15,7 +15,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 21; // keep in step with VERSION in sw.js
+const APP_VERSION = 22; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
@@ -441,7 +441,9 @@ async function tripPage(trip) {
     <div class="mtm-bar">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="addDay">Add a day at the end</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="rename">Rename</button>
-      <button class="dr-btn dr-btn--ghost dr-btn--sm" id="archive">Archive to a file</button>
+    </div>
+    <div class="mtm-bar mtm-endbar">
+      <button class="dr-btn dr-btn--ghost dr-btn--sm" id="archive">Archive: back up, then remove from this phone</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="delete">Delete trip</button>
     </div>
   </div>`;
