@@ -331,7 +331,7 @@ struck.
   **Built 2026-10-17** in the first build: boards, tiles, drag, list view,
   the seven kinds, Stay across nights.
 
-- **I5 — A block's icon can be a word instead of an emoji.** *(2026-10-17)*
+- **I5 (struck 2026-10-17) — A block's icon can be a word instead of an emoji.** *(2026-10-17)*
   Matt, while deciding how blocks work: *"some people might not want it to
   look like emojis and might not want those. And that might not be easily
   visible for them to um, do the task. So maybe you can choose to just use a
@@ -355,6 +355,14 @@ struck.
   **Built 2026-10-17** as the type-anything box: a typed word becomes an
   emoji block when the gallery knows it, else a word block (see the
   Decision of that date). A setting to prefer words everywhere is not built.
+
+  **Struck 2026-10-17**, by Matt, asked whether the switch should be
+  app-wide or per block: *"I'm not even sure if the words instead of emojis
+  is needed [...] my worry and my concern was that it would be very icon
+  heavy and and it would be hard to tell what I'm trying to refer to when I
+  can clearly see the word next to the icons and the emojis [...] I feel
+  like it's it's it's contextually pretty easy to understand."* The word
+  block for a typed word with no emoji stays, as built.
 
 - **I6 — A photo added to a block fills in its location (and time) from
   the photo's own data, which Matt can verify or change.** *(2026-10-17)*
@@ -826,7 +834,9 @@ decided, where it is enforced, and what it **serves**.
   place and time without him typing them. *(2026-10-17)*
 - **Backup round trip on the phone.** Done when a backup made on the iPhone
   is saved through the share sheet to Files and imports back as a copy with
-  its pictures showing. *(2026-10-17)*
+  its pictures showing. *(2026-10-17)* **Done 2026-10-17**, by way of
+  Archive: Matt: *"I did try the archive and everything. It all worked.
+  Everything repopulated relatively easily."*
 - **Drag on touch.** Done when Matt holds a tile on the iPhone, drags it to
   a new spot, and the new order is still there after the app is closed and
   reopened. *(2026-10-17)*
@@ -849,6 +859,9 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Archive and import on the iPhone:** *"It all worked.
+  Everything repopulated relatively easily."* The same look struck I5.
 
 - **2026-10-17 — Fifth look, the packed recap on the iPhone.** Pages: *"two
   less from when I when I did it, but I did add a couple more photos."* The
