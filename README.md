@@ -28,7 +28,8 @@ app/                 the first build: 1,114 lines in 8 files the agent wrote
                      darkroom.css copied from the Dark Room kit, and three
                      placeholder icons
 .claude/launch.json  the preview server for the desktop app
-git                  local only; no remote
+git                  remote: github.com/mattaldapa-design/moments-that-matter
+                     (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
 The first build exists on the PC and has not been on Matt's phone. What it
@@ -83,8 +84,16 @@ changed file does not reach an installed phone until `VERSION` in
    <http://localhost:8787>. Warning: after editing files under `app/`, bump
    `VERSION` in `app/sw.js` or unregister the service worker in the browser,
    or the old files keep being served.
-2. **On the phone.** Not yet possible: a home-screen web app needs an https
-   address to install from. See Open decisions.
+2. **Publish.** The code is on GitHub at
+   <https://github.com/mattaldapa-design/moments-that-matter>. Pushing to the
+   remote branch `main` runs `.github/workflows/pages.yml`, which serves the
+   `app/` folder at <https://mattaldapa-design.github.io/moments-that-matter/>.
+   The workflow turns Pages on by itself on its first run. Warning: the local default branch is `master` (the seed only);
+   the work is on `claude/journaling-app-0aafd1`, pushed as remote `main`.
+   Bump `VERSION` in `app/sw.js` with every publish or phones keep the old
+   files.
+3. **On the phone.** Open the address above in Chrome on the iPhone, Share →
+   Add to Home Screen, then open it from the icon.
 
 ## Intentions
 
@@ -568,8 +577,6 @@ decided, where it is enforced, and what it **serves**.
   what the import a trip is going to look like and, and what that
   necessarily means [...] I guess I'm just importing like an exported file
   from this."* Tied to I2 and I3.
-- *2026-10-17* — **The GitHub repository for Pages:** Matt to create it and
-  give the agent its address. (Decided GitHub Pages the same day.)
 
 ## Not now
 
