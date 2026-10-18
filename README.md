@@ -1036,6 +1036,17 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — Eighth look.** The Activity prompt appeared above where
+  he tapped, out of view: *"I didn't even notice I tapped activity and I
+  thought just it froze, but it it's actually above it. I had to scroll
+  back up."* The example placeholders are too specific: *"I appreciate the
+  pre-fill examples that you gave, but they're a little they're a little too
+  specific [...] it looks like it's auto-filled, and then I would just keep
+  it as generic as possible."* The helper line under the prompt is not
+  needed: *"they don't need to know that. They'll see it."* Changed the
+  same day: the prompt opens right under the kind buttons, where the tap
+  was; placeholders are generic; the helper line is gone.
+
 - **2026-10-17 — Casing.** Matt asked whether "Food & drink" with a small
   d was a miss. It is the app's sentence case, the Dark Room copy rule.
   Matt: *"Let's just follow the rules [...] We don't need to change any

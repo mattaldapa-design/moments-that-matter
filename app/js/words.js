@@ -1,24 +1,24 @@
 // The seven built-in kinds (Decision, 2026-10-17), the weather chips, and the gallery of words.
 export const KINDS = [
-  { key: 'travel', emoji: '✈️', name: 'Travel', hint: 'Qantas to Sydney',
+  { key: 'travel', emoji: '✈️', name: 'Travel', hint: 'Where to, and how',
     fields: [
       { k: 'mode', label: 'How', type: 'chips', options: ['✈️ Plane', '🚆 Train', '🚌 Bus', '🚗 Car', '⛴️ Boat', '🚲 Bike', '🚶 Walk'] },
-      { k: 'company', label: 'Company', hint: 'Airline, line, operator' },
+      { k: 'company', label: 'Company', hint: 'Airline, line or operator' },
       { k: 'from', label: 'From' }, { k: 'to', label: 'To' },
-      { k: 'seat', label: 'Seat or number', hint: 'Seat 23A, flight QF12' },
+      { k: 'seat', label: 'Seat or number', hint: 'Seat or flight number' },
     ] },
-  { key: 'food', emoji: '🍽️', name: 'Food & drink', hint: 'Flat white and a scone', fields: [] },
-  { key: 'activity', emoji: '✨', name: 'Activity', hint: 'Bike ride along the harbour',
+  { key: 'food', emoji: '🍽️', name: 'Food & drink', hint: 'What you had', fields: [] },
+  { key: 'activity', emoji: '✨', name: 'Activity', hint: 'What you did',
     fields: [] },
-  { key: 'place', emoji: '📍', name: 'Place', hint: 'Taronga Zoo', fields: [] },
-  { key: 'people', emoji: '👋', name: 'People', hint: 'The couple at the fireworks',
+  { key: 'place', emoji: '📍', name: 'Place', hint: 'Where you were', fields: [] },
+  { key: 'people', emoji: '👋', name: 'People', hint: 'Who you met',
     fields: [
       { k: 'people', label: 'Who', type: 'people' }, { k: 'from', label: 'Where from' },
-      { k: 'contact', label: 'Contact', hint: 'Number, email, handle' },
+      { k: 'contact', label: 'Contact', hint: 'How to reach them' },
       { k: 'recommended', label: 'What they recommended' },
     ] },
-  { key: 'stay', emoji: '🏨', name: 'Stay', hint: 'Hotel name', fields: [{ k: 'nights', label: 'Nights', type: 'number', hint: 'Shows on each of those days' }] },
-  { key: 'note', emoji: '📝', name: 'Note', hint: 'Something worth remembering', fields: [] },
+  { key: 'stay', emoji: '🏨', name: 'Stay', hint: 'Where you slept', fields: [{ k: 'nights', label: 'Nights', type: 'number', hint: 'How many nights' }] },
+  { key: 'note', emoji: '📝', name: 'Note', hint: 'Anything at all', fields: [] },
 ];
 export const kindOf = (key) => KINDS.find((k) => k.key === key);
 

@@ -136,7 +136,8 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 }
 
 /* Ask-first kinds */
-.mtm-ask { display: grid; gap: 10px; margin-bottom: 12px; }
+.mtm-ask { display: grid; gap: 10px; margin-top: 12px; }
+.mtm-kind.is-on { box-shadow: 0 0 0 2px var(--accent); background: var(--room-200); }
 .mtm-ask__emoji { font-size: 36px; line-height: 1; width: 48px; text-align: center; flex: none; }
 
 /* Add page */

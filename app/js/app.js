@@ -15,7 +15,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 19; // keep in step with VERSION in sw.js
+const APP_VERSION = 20; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
@@ -98,23 +98,23 @@ const titleOf = (b) => b.title || autoTitle(b) || cap(b.label) || kindOf(b.kind)
 // Optional details, added to a card from a list (Decision, 2026-10-17). Not on every card.
 const DETAILS = [
   { k: 'time', label: 'Time', type: 'time' },
-  { k: 'cost', label: 'Cost', hint: '12.50' },
-  { k: 'duration', label: 'How long', hint: '2 hours' },
+  { k: 'cost', label: 'Cost', hint: 'How much' },
+  { k: 'duration', label: 'How long', hint: 'Hours or minutes' },
   { k: 'rating', label: 'Rating', type: 'rating' },
   { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
   { k: 'menu', label: 'Menu', type: 'url', hint: 'Paste the menu address' },
-  { k: 'steps', label: 'Steps', hint: '12,400', numeric: true },
-  { k: 'distance', label: 'Distance', hint: '7.2 mi' },
-  { k: 'room', label: 'Room', hint: '1412' },
-  { k: 'confirmation', label: 'Confirmation number', hint: 'ABC123' },
-  { k: 'host', label: 'Guide or host', hint: 'Their name, if they were good' },
+  { k: 'steps', label: 'Steps', hint: 'How many', numeric: true },
+  { k: 'distance', label: 'Distance', hint: 'Miles or km' },
+  { k: 'room', label: 'Room', hint: 'Room number' },
+  { k: 'confirmation', label: 'Confirmation number', hint: 'The code' },
+  { k: 'host', label: 'Guide or host', hint: 'Their name' },
 ];
 const stars = (n) => '★'.repeat(Number(n) || 0) + '☆'.repeat(5 - (Number(n) || 0));
 // Trip-wide details (I18): the big-picture things that are not any one day's.
 const TRIP_DETAILS = [
-  { k: 'carrier', label: 'Airline or cruise line', hint: 'Qantas, Royal Caribbean' },
-  { k: 'booking', label: 'Booking reference', hint: 'ABC123' },
-  { k: 'budget', label: 'Budget', hint: '2500', money: true },
+  { k: 'carrier', label: 'Airline or cruise line', hint: 'Who you flew or sailed with' },
+  { k: 'booking', label: 'Booking reference', hint: 'The code' },
+  { k: 'budget', label: 'Budget', hint: 'For the whole trip', money: true },
   { k: 'website', label: 'Website', type: 'url', hint: 'Paste the address' },
   { k: 'insurance', label: 'Insurance', hint: 'Company and policy number' },
 ];
@@ -291,7 +291,7 @@ function newTrip() {
   let days = 7;
   app.innerHTML = `<div class="mtm-stack">
     <h1 class="dr-title-xl">Start a trip</h1>
-    <div class="dr-field"><label for="title">What do you call it?</label><input class="dr-input" id="title" placeholder="Australia &amp; New Zealand" autocomplete="off"></div>
+    <div class="dr-field"><label for="title">What do you call it?</label><input class="dr-input" id="title" placeholder="Name the trip" autocomplete="off"></div>
     <div class="dr-field"><label for="start">First day</label><input class="dr-input" id="start" type="date" value="${todayIso()}"></div>
     <div class="dr-field"><label>How many days?</label>
       <div class="mtm-stepper"><button type="button" id="minus" aria-label="Fewer days">−</button><output id="days">7</output><button type="button" id="plus" aria-label="More days">+</button></div>
@@ -330,11 +330,11 @@ function aboutPanel(trip) {
       ${shown.map(field).join('')}
       ${trip.custom.map(customRow).join('')}
       ${ownTripOpen === trip.id ? `<div class="dr-field mtm-detail"><label for="ownTripLabel">Your own detail</label>
-        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownTripLabel" placeholder="Name it: Visa, Currency, Car hire…" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownTripAdd">Add</button></div></div>` : ''}
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownTripLabel" placeholder="Name the detail" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownTripAdd">Add</button></div></div>` : ''}
       <div class="dr-field"><label for="addTripDetail">Add a trip detail</label><select class="dr-select" id="addTripDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
       <div class="dr-field"><label for="newPack">Packing list${trip.packing.length ? ` <span class="dr-caption">· ${packed} of ${trip.packing.length} packed</span>` : ''}</label>
         ${trip.packing.length ? `<div class="mtm-pack">${trip.packing.map((p, k) => `<div class="mtm-pack__item ${p.done ? 'is-done' : ''}"><label class="dr-check"><input type="checkbox" data-pack="${k}" ${p.done ? 'checked' : ''}><span>${esc(p.text)}</span></label><button type="button" class="mtm-x" data-unpack="${k}" aria-label="Remove ${esc(p.text)}">×</button></div>`).join('')}</div>` : ''}
-        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Something to pack" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div></div>
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div></div>
     </div>
   </details>`;
 }
@@ -652,10 +652,10 @@ function addPage(trip, i) {
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}`, h: `/t/${trip.id}/d/${i}` }, { t: 'Add' }], `/t/${trip.id}/d/${i}`);
   app.innerHTML = `<div class="mtm-stack">
     <h1 class="dr-title">Add to day ${i + 1}</h1>
-    <div id="askPanel"></div>
     <div class="mtm-kinds">${KINDS.map((k) => `<button class="mtm-kind" data-kind="${k.key}"><span class="mtm-kind__emoji">${k.emoji}</span><span class="mtm-kind__name">${esc(k.name)}</span></button>`).join('')}</div>
+    <div id="askPanel"></div>
     <div class="dr-field"><label for="q">Or type anything</label>
-      <input class="dr-input dr-input--search" id="q" placeholder="coffee, museum, haircut…" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
+      <input class="dr-input dr-input--search" id="q" placeholder="Type anything" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
     <div class="mtm-gallery" id="gallery"></div>
   </div>`;
   const q = $('#q'), gal = $('#gallery');
@@ -690,11 +690,10 @@ function addPage(trip, i) {
 const ASK_FIRST = ['activity'];
 function askFirst(trip, i, kind) {
   const panel = $('#askPanel');
+  $$('.mtm-kind').forEach((k) => k.classList.toggle('is-on', k.dataset.kind === kind.key));
   panel.innerHTML = `<div class="dr-panel mtm-ask">
-    <div class="dr-eyebrow">${esc(kind.name)}</div>
     <label class="dr-field" for="askTitle"><span class="dr-label">What did you do?</span>
-      <div class="mtm-bar" style="flex-wrap:nowrap"><span class="mtm-ask__emoji" id="askEmoji">${kind.emoji}</span><input class="dr-input mtm-grow" id="askTitle" placeholder="Surf lesson, hike to the falls, museum…" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--sm" id="askGo">Add</button></div></label>
-    <div class="dr-field__hint">The icon follows your words. You can add a picture next.</div>
+      <div class="mtm-bar" style="flex-wrap:nowrap"><span class="mtm-ask__emoji" id="askEmoji">${kind.emoji}</span><input class="dr-input mtm-grow" id="askTitle" placeholder="What did you do?" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--sm" id="askGo">Add</button></div></label>
   </div>`;
   const input = $('#askTitle'), face = $('#askEmoji');
   input.oninput = () => { face.textContent = emojiFromText(input.value) || kind.emoji; };
@@ -704,8 +703,8 @@ function askFirst(trip, i, kind) {
   };
   input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
   $('#askGo').onclick = go;
-  panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  setTimeout(() => input.focus(), 50);
+  input.focus();
+  setTimeout(() => panel.scrollIntoView({ block: 'center' }), 60);
 }
 
 async function createBlock(trip, i, partial) {
@@ -758,7 +757,7 @@ async function editor(trip, i, bid) {
   const customRow = (c, k) => `<div class="dr-field mtm-detail"><div class="mtm-bar mtm-bar--between"><label for="c-${k}">${esc(c.label)}</label><button type="button" class="mtm-x" data-dropcustom="${k}" aria-label="Remove ${esc(c.label)}">×</button></div>
     <input class="dr-input" id="c-${k}" data-custom="${k}" value="${esc(c.value || '')}" placeholder="${esc(c.label)}" autocomplete="off"></div>`;
   const ownRow = ownOpen === b.id ? `<div class="dr-field mtm-detail"><label for="ownLabel">Your own detail</label>
-    <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownLabel" placeholder="Name it: Trail, Seat, Tide…" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownAdd">Add</button></div></div>` : '';
+    <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownLabel" placeholder="Name the detail" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownAdd">Add</button></div></div>` : '';
 
   app.innerHTML = `<div class="mtm-stack">
     <div class="mtm-editor-head">
@@ -775,7 +774,7 @@ async function editor(trip, i, bid) {
       ${(kind?.fields || []).map(field).join('')}
       <div class="dr-field mtm-where"><label for="where">Where</label>
         <div class="dr-caption mtm-placetrail" id="placeTrail">${esc(trip.region || '…')} › ${esc(day.city || '…')} › <b>${esc(b.place.name || '…')}</b></div>
-        <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="${b.kind === 'place' ? 'Address or area' : 'Café, street, neighbourhood'}" autocomplete="off">
+        <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="Where" autocomplete="off">
         <div class="mtm-bar"><span class="mtm-coords" id="coords">${coordsText(b.place)}</span><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="locate">Use my location</button>${b.place.lat != null ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="lookup">Look up the name</button>' : ''}</div>
       </div>
       <div class="dr-field"><label for="note">Note</label><textarea class="dr-textarea" id="note" rows="3" placeholder="Only if you want to.">${esc(b.note)}</textarea></div>
