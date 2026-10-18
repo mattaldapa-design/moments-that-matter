@@ -1055,6 +1055,17 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — Eleventh look, planning a trip ahead.** "Travelled
+  with" reads past tense for a trip not yet taken; wants a saved packing
+  list he can reuse (*"if I can import a packing list uh, like already, or
+  I can like save a packing list when I have it"*); wants the packing
+  progress beside the countdown on the Trips page; and a pencil by the
+  title to rename from the top, after skipping the name and getting stuck
+  with *"Untitled trip"*. Changed the same day: "Travelling with"; a pencil
+  next to the title edits it in place; "Starts in n days · 3 of 12 packed"
+  on the tile; "Save this list for next time" and "Use my saved list" on the
+  packing list.
+
 - **2026-10-17 — Tenth look.** The chevron after "About this trip" sat
   *"almost overlapping with the P on uh, trip"*; given room the same day.
   Asked for a countdown (I22).

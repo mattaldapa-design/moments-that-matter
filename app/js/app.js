@@ -15,7 +15,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 23; // keep in step with VERSION in sw.js
+const APP_VERSION = 24; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
@@ -253,7 +253,7 @@ async function trips() {
       <div class="dr-cover mtm-trip-cover">${face}<span class="dr-badge mtm-days">${t.dayCount} day${t.dayCount === 1 ? '' : 's'}</span></div>
       <div class="dr-tile__title">${esc(t.title || 'Untitled trip')}</div>
       <div class="dr-tile__meta">${fmtRange(t)}${backupDue(t) ? ' · <b style="color:var(--state-warn)">back up</b>' : ''}</div>
-      ${tripWhen(t).phase !== 'after' ? `<div class="dr-tile__meta mtm-countdown">${tripWhen(t).text}</div>` : ''}
+      ${tripWhen(t).phase !== 'after' ? `<div class="dr-tile__meta mtm-countdown">${tripWhen(t).text}${tripWhen(t).phase === 'before' && (t.packing || []).length ? ` · ${t.packing.filter((p) => p.done).length} of ${t.packing.length} packed` : ''}</div>` : ''}
     </button>`;
   }));
   app.innerHTML = `<div class="mtm-stack">
@@ -354,7 +354,7 @@ function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
       <div class="dr-field"><label for="newPlace">Places</label>
         ${placesHtml}
         <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPlace" placeholder="${trip.places.length ? 'Add another country or region' : 'Add a country or region'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPlace">Add</button></div></div>
-      <div class="dr-field"><label for="newCompanion">Travelled with</label>
+      <div class="dr-field"><label for="newCompanion">Travelling with</label>
         ${trip.companions.length ? `<div class="mtm-chips">${trip.companions.map((n, k) => `<span class="mtm-person">${esc(n)}<button type="button" data-uncompanion="${k}" aria-label="Remove ${esc(n)}">×</button></span>`).join('')}</div>` : ''}
         <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newCompanion" placeholder="${trip.companions.length ? 'Add another person' : 'Add a person'}" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addCompanion">Add</button></div></div>
       ${shown.map(field).join('')}
@@ -364,7 +364,8 @@ function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
       <div class="dr-field"><label for="addTripDetail">Add a trip detail</label><select class="dr-select" id="addTripDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
       <div class="dr-field"><label for="newPack">Packing list${trip.packing.length ? ` <span class="dr-caption">· ${packed} of ${trip.packing.length} packed</span>` : ''}</label>
         ${trip.packing.length ? `<div class="mtm-pack">${trip.packing.map((p, k) => `<div class="mtm-pack__item ${p.done ? 'is-done' : ''}"><label class="dr-check"><input type="checkbox" data-pack="${k}" ${p.done ? 'checked' : ''}><span>${esc(p.text)}</span></label><button type="button" class="mtm-x" data-unpack="${k}" aria-label="Remove ${esc(p.text)}">×</button></div>`).join('')}</div>` : ''}
-        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div></div>
+        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div>
+        <div class="mtm-bar">${trip.packing.length ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="savePack">Save this list for next time</button>' : ''}<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="usePack">Use my saved list</button></div></div>
     </div>
   </details>`;
 }
@@ -415,6 +416,17 @@ function bindAbout(trip) {
   np.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPack(); } };
   $('#addPack').onclick = addPack;
   $$('[data-pack]').forEach((cb) => { cb.onchange = async () => { trip.packing[Number(cb.dataset.pack)].done = cb.checked; await commit(); }; });
+  const sp = $('#savePack');
+  if (sp) sp.onclick = async () => { await db.setSetting('packingTemplate', trip.packing.map((p) => p.text)); toast(`Saved ${trip.packing.length} item${trip.packing.length === 1 ? '' : 's'} for next time.`); };
+  $('#usePack').onclick = async () => {
+    const saved = await db.setting('packingTemplate', []);
+    if (!saved.length) return toast('No saved list yet. Build one here, then "Save this list for next time".');
+    const have = new Set(trip.packing.map((p) => p.text.trim().toLowerCase()));
+    const fresh = saved.filter((t) => !have.has(t.trim().toLowerCase()));
+    fresh.forEach((t) => trip.packing.push({ text: t, done: false }));
+    toast(fresh.length ? `Added ${fresh.length} item${fresh.length === 1 ? '' : 's'} from your saved list.` : 'Everything on your saved list is already here.');
+    await commit();
+  };
   $$('[data-unpack]').forEach((x) => { x.onclick = async () => { trip.packing.splice(Number(x.dataset.unpack), 1); await commit(); }; });
 }
 
@@ -441,7 +453,8 @@ async function tripPage(trip) {
   const last = trip.backup?.lastAt;
   const tripBytes = photos.reduce((n, p) => n + (p.bytes || p.blob?.size || 0), 0);
   app.innerHTML = `<div class="mtm-stack">
-    <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1></div>
+    <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div>
+      <div class="mtm-titlerow"><h1 class="dr-title-xl" id="tripTitle">${esc(trip.title || 'Untitled trip')}</h1><button class="mtm-pencil" id="editTitle" aria-label="Rename the trip">✎</button></div></div>
     ${aboutPanel(trip, photos.length, tripBytes)}
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
@@ -488,11 +501,22 @@ async function tripPage(trip) {
       render();
     });
   });
-  $('#rename').onclick = async () => {
-    const t = prompt('What do you call this trip?', trip.title || '');
-    if (t === null) return;
-    trip.title = t.trim(); await touch(trip); render();
+  const renameInline = () => {
+    const h = $('#tripTitle'); if (!h) return;
+    const input = document.createElement('input');
+    input.className = 'mtm-city mtm-titleedit'; input.value = trip.title || ''; input.placeholder = 'Name the trip'; input.setAttribute('aria-label', 'Trip name');
+    h.replaceWith(input); input.focus(); input.select();
+    let done = false;
+    const finish = async (keep) => {
+      if (done) return; done = true;
+      if (keep) { trip.title = input.value.trim(); await touch(trip); }
+      render();
+    };
+    input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') finish(false); };
+    input.onblur = () => finish(true);
   };
+  $('#editTitle').onclick = renameInline;
+  $('#rename').onclick = renameInline;
   $('#delete').onclick = async () => {
     if (!confirm(`Delete “${trip.title || 'this trip'}” and everything in it? Back it up first if you want to keep it.`)) return;
     await deleteTrip(trip.id); go('/');
