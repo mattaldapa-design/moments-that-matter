@@ -23,4 +23,7 @@ export function focusOf(photo, frameW = 1, frameH = 1) {
   const wide = frameW / frameH > 1.05;
   return { x: 0.5, y: tall && wide ? 0.3 : 0.5 };
 }
+// Money as typed ("$12.50", "12,000") to a number, and back to a short dollar string.
+export const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
+export const money = (n) => '$' + Math.round(n).toLocaleString();
 export const objectPosition = (photo, frameW, frameH) => { const f = focusOf(photo, frameW, frameH); return `object-position:${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`; };

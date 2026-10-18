@@ -2,8 +2,8 @@
 import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
-import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures, num, money } from './recap.js';
-import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph, objectPosition } from './util.js';
+import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures } from './recap.js';
+import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph, objectPosition, num, money } from './util.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 38; // keep in step with VERSION in sw.js
+const APP_VERSION = 39; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -79,14 +79,16 @@ function keyify(d) {
 const LOGS = [{ k: 'spent', label: 'Spent today', auto: true }, { k: 'miles', label: 'Miles', hint: 'How far you went' }, { k: 'steps', label: 'Steps', hint: 'From your watch or phone' }];
 const cleanNotes = (v) => (typeof v === 'string' ? v.slice(0, 20000) : '');
 const cleanLog = (v) => { const out = {}; if (v && typeof v === 'object') for (const { k } of LOGS) if (typeof v[k] === 'string' || typeof v[k] === 'number') out[k] = String(v[k]).slice(0, 20); return out; };
-let sumOpen = false;
-try { sumOpen = localStorage.getItem('mtm-daysum') === '1'; } catch { /* default closed */ }
+const sumKey = (day) => `mtm-daysum:${day.id}`;
 function daySummary(day, blocks) {
-  const priced = blocks.filter((b) => num(b.details?.cost) > 0);
+  blocks.forEach(normalize);
+  let sumOpen = false;
+  try { sumOpen = localStorage.getItem(sumKey(day)) === '1'; } catch { /* default closed */ }
+  const priced = blocks.filter((b) => num(b.details.cost) > 0);
   const spent = priced.reduce((s, b) => s + num(b.details.cost), 0);
   const on = LOGS.filter((x) => day.log[x.k] !== undefined);
   const off = LOGS.filter((x) => day.log[x.k] === undefined);
-  const minds = blocks.flatMap((b) => (normalize(b).mind.length ? b.mind.map((m) => ({ b, m })) : b.kind === 'mind' ? [{ b, m: null }] : []));
+  const minds = blocks.flatMap((b) => (b.mind.length ? b.mind.map((m) => ({ b, m })) : b.kind === 'mind' ? [{ b, m: null }] : []));
   const bits = [];
   if (day.notes.trim()) bits.push('a note');
   if (minds.length) bits.push(`${minds.length} I statement${minds.length === 1 ? '' : 's'}`);
@@ -180,9 +182,12 @@ const mindLead = (m) => m.p || (m.t.trim().split(/\s+/).slice(0, 4).join(' ') ||
 const mindLine = (m) => `${m.p ? m.p + ' ' : ''}${m.t}`.trim();
 // Words for a tile with no picture (Matt, 2026-10-18): a Note shows its note, a Mindfulness moment its statements.
 const tileWords = (b) => (b.kind === 'note' ? (b.note || '').trim() : b.kind === 'mind' ? b.mind.map(mindLine).filter(Boolean).join(' · ') : '');
+// What the title would make the emoji: Mindfulness keeps 💭 whatever it is called.
+const steered = (b, kind) => (kind.key === 'mind' ? kind.emoji : emojiFromText(b.title) || kind.emoji);
 function normalize(b) {
   b.fields = b.fields || {}; b.place = b.place || { name: '', lat: null, lon: null }; b.details = b.details || {}; b.extras = b.extras || []; b.custom = b.custom || [];
   b.mind = cleanMind(b.mind);
+  b.emojiPinned = !!b.emojiPinned;
   if (b.time) { b.details.time = b.time.includes('T') ? b.time.slice(11, 16) : b.time; delete b.time; }
   if (b.cost) { b.details.cost = b.cost; delete b.cost; }
   if (b.fields.duration) { b.details.duration = b.fields.duration; delete b.fields.duration; }
@@ -802,7 +807,7 @@ async function board(trip, i) {
   const saveDay = debounce(async () => { await db.put('days', day); await touch(trip); }, 400);
   leaveHook = async () => { await saveCity.flush(); await saveDay.flush(); };
   const ds = $('#daysum');
-  ds.addEventListener('toggle', () => { sumOpen = ds.open; try { localStorage.setItem('mtm-daysum', sumOpen ? '1' : '0'); } catch { /* fine */ } });
+  ds.addEventListener('toggle', () => { try { localStorage.setItem(sumKey(day), ds.open ? '1' : '0'); } catch { /* fine */ } });
   $('#dayNotes').oninput = (e) => { day.notes = e.target.value; saveDay(); };
   $$('[data-log]').forEach((inp) => { inp.oninput = () => { day.log[inp.dataset.log] = inp.value; saveDay(); }; });
   $$('[data-droplog]').forEach((x) => { x.onclick = async () => { delete day.log[x.dataset.droplog]; await db.put('days', day); await touch(trip); render(); }; });
@@ -1079,11 +1084,11 @@ async function editor(trip, i, bid) {
   });
   $('#title').oninput = (e) => {
     b.title = e.target.value;
-    if (kind && !b.emojiPinned) { const em = emojiFromText(b.title) || kind.emoji; if (em !== b.emoji) { b.emoji = em; const big = $('.mtm-editor-head .mtm-big'); if (big) big.textContent = em; } }
+    if (kind && !b.emojiPinned) { const em = steered(b, kind); if (em !== b.emoji) { b.emoji = em; const big = $('.mtm-editor-head .mtm-big'); if (big) big.textContent = em; } }
     save();
   };
   $('#editEmoji').onclick = async () => {
-    const own = kind ? (emojiFromText(b.title) || kind.emoji) : '';
+    const own = kind ? steered(b, kind) : '';
     const r = await pickEmoji(b.emoji, b.emojiPinned && own !== b.emoji ? own : '');
     if (r === null) return;
     if (r === '') { b.emojiPinned = false; b.emoji = own; } else { b.emoji = r; b.emojiPinned = true; }
@@ -1232,7 +1237,7 @@ async function copyToDay(trip, b, i) {
   const day = await getDay(trip.id, i);
   if (!(await db.get('days', day.id))) await db.put('days', day);
   const existing = await blocksForDay(day.id);
-  const copy = { ...b, id: uid(), dayId: day.id, dayIndex: i, order: existing.length, photoId: null, note: '', details: {}, extras: [],
+  const copy = { ...b, id: uid(), dayId: day.id, dayIndex: i, order: existing.length, photoId: null, note: '', details: {}, extras: [], mind: [],
     place: { ...b.place }, fields: { ...b.fields }, createdAt: Date.now() };
   await db.put('blocks', copy);
   await touch(trip);
@@ -1350,8 +1355,8 @@ function cleanImport(data) {
   data.days = (Array.isArray(data.days) ? data.days : []).filter((d) => Number.isInteger(d?.index)).map((d) => ({
     ...d, weather: safeGlyph(d.weather), keyPhotos: (Array.isArray(d.keyPhotos) ? d.keyPhotos : [d.keyPhotoId]).map(safeId).filter(Boolean), keyPhotoId: undefined, notes: cleanNotes(d.notes), log: cleanLog(d.log),
   }));
-  data.blocks = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id) && Number.isInteger(b.dayIndex)).map((b) => ({
-    ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, mind: cleanMind(b.mind), photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
+  data.blocks = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id) && Number.isInteger(b.dayIndex)).map((b) => normalize({
+    ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
   }));
   data.photos = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/')).map((p) => ({ ...p, blockId: idOr(p.blockId, undefined) }));
 }
@@ -1380,7 +1385,7 @@ async function sendDay(trip, i) {
 async function importDay(data) {
   // Tidy what came in, then ask where it goes.
   const date = /^\d{4}-\d{2}-\d{2}$/.test(String(data.from?.date || '')) ? data.from.date : null;
-  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), emojiPinned: !!b.emojiPinned, mind: cleanMind(b.mind), photoId: safeId(b.photoId), groupId: undefined }));
+  const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => normalize({ ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: undefined }));
   const photosIn = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/'));
   if (!blocksIn.length) return toast('That day file has no moments in it.');
   const trips = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));

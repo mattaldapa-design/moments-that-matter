@@ -32,21 +32,27 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-**As of 2026-10-18, version 33 is live** at
+**As of 2026-10-18, version 38 is live** at
 <https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
-on Matt's iPhone for a real trip. Everything below was built on 2026-10-17
-and 2026-10-18; the Decisions and Intentions carry the detail. The 18th
-added: Send this day (I25), Settings & help with a User guide and your name
-(I24), a colour per kind (I26), tap-to-reframe pictures (I28), recap sleeves
-(I27), ten code-review fixes, and the removal of Pass the notebook. What it
-does: trips (start one, set its days, rename, add or remove a day, delete);
-boards (a city, a weather tap, tiles in time order, drag to reorder, a list
-view with move arrows); the add flow (the seven kinds, a type-anything box,
-a gallery of about 300 words with emojis, a word block when nothing matches);
-the block editor (a picture from the photo library, with place and time read
-from the picture when it carries them, the kind's own fields, Where with the
-phone's position on request, When, Cost, Note, nothing required, saved as he
-types); a Stay carries across its nights; a trail at the top of every screen,
+on Matt's iPhone for a real trip; version 39 (the review fixes below) is in
+the working tree, waiting on Matt's commit. Everything below was built on
+2026-10-17 and 2026-10-18; the Decisions and Intentions carry the detail.
+The 18th added: Send this day (I25), Settings & help with a User guide and
+your name (I24), a colour per kind (I26), tap-to-reframe pictures (I28),
+recap sleeves (I27), the removal of Pass the notebook, a movable first day
+(I29), airlines as a list (I30), a folding packing list (I31), a pencil to
+change a moment's emoji (I32), a Day summary fold on every board with a
+note, Spent today, Miles and Steps (I33), Mindfulness moments with I
+statements (I34), word tiles for Notes and Mindfulness, and two rounds of
+code-review fixes. What it does: trips (start one, set its days, rename, add
+or remove a day, delete); boards (a city, a weather tap, the Day summary
+fold, tiles in time order, drag to reorder, a list view with move arrows);
+the add flow (eight kinds, a type-anything box, a gallery of about 300 words
+with emojis, a word block when nothing matches); the block editor (a picture
+from the photo library, with place and time read from the picture when it
+carries them, a pencil on the emoji, the kind's own fields, Where with the
+phone's position on request, When, Cost, Note, I statements, nothing
+required, saved as he types); a Stay carries across its nights; a trail at the top of every screen,
 each level tappable; one-tap backup to the share sheet (or a download) as a
 `.json` with the pictures inside, and a reminder once 10 changes or 8 MB have
 piled up since the last backup (10 changes or 8 MB, Decision of 2026-10-17);
@@ -1396,6 +1402,11 @@ limits before I break them."*
 | Pictures on a moment | one | `attachPhoto` |
 | Picture size kept | longest side 1600 px, JPEG quality 0.82, roughly 150–400 KB each | `shrink` |
 | Day row snapshot | 8 emojis, then "+n" | `tripPage` |
+| Day summary note | 20,000 characters; the closed line only says "a note" | `cleanNotes`, `daySummary` |
+| Miles, Steps on a day | 20 characters each | `cleanLog` |
+| I statements on a moment | 50, each 2,000 characters; a prompt 40 | `cleanMind` |
+| Emoji picker | 14 favourites, then 12 gallery matches as you type | `pickEmoji` |
+| Words on a tile without a picture | 6 lines, then cut | `.mtm-block__emoji--text` |
 | Recap day band on screen | 4 pictures (key photo first), 10 titles then "+n" | `renderRecap` |
 | Recap PDF day band | 4 pictures, 6 titles then "+n" | `drawPages` |
 | Key pictures on a day | 4, in tap order; the cards draw them first | `KEY_MAX` |

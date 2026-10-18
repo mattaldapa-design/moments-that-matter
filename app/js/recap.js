@@ -1,10 +1,8 @@
 // The Recap (Decision, 2026-10-17): one long scroll — cover, stats with pictures, every emoji, then day by day —
 // and an export that draws each band to a picture and wraps the pictures into a PDF, on the phone.
 import * as db from './db.js';
-import { esc, addDays, fmtDay, fmtLong, joinNames, titleOf, focusOf, objectPosition } from './util.js';
+import { esc, addDays, fmtDay, fmtLong, joinNames, titleOf, focusOf, objectPosition, num, money } from './util.js';
 
-export const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
-export const money = (n) => '$' + Math.round(n).toLocaleString();
 // The day's pictures for a card: key pictures in tap order, then the rest in day order, four at most.
 function pickFour(d, pmap) {
   const keys = (d.keyPhotos || []).map((id) => pmap[id]).filter(Boolean);

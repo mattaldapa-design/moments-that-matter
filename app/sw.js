@@ -1,5 +1,5 @@
 // Moments That Matter — offline shell. Bump VERSION whenever a shell file changes.
-const VERSION = 'mtm-v38';
+const VERSION = 'mtm-v39';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
   './css/darkroom-tokens.css', './css/darkroom.css', './css/app.css',
@@ -8,7 +8,8 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // Straight from the network: a new version must never precache a copy the browser's own cache still holds.
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
