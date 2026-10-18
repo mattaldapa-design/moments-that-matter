@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 29; // keep in step with VERSION in sw.js
+const APP_VERSION = 30; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -230,7 +230,6 @@ async function render() {
       if (p[2] === 'd') {
         const i = +p[3];
         if (p.length === 4) return await board(trip, i);
-        if (isPassed(trip)) { toast('This trip is passed on. Take it back to edit it.'); return go(`/t/${trip.id}`); }
         if (p[4] === 'add') return addPage(trip, i);
         if (p[4] === 'b') return await editor(trip, i, p[5]);
       }
@@ -285,7 +284,7 @@ const HOW_IT_WORKS = [
   ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever.'],
   ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story.'],
-  ['Back up, Archive, Pass the notebook', 'All three make the same file, and it’s yours to keep anywhere. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Pass the notebook: send the trip to someone and let them write in it until it comes back.'],
+  ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
   ['Send this day', 'Had a better day than your friend logged? Send just that day. On their side it slides into the right date, and they keep what they like.'],
   ['Recap', 'When the trip’s done, or any night you like, Recap tells the story: the numbers, every icon, day by day. Save it as a PDF or pictures. Share this day makes one picture of today for a post.'],
   ['Yours', 'Everything stays on this phone until you send it. Nothing is uploaded, nothing needs an account.'],
@@ -298,7 +297,7 @@ async function settingsPage() {
   if (!paint(my, `<div class="mtm-stack">
     <h1 class="dr-title-xl">Settings &amp; help</h1>
     <div class="dr-panel mtm-stack mtm-stack--tight">
-      <div class="dr-field"><label for="yourName">Your name</label><input class="dr-input" id="yourName" value="${esc(name)}" placeholder="First name is plenty" autocomplete="given-name" autocapitalize="words"><div class="dr-field__hint">Signs the note when you pass the notebook, and the recap’s cover.</div></div>
+      <div class="dr-field"><label for="yourName">Your name</label><input class="dr-input" id="yourName" value="${esc(name)}" placeholder="First name is plenty" autocomplete="given-name" autocapitalize="words"><div class="dr-field__hint">Signs the days you send and the recap’s cover.</div></div>
       <label class="dr-check"><input type="checkbox" id="autoLookup" ${autoOn ? 'checked' : ''}> Look up place names automatically when online</label>
       <div class="mtm-bar mtm-bar--between"><span class="dr-body-sm">Saved packing list: ${saved.length ? `${saved.length} item${saved.length === 1 ? '' : 's'}` : 'none yet'}</span>${saved.length ? '<button class="dr-btn dr-btn--ghost dr-btn--sm" id="forgetPack">Forget it</button>' : ''}</div>
       <div id="storage"></div>
@@ -495,27 +494,25 @@ async function tripPage(trip) {
     const snap = bs.slice(0, 8).map((b) => esc(b.emoji || '·')).join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
     rows.push(`<div class="dr-row ${bs.length ? '' : 'is-empty'}" data-go="/t/${trip.id}/d/${i}" role="button" tabindex="0" aria-label="Day ${i + 1}">${art}
       <div class="dr-row__text"><div class="dr-row__title">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div><div class="dr-row__meta">${meta}</div>${snap ? `<div class="mtm-snap" title="${bs.length} moments">${snap}</div>` : ''}</div>
-      <div class="dr-row__end">${d.weather ? `<span class="mtm-snap">${esc(d.weather)}</span>` : ''}${isPassed(trip) ? '' : `<button class="mtm-more" data-more="${i}" aria-label="Day ${i + 1} options">⋯</button>`}</div></div>`);
+      <div class="dr-row__end">${d.weather ? `<span class="mtm-snap">${esc(d.weather)}</span>` : ''}<button class="mtm-more" data-more="${i}" aria-label="Day ${i + 1} options">⋯</button></div></div>`);
   }
   const due = backupDue(trip);
   const last = trip.backup?.lastAt;
   const tripBytes = photos.reduce((n, p) => n + (p.bytes || p.blob?.size || 0), 0);
   if (!paint(my, `<div class="mtm-stack">
     <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div>
-      <div class="mtm-titlerow"><h1 class="dr-title-xl" id="tripTitle">${esc(trip.title || 'Untitled trip')}</h1>${isPassed(trip) ? '' : '<button class="mtm-pencil" id="editTitle" aria-label="Rename the trip">✎</button>'}</div></div>
-    ${isPassed(trip) ? `<div class="dr-panel dr-accent-acid mtm-passed"><div class="dr-eyebrow">Passed on ${fmtDay(new Date(trip.passedOn.at))}</div><p class="dr-body">Someone else is writing in it. It is read-only here until their file comes back through Import a trip.</p><button class="dr-btn dr-btn--quiet dr-btn--sm" id="takeBack">Take it back</button></div>` : ''}
-    <div ${isPassed(trip) ? 'inert' : ''}>${aboutPanel(trip, photos.length, tripBytes)}</div>
+      <div class="mtm-titlerow"><h1 class="dr-title-xl" id="tripTitle">${esc(trip.title || 'Untitled trip')}</h1><button class="mtm-pencil" id="editTitle" aria-label="Rename the trip">✎</button></div></div>
+    ${aboutPanel(trip, photos.length, tripBytes)}
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
       <button class="dr-btn ${due ? '' : 'dr-btn--quiet'} dr-btn--sm" id="backup">Back up this trip</button>
-      ${isPassed(trip) ? '' : '<button class="dr-btn dr-btn--ghost dr-btn--sm" id="pass">Pass the notebook</button>'}
       <span class="dr-caption">${last ? `Backed up ${ago(last)}` : 'Never backed up'}${due ? ' · <b style="color:var(--state-warn)">new moments since</b>' : ''}</span>
     </div>
     <div class="dr-list">${rows.join('')}</div>
-    ${isPassed(trip) ? '' : `<div class="mtm-bar">
+    <div class="mtm-bar">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="addDay">Add a day at the end</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="rename">Rename</button>
-    </div>`}
+    </div>
     <div class="mtm-bar mtm-endbar">
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="archive">Archive: back up, then remove from this phone</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="delete">Delete trip</button>
@@ -525,8 +522,6 @@ async function tripPage(trip) {
   bindAbout(trip);
   $('#backup').onclick = () => backupTrip(trip);
   $('#archive').onclick = () => archiveTrip(trip);
-  const passBtn = $('#pass'); if (passBtn) passBtn.onclick = () => passNotebook(trip);
-  const tb = $('#takeBack'); if (tb) tb.onclick = () => takeBack(trip);
   const addDayBtn = $('#addDay'); if (addDayBtn) addDayBtn.onclick = async () => { trip.dayCount += 1; await touch(trip); render(); };
   $$('[data-more]').forEach((btn) => {
     btn.addEventListener('click', async (e) => {
@@ -654,17 +649,16 @@ async function board(trip, i) {
     return `<div class="dr-row mtm-rowblock" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">${art}
       <div class="dr-row__text"><div class="dr-row__title">${esc(titleOf(b))}</div><div class="dr-row__meta">${esc(blockMeta(b))}</div></div>
       <div class="dr-row__end mtm-move">
-        <button data-move="-1" data-id="${b.id}" ${idx === 0 || isPassed(trip) ? 'disabled' : ''} aria-label="Move up">↑</button>
-        <button data-move="1" data-id="${b.id}" ${idx === blocks.length - 1 || isPassed(trip) ? 'disabled' : ''} aria-label="Move down">↓</button>
+        <button data-move="-1" data-id="${b.id}" ${idx === 0 ? 'disabled' : ''} aria-label="Move up">↑</button>
+        <button data-move="1" data-id="${b.id}" ${idx === blocks.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button>
       </div></div>`;
   };
   if (!paint(my, `<div class="mtm-stack">
     <div class="mtm-stack mtm-stack--tight">
       <div class="dr-eyebrow">Day ${i + 1} of ${trip.dayCount} · ${fmtDay(addDays(trip.startDate, i))}</div>
-      <input class="mtm-city" id="city" placeholder="Where were you?" value="${esc(day.city)}" autocomplete="off" aria-label="City or area" list="plannedCities" ${isPassed(trip) ? 'disabled' : ''}>
+      <input class="mtm-city" id="city" placeholder="Where were you?" value="${esc(day.city)}" autocomplete="off" aria-label="City or area" list="plannedCities">
       <datalist id="plannedCities">${(normalizeTrip(trip).places || []).flatMap((p) => p.cities).map((c) => `<option value="${esc(c)}">`).join('')}</datalist>
-      <div class="mtm-weather" id="weather" ${isPassed(trip) ? 'inert' : ''}>${WEATHER.map((w) => `<button class="mtm-chip ${day.weather === w ? 'is-on' : ''}" data-w="${w}" aria-label="Weather ${w}">${w}</button>`).join('')}</div>
-      ${isPassed(trip) ? '<div class="dr-caption">Passed on. Read-only until it comes back.</div>' : ''}
+      <div class="mtm-weather" id="weather">${WEATHER.map((w) => `<button class="mtm-chip ${day.weather === w ? 'is-on' : ''}" data-w="${w}" aria-label="Weather ${w}">${w}</button>`).join('')}</div>
     </div>
     ${stays.length ? `<div class="mtm-carry">${stays.map((s) => `<button class="dr-magnet" data-go="/t/${trip.id}/d/${s.dayIndex}/b/${s.id}"><span style="font-size:22px">🏨</span>${esc(s.title || 'Stay')} · night ${i - s.dayIndex + 1}</button>`).join('')}</div>` : ''}
     <div class="mtm-bar mtm-bar--between">
@@ -675,7 +669,7 @@ async function board(trip, i) {
       ? (view === 'tiles' ? `<div class="mtm-grid" id="grid">${blocks.map(tile).join('')}</div>` : `<div class="dr-list">${blocks.map(row).join('')}</div>`)
       : '<div class="mtm-empty"><p class="dr-body-lg">Tap <strong>+</strong> to add the first moment of the day. A coffee counts.</p></div>'}
   </div>
-  ${isPassed(trip) ? '' : `<button class="dr-btn dr-btn--icon mtm-fab" aria-label="Add a moment" data-go="/t/${trip.id}/d/${i}/add">+</button>`}`)) return;
+  <button class="dr-btn dr-btn--icon mtm-fab" aria-label="Add a moment" data-go="/t/${trip.id}/d/${i}/add">+</button>`)) return;
   bindGo();
 
   const city = $('#city');
@@ -717,7 +711,7 @@ async function board(trip, i) {
       await saveOrder(blocks, trip); render();
     };
   });
-  if (view === 'tiles' && blocks.length > 1 && !isPassed(trip)) enableDrag($('#grid'), blocks, trip);
+  if (view === 'tiles' && blocks.length > 1) enableDrag($('#grid'), blocks, trip);
 }
 
 // Drag a tile to a new spot. Mouse: drag at once. Touch: hold a moment first, so scrolling still works.
@@ -1188,25 +1182,7 @@ function cleanImport(data) {
   }));
   data.photos = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/')).map((p) => ({ ...p, blockId: idOr(p.blockId, undefined) }));
 }
-// Pass the notebook (Decision, 2026-10-17): one person writes at a time.
 const APP_URL = 'https://mattaldapa-design.github.io/moments-that-matter/';
-const isPassed = (t) => !!t.passedOn;
-async function passNotebook(trip) {
-  const who = await db.setting('yourName', '');
-  const note = `${who ? who + ' passed you' : "Here's"} the notebook for ${trip.title || 'our trip'}. Save the file to Files, open Moments That Matter and tap "Import a trip". Add your days, then pass it back the same way. ${APP_URL}`;
-  const went = await backupTrip(trip, note);
-  if (!went) return;
-  trip.passedOn = { at: Date.now() };
-  await db.put('trips', trip);
-  toast('Passed on. This trip is read-only here until it comes back.');
-  render();
-}
-async function takeBack(trip) {
-  trip.passedOn = null;
-  await db.put('trips', trip);
-  toast('Taken back. You can edit it again.');
-  render();
-}
 
 // ---------- one day on its own (I25) ----------
 const DAY_FORMAT = 'moments-that-matter-day';
@@ -1234,7 +1210,7 @@ async function importDay(data) {
   const blocksIn = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id)).map((b) => ({ ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: undefined }));
   const photosIn = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/'));
   if (!blocksIn.length) return toast('That day file has no moments in it.');
-  const trips = (await db.all('trips')).filter((t) => !isPassed(t)).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const trips = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   if (!trips.length) return toast('Start a trip first, then import the day into it.');
   const label = `${data.from?.tripTitle ? data.from.tripTitle + ', ' : ''}day ${(data.from?.dayIndex ?? 0) + 1}${date ? ' · ' + fmtDay(new Date(date + 'T00:00:00')) : ''}`;
   const tk = trips.length === 1 ? trips[0].id : await sheet(`Add ${label} to which trip?`, trips.slice(0, 8).map((t) => ({ k: t.id, label: t.title || 'Untitled trip' })));
@@ -1284,22 +1260,19 @@ async function importTrip(file) {
     if (data.format === DAY_FORMAT) return await importDay(data);
     if (data.format !== 'moments-that-matter' || !data.trip || !safeId(data.trip.id)) throw new Error('That is not a Moments backup file.');
     cleanImport(data);
-    const existing = await db.get('trips', data.trip.id);
-    const comingHome = !!(existing && isPassed(existing));
-    if (comingHome) await deleteTrip(existing.id);
-    const exists = !!existing && !comingHome;
+    const exists = !!(await db.get('trips', data.trip.id));
     const map = {};
     const nid = (old) => (exists ? (map[old] || (map[old] = uid())) : old);
     const tripId = nid(data.trip.id);
     const photos = await Promise.all((data.photos || []).map(async (p) => ({ ...p, id: nid(p.id), tripId, blockId: p.blockId ? nid(p.blockId) : undefined, blob: await (await fetch(p.data)).blob(), data: undefined })));
     const blocks = (data.blocks || []).map((b) => ({ ...b, id: nid(b.id), tripId, dayId: dayId(tripId, b.dayIndex), photoId: b.photoId ? nid(b.photoId) : null }));
     const days = (data.days || []).map((d) => ({ ...d, id: dayId(tripId, d.index), tripId }));
-    const trip = { ...data.trip, id: tripId, updatedAt: Date.now(), pending: { changes: 0, bytes: 0 }, passedOn: null, coverPhotoId: data.trip.coverPhotoId ? nid(data.trip.coverPhotoId) : null };
+    const trip = { ...data.trip, id: tripId, updatedAt: Date.now(), pending: { changes: 0, bytes: 0 }, passedOn: undefined, coverPhotoId: data.trip.coverPhotoId ? nid(data.trip.coverPhotoId) : null };
     await db.put('trips', trip);
     await db.putMany('days', days);
     await db.putMany('blocks', blocks);
     await db.putMany('photos', photos);
-    toast(comingHome ? 'The notebook is back, with everything they added.' : exists ? 'Imported as a copy.' : 'Trip imported.');
+    toast(exists ? 'Imported as a copy.' : 'Trip imported.');
     go(`/t/${tripId}`);
     if (location.hash === `#/t/${tripId}`) render();
   } catch (e) {

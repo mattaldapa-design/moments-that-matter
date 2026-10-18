@@ -699,7 +699,7 @@ struck.
   tile and page; "Day n of m today" while it runs. Verified in the preview
   with a trip dated 24 days ahead.
 
-- **I23 — Pass the notebook: hand a trip to someone by text, let them add,
+- **I23 (built 2026-10-17, cut 2026-10-18) — Pass the notebook: hand a trip to someone by text, let them add,
   and get it back whole.** *(2026-10-17)* Matt: *"Would we be able to make
   the pass the notebook feature like kind of like a almost like a text
   message version of it? Like, like you could pass it to them like a note
@@ -1058,6 +1058,19 @@ decided, where it is enforced, and what it **serves**.
   day, basically. Um, and you can add those elements and remove the ones
   that you don't want."* Enforced: `sendDay` and `importDay` in
   `app/js/app.js`. **Serves →** I25, I2.
+
+- **2026-10-18 — Pass the notebook is cut; Send this day and Back up
+  cover sharing.** Chosen: remove the pass button, the read-only state,
+  Take it back and the replace-on-return import rule, built the day before
+  (I23); two people log in parallel and exchange days. Alternative: keep
+  it with a longer explanation. Matt: *"with send the day, somebody can
+  just make their own parallel trip and then just [...] send [...] they can
+  compare and contrast and be like, okay, yours is better here. Just add
+  add these days to yours, basically [...] just cut it then."* A trip that
+  was passed on before this version simply becomes editable again.
+  Enforced: the code is gone from `app/js/app.js`; the Decision of
+  2026-10-17 on Pass the notebook is superseded. **Serves →** the Goal's
+  "a few taps", and I25.
 
 **Open decisions — waiting on Matt, oldest first:**
 
