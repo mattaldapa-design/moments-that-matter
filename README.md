@@ -65,6 +65,8 @@ the dates renumber. Checked: sliding a day in before Day 3 made Day 3 empty
 and moved Sydney and its 3 moments to Day 4; a block with no details shows
 Title, Where, Note and the list; choosing Cost added the field.
 
+Later the same evening: a day's key picture (I10), chosen from a block.
+
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
 touch, and whether iOS marks the storage persistent are all untested.
@@ -367,6 +369,20 @@ struck.
   **Settles when:** each day row shows its moments' emojis next to the
   weather and Matt can read them on his phone. (The settling condition is
   the agent's draft.)
+
+- **I10 — Each day can have a key photo, chosen by Matt, as its icon.**
+  *(2026-10-17)* Matt: *"I think we should be able to make a key photo for
+  each day. So I know it seems default to whatever one is in the front, but
+  if you want to make a key photo for the day and make that little icon,
+  that would be nice as well."*
+
+  **Settles when:** from a block with a picture Matt can make it the day's
+  picture, and the day's row shows it instead of the first picture. (The
+  settling condition is the agent's draft.)
+
+  **Built 2026-10-17:** a block with a picture has "Make this the day's
+  picture"; the day row shows it. Verified in the preview: the button
+  flips to "This is the day's picture" and Day 4's row took the picture.
 
 ## Decisions
 

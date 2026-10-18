@@ -253,7 +253,7 @@ async function tripPage(trip) {
     const d = await getDay(trip.id, i);
     const bs = (byDay[i] || []).sort((a, b) => a.order - b.order);
     const withPhoto = bs.find((b) => b.photoId);
-    const ph = withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null;
+    const ph = (d.keyPhotoId && photos.find((p) => p.id === d.keyPhotoId)) || (withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null);
     const art = ph ? `<div class="dr-row__art dr-row__art--disc"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${i + 1}</div>`;
     const meta = bs.length ? `${d.city ? esc(d.city) + ' · ' : ''}${bs.length} moment${bs.length === 1 ? '' : 's'}` : (d.city ? esc(d.city) + ' · nothing yet' : 'Nothing yet');
     const snap = bs.slice(0, 8).map((b) => b.emoji || '·').join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
@@ -493,6 +493,8 @@ async function editor(trip, i, bid) {
   normalize(b);
   const kind = kindOf(b.kind);
   const ph = b.photoId ? await db.get('photos', b.photoId) : null;
+  const day = await getDay(trip.id, i);
+  const isKey = !!(ph && day.keyPhotoId === ph.id);
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}`, h: `/t/${trip.id}/d/${i}` }, { t: titleOf(b) }], `/t/${trip.id}/d/${i}`);
 
   const field = (f) => {
@@ -519,7 +521,7 @@ async function editor(trip, i, bid) {
       ${ph ? `<img src="${photoUrl(ph)}" alt="">` : '<div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>'}
       <input type="file" accept="image/*" id="photoFile" aria-label="Choose a picture">
     </label>
-    ${ph ? '<div class="mtm-bar"><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>' : ''}
+    ${ph ? `<div class="mtm-bar"><button class="dr-btn ${isKey ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${isKey ? 'disabled' : ''}>${isKey ? 'This is the day’s picture' : 'Make this the day’s picture'}</button><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>` : ''}
     <div class="mtm-fields">
       <div class="dr-field"><label for="title">${b.kind === 'place' ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
@@ -560,11 +562,17 @@ async function editor(trip, i, bid) {
     await attachPhoto(trip, b, f);
     render();
   };
+  const kp = $('#keyPhoto');
+  if (kp) kp.onclick = async () => {
+    day.keyPhotoId = b.photoId; await db.put('days', day); await touch(trip);
+    toast(`Day ${i + 1} now wears this picture.`); render();
+  };
   const rp = $('#removePhoto');
   if (rp) rp.onclick = async () => {
     if (!b.photoId) return;
     await db.del('photos', b.photoId);
     if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null;
+    if (day.keyPhotoId === b.photoId) { day.keyPhotoId = null; await db.put('days', day); }
     b.photoId = null;
     await db.put('blocks', b); await touch(trip); render();
   };
@@ -581,7 +589,7 @@ async function editor(trip, i, bid) {
   };
   $('#deleteBlock').onclick = async () => {
     if (!confirm('Delete this moment?')) return;
-    if (b.photoId) { await db.del('photos', b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; }
+    if (b.photoId) { await db.del('photos', b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; if (day.keyPhotoId === b.photoId) { day.keyPhotoId = null; await db.put('days', day); } }
     await db.del('blocks', b.id); await touch(trip);
     leaveHook = null;
     go(`/t/${trip.id}/d/${i}`);
