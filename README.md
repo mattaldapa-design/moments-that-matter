@@ -404,6 +404,10 @@ struck.
   dates renumber from the first day, and the moments stay with their day.
   (The settling condition is the agent's draft.)
 
+  **Built 2026-10-17:** the ⋯ on each day row slides a day in before or
+  after, moves it earlier or later, or removes it; verified in the preview
+  (Sydney and its 3 moments moved from Day 3 to Day 4 when a day slid in).
+
 - **I9 — A day's row shows the emojis of its moments, a snapshot of the
   day.** *(2026-10-17)* Matt: *"in that space in between where it like where
   it shows the little icon of the like weather, I'd love to see all the icons
@@ -416,6 +420,10 @@ struck.
   **Settles when:** each day row shows its moments' emojis next to the
   weather and Matt can read them on his phone. (The settling condition is
   the agent's draft.)
+
+  **Built 2026-10-17:** the emojis sit under the day's name, up to eight
+  then "+n", with the weather at the end of the row. Matt has seen it on
+  the phone without complaint; not asked about directly.
 
 - **I10 — Each day can have a key photo, chosen by Matt, as its icon.**
   *(2026-10-17)* Matt: *"I think we should be able to make a key photo for
