@@ -41,6 +41,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-grow { flex: 1 1 auto; min-width: 0; }
 
 /* Trip tiles: a photo or the title as the picture */
+.mtm-countdown { color: var(--accent); font-weight: 600; }
 .mtm-trip-cover .mtm-days { position: absolute; left: 12px; top: 12px; }
 
 /* Day rows */
@@ -223,7 +224,7 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-about { padding: 0; overflow: hidden; }
 .mtm-about summary { list-style: none; cursor: pointer; padding: 18px var(--space-5); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .mtm-about summary::-webkit-details-marker { display: none; }
-.mtm-about summary .dr-heading::after { content: " ›"; color: var(--accent); display: inline-block; transition: transform var(--dur-move) var(--ease-out); }
+.mtm-about summary .dr-heading::after { content: "›"; color: var(--accent); display: inline-block; margin-left: 12px; transition: transform var(--dur-move) var(--ease-out); }
 .mtm-about[open] summary .dr-heading::after { transform: rotate(90deg); }
 .mtm-about__body { padding: 0 var(--space-5) var(--space-5); }
 .mtm-pack { display: grid; gap: 4px; }

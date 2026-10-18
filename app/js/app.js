@@ -15,13 +15,23 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 22; // keep in step with VERSION in sw.js
+const APP_VERSION = 23; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
 const fmtDay = (d) => d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// Where a trip sits against today: before, during or after (I22).
+function tripWhen(t) {
+  const today = new Date(todayIso() + 'T00:00:00');
+  const start = addDays(t.startDate, 0), end = addDays(t.startDate, t.dayCount - 1);
+  const days = Math.round((start - today) / 86400000);
+  if (days > 0) return { phase: 'before', text: days === 1 ? 'Starts tomorrow' : `Starts in ${days} days` };
+  if (today <= end) { const n = Math.round((today - start) / 86400000) + 1; return { phase: 'during', text: `Day ${n} of ${t.dayCount} today` }; }
+  const since = Math.round((today - end) / 86400000);
+  return { phase: 'after', text: since === 1 ? 'Ended yesterday' : `Ended ${since} days ago` };
+}
 const ago = (t) => {
   if (!t) return 'never';
   const m = (Date.now() - t) / 60000;
@@ -243,6 +253,7 @@ async function trips() {
       <div class="dr-cover mtm-trip-cover">${face}<span class="dr-badge mtm-days">${t.dayCount} day${t.dayCount === 1 ? '' : 's'}</span></div>
       <div class="dr-tile__title">${esc(t.title || 'Untitled trip')}</div>
       <div class="dr-tile__meta">${fmtRange(t)}${backupDue(t) ? ' · <b style="color:var(--state-warn)">back up</b>' : ''}</div>
+      ${tripWhen(t).phase !== 'after' ? `<div class="dr-tile__meta mtm-countdown">${tripWhen(t).text}</div>` : ''}
     </button>`;
   }));
   app.innerHTML = `<div class="mtm-stack">
@@ -430,7 +441,7 @@ async function tripPage(trip) {
   const last = trip.backup?.lastAt;
   const tripBytes = photos.reduce((n, p) => n + (p.bytes || p.blob?.size || 0), 0);
   app.innerHTML = `<div class="mtm-stack">
-    <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1></div>
+    <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1></div>
     ${aboutPanel(trip, photos.length, tripBytes)}
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>

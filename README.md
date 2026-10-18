@@ -676,6 +676,24 @@ struck.
   pictures and their size. The "allowed" figure is what the phone reports;
   the app cannot change it. Verified in the preview.
 
+- **I22 — A countdown to a trip that has not started, on the Trips page.**
+  *(2026-10-17)* Matt: *"if I'm planning for a trip or for any kind of
+  event [...] It'd be nice if I could like set the date in advance when it's
+  coming up and get a little countdown to it or something. Like maybe it
+  like like on the homepage on the trips page, it like lets me know how far
+  I am from that trip. Date."* On reminders: *"I don't know if you can set
+  phone reminders [...] but probably not."* Agent's note: a home-screen web
+  app on iPhone can show notifications only with a server to send them,
+  which this app does not have; a countdown it can do.
+
+  **Settles when:** a trip with a future first day shows "Starts in n days"
+  on the Trips page and its own page. (The settling condition is the
+  agent's draft.)
+
+  **Built 2026-10-17:** "Starts in n days" / "Starts tomorrow" on the trip's
+  tile and page; "Day n of m today" while it runs. Verified in the preview
+  with a trip dated 24 days ahead.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1036,6 +1054,10 @@ limits before I break them."*
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Tenth look.** The chevron after "About this trip" sat
+  *"almost overlapping with the P on uh, trip"*; given room the same day.
+  Asked for a countdown (I22).
 
 - **2026-10-17 — Back up versus archive.** Matt: *"What's the difference
   between backup this trip and archive to a file? I feel like they're
