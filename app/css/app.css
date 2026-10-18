@@ -58,6 +58,12 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, .55); z-index: 45; }
 .mtm-sheet { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
 
+/* Place levels */
+.mtm-region { font-size: 20px; font-weight: 500; color: var(--cream-dim); margin-top: 6px; }
+.mtm-region:focus { color: var(--cream); }
+.mtm-placetrail { margin-top: -4px; }
+.mtm-placetrail b { color: var(--cream); font-weight: 600; }
+
 /* Board header */
 .mtm-city {
   font-family: var(--font-display); font-weight: 700; font-size: 32px; line-height: 1.1; letter-spacing: -0.01em;

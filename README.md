@@ -90,6 +90,9 @@ After the fifth look: the recap's "most-used icon" stat is replaced by
 moments a day on average, and the recap's emojis, day headings and titles
 open their moment or day (I15).
 
+Then, in the agreed order: Archive to a file (I3) and place levels (I7),
+both verified in the preview.
+
 **Not verified:** anything on an iPhone. Home-screen install from Chrome,
 the photo picker's location behaviour, share-to-Files, long-press drag on
 touch, and whether iOS marks the storage persistent are all untested.
@@ -394,9 +397,14 @@ struck.
   and Matt can get from the deepest screen to the trip in one tap. (The
   settling condition is the agent's draft.)
 
-  **Built in part 2026-10-17:** the trail (Trips › trip › Day n › block) is
-  on every screen and any level is one tap. A board carries a city and a
-  block carries a place; levels between country and building are not built.
+  **Built 2026-10-17**, in two passes: the trail (Trips › trip › Day n ›
+  block) on every screen, any level one tap; then a trip's region ("Where
+  in the world?" on the trip page), the city in the trail ("Day 4 ·
+  Sydney"), a place trail above Where in the editor ("Australia › Sydney ›
+  Rainforest Trail, Mosman"), the region on the recap's cover, and a
+  "cities and towns" stat once a trip has more than one. Verified in the
+  preview. Getting out from the deepest screen is still one tap on the
+  trail or the back arrow.
 
 - **I8 — Days can be moved, and a day slid in between two others.**
   *(2026-10-17)* Matt, on the trip page: *"added and removed days good, but

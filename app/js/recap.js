@@ -42,6 +42,8 @@ export function stats(data) {
   const eateries = new Set(food.map((b) => (b.place?.name || b.title || '').trim().toLowerCase()).filter(Boolean)).size;
   add(eateries, '🍽️', eateries, `place${eateries === 1 ? '' : 's'} you ate or drank at`, firstPhoto(food.slice().reverse()));
   add(food.length && !eateries, '🍽️', food.length, `meal${food.length === 1 ? '' : 's'} and drinks logged`, firstPhoto(food));
+  const cities = new Set(days.map((d) => (d.city || '').trim().toLowerCase()).filter(Boolean));
+  add(cities.size > 1, '🏙️', cities.size, 'cities and towns, by the day', firstPhoto(blocks));
   const named = new Set(blocks.map((b) => (b.place?.name || '').trim().toLowerCase()).filter(Boolean));
   add(named.size > 1, '📍', named.size, 'different places, by name', firstPhoto(blocks.filter((b) => b.place?.name)));
   const daysLogged = days.filter((d) => d.blocks.length).length;
@@ -83,7 +85,7 @@ export function renderRecap(data, S, photoUrl) {
   };
   return `<div class="mtm-stack mtm-recap">
     <div class="dr-cover dr-tile--wide mtm-recap__cover">${cover ? `<img src="${photoUrl(cover)}" alt="">` : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(trip.title || 'Your trip')}</span></div>`}</div>
-    <div><div class="dr-eyebrow">${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
+    <div><div class="dr-eyebrow">${trip.region ? esc(trip.region) + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
       <h1 class="dr-title-xl">${esc(trip.title || 'Your trip')}</h1>
       <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p></div>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
@@ -159,7 +161,7 @@ export async function drawPages(data, S) {
     const grad = g.createLinearGradient(0, H * 0.3, 0, H * 0.6); grad.addColorStop(0, 'rgba(21,16,14,0)'); grad.addColorStop(1, C.bg);
     g.fillStyle = grad; g.fillRect(0, H * 0.3, W, H * 0.3);
     let y = Math.round(H * 0.62);
-    y = eyebrow(g, `${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}`, y);
+    y = eyebrow(g, `${trip.region ? trip.region + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}`, y);
     y = text(g, trip.title || 'Your trip', P, y + 60, { font: `700 84px ${F.display}`, lineHeight: 1.05, maxLines: 3 });
     text(g, `${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.`, P, y + 70, { font: `800 56px ${F.loud}`, color: C.signal, lineHeight: 1.1 });
     text(g, 'Moments That Matter', P, H - P, { font: `700 26px ${F.display}`, color: C.dim });

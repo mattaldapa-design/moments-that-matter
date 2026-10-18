@@ -279,7 +279,8 @@ async function tripPage(trip) {
   const due = backupDue(trip);
   const last = trip.backup?.lastAt;
   app.innerHTML = `<div class="mtm-stack">
-    <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1></div>
+    <div><div class="dr-eyebrow">${fmtRange(trip)}</div><h1 class="dr-title-xl">${esc(trip.title || 'Untitled trip')}</h1>
+      <input class="mtm-city mtm-region" id="region" placeholder="Where in the world?" value="${esc(trip.region || '')}" autocomplete="off" aria-label="Country or region"></div>
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
       <button class="dr-btn ${due ? '' : 'dr-btn--quiet'} dr-btn--sm" id="backup">Back up this trip</button>
@@ -294,6 +295,10 @@ async function tripPage(trip) {
     </div>
   </div>`;
   bindGo();
+  const region = $('#region');
+  const saveRegion = debounce(async () => { trip.region = region.value.trim(); await touch(trip); }, 400);
+  region.oninput = saveRegion;
+  leaveHook = saveRegion.flush;
   $('#backup').onclick = () => backupTrip(trip);
   $('#archive').onclick = () => archiveTrip(trip);
   $('#addDay').onclick = async () => { trip.dayCount += 1; await touch(trip); render(); };
@@ -385,7 +390,7 @@ async function board(trip, i) {
   const stays = await staysCovering(trip.id, i);
   const photos = await db.where('photos', 'tripId', trip.id);
   const pmap = Object.fromEntries(photos.map((p) => [p.id, p]));
-  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}` }], `/t/${trip.id}`);
+  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}${day.city ? ' · ' + day.city : ''}` }], `/t/${trip.id}`);
 
   const tile = (b) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
@@ -558,7 +563,7 @@ async function editor(trip, i, bid) {
   const family = await familyOf(b);
   const onDays = new Set(family.map((x) => x.dayIndex));
   const dayChips = Array.from({ length: trip.dayCount }, (_, d) => `<button type="button" class="mtm-chip mtm-chip--text ${onDays.has(d) ? 'is-on' : ''}" data-day="${d}" ${d === i ? 'disabled' : ''}>Day ${d + 1}</button>`).join('');
-  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}`, h: `/t/${trip.id}/d/${i}` }, { t: titleOf(b) }], `/t/${trip.id}/d/${i}`);
+  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}${day.city ? ' · ' + day.city : ''}`, h: `/t/${trip.id}/d/${i}` }, { t: titleOf(b) }], `/t/${trip.id}/d/${i}`);
 
   const field = (f) => {
     const v = b.fields[f.k] ?? '';
@@ -595,6 +600,7 @@ async function editor(trip, i, bid) {
       <div class="dr-field"><label for="title">${['place', 'stay', 'other'].includes(b.kind) ? 'Name' : 'Title'}</label><input class="dr-input" id="title" value="${esc(b.title)}" placeholder="${esc(autoTitle(b) || kind?.hint || cap(b.label))}" autocomplete="off"></div>
       ${(kind?.fields || []).map(field).join('')}
       <div class="dr-field mtm-where"><label for="where">Where</label>
+        <div class="dr-caption mtm-placetrail" id="placeTrail">${esc(trip.region || '…')} › ${esc(day.city || '…')} › <b>${esc(b.place.name || '…')}</b></div>
         <input class="dr-input" id="where" value="${esc(b.place.name || '')}" placeholder="${b.kind === 'place' ? 'Address or area' : 'Café, street, neighbourhood'}" autocomplete="off">
         <div class="mtm-bar"><span class="mtm-coords" id="coords">${coordsText(b.place)}</span><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="locate">Use my location</button>${b.place.lat != null ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="lookup">Look up the name</button>' : ''}</div>
       </div>
@@ -643,7 +649,7 @@ async function editor(trip, i, bid) {
   };
   if (np) { np.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPerson(); } }; $('#addPerson').onclick = addPerson; }
   $$('[data-unperson]').forEach((x) => { x.onclick = async () => { b.fields.people.splice(Number(x.dataset.unperson), 1); await save.flush(); await db.put('blocks', b); await syncFamily(b); await touch(trip); render(); }; });
-  $('#where').oninput = (e) => { b.place.name = e.target.value; save(); };
+  $('#where').oninput = (e) => { b.place.name = e.target.value; const pt = $('#placeTrail'); if (pt) pt.innerHTML = `${esc(trip.region || '…')} › ${esc(day.city || '…')} › <b>${esc(b.place.name || '…')}</b>`; save(); };
   $('#note').oninput = (e) => { b.note = e.target.value; save(); };
   $$('[data-field]').forEach((inp) => { inp.oninput = () => { b.fields[inp.dataset.field] = inp.value; save(); }; });
   $$('[data-detail]').forEach((inp) => {
