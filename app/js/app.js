@@ -3,23 +3,20 @@ import * as db from './db.js';
 import { readExif, exifDateToLocal } from './exif.js';
 import { KINDS, kindOf, WEATHER, WORDS, emojiFor, emojiFromText } from './words.js';
 import { gather, stats, renderRecap, drawPages, drawDayCard, pagesToPdf, pagesToPictures } from './recap.js';
+import { esc, cap, addDays, fmtDay, joinNames, autoTitle, titleOf, safeId, safeGlyph } from './util.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const app = $('#app');
 const top = $('#top');
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
 const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 24; // keep in step with VERSION in sw.js
+const APP_VERSION = 25; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
-const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
-const fmtDay = (d) => d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
 const todayIso = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 // Where a trip sits against today: before, during or after (I22).
@@ -102,9 +99,6 @@ async function deleteTrip(id) {
   await db.delWhere('days', 'tripId', id);
   await db.del('trips', id);
 }
-const joinNames = (arr) => (arr.length <= 1 ? arr.join('') : arr.length === 2 ? `${arr[0]} and ${arr[1]}` : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
-const autoTitle = (b) => (b.kind === 'people' && b.fields?.people?.length ? `Met ${joinNames(b.fields.people)}` : '');
-const titleOf = (b) => b.title || autoTitle(b) || cap(b.label) || kindOf(b.kind)?.name || 'Moment';
 // Optional details, added to a card from a list (Decision, 2026-10-17). Not on every card.
 const DETAILS = [
   { k: 'time', label: 'Time', type: 'time' },
@@ -177,17 +171,21 @@ function coordsText(p) {
 async function remapDays(trip, map, newCount) {
   const days = await db.where('days', 'tripId', trip.id);
   const blocks = await db.where('blocks', 'tripId', trip.id);
-  for (const d of days) await db.del('days', d.id);
-  const keptDays = [];
+  const keptDays = [], keptBlocks = [], goneBlocks = [], gonePhotos = [];
   for (const d of days) { const ni = map(d.index); if (ni >= 0) keptDays.push({ ...d, index: ni, id: dayId(trip.id, ni) }); }
-  if (keptDays.length) await db.putMany('days', keptDays);
-  const keptBlocks = [];
   for (const b of blocks) {
     const ni = map(b.dayIndex);
-    if (ni < 0) { if (b.photoId) { await db.del('photos', b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; } await db.del('blocks', b.id); continue; }
-    b.dayIndex = ni; b.dayId = dayId(trip.id, ni); keptBlocks.push(b);
+    if (ni < 0) { goneBlocks.push(b.id); if (b.photoId) { gonePhotos.push(b.photoId); if (trip.coverPhotoId === b.photoId) trip.coverPhotoId = null; } continue; }
+    keptBlocks.push({ ...b, dayIndex: ni, dayId: dayId(trip.id, ni) });
   }
-  if (keptBlocks.length) await db.putMany('blocks', keptBlocks);
+  // Everything lands in one transaction, so a suspend or crash cannot leave half a trip renumbered.
+  await db.batch(['days', 'blocks', 'photos'], (s) => {
+    days.forEach((d) => s.days.delete(d.id));
+    keptDays.forEach((d) => s.days.put(d));
+    goneBlocks.forEach((id) => s.blocks.delete(id));
+    gonePhotos.forEach((id) => s.photos.delete(id));
+    keptBlocks.forEach((b) => s.blocks.put(b));
+  });
   trip.dayCount = newCount;
   await touch(trip);
 }
@@ -207,8 +205,16 @@ function sheet(title, actions) {
 
 // ---------- routing ----------
 let leaveHook = null; // the editor sets this so an unsaved edit lands before the screen changes
+let renderSeq = 0; // each render takes a number; a screen that finishes late finds it is stale and does nothing
+const stale = (my) => my !== renderSeq;
+function paint(my, html) { if (stale(my)) return false; app.innerHTML = html; return true; }
+let reloadWhenIdle = false; // a new worker took over; reload on the next screen change, not mid-edit
+window.addEventListener('mtm-new-worker', () => { reloadWhenIdle = true; });
 async function render() {
+  if (reloadWhenIdle) { reloadWhenIdle = false; if (leaveHook) { const h = leaveHook; leaveHook = null; await h(); } location.reload(); return; }
+  const my = ++renderSeq;
   if (leaveHook) { const h = leaveHook; leaveHook = null; await h(); }
+  if (stale(my)) return;
   freeUrls();
   app.onclick = null;
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -243,7 +249,9 @@ function trail(items, backHash) {
 
 // ---------- screens ----------
 async function trips() {
+  const my = renderSeq;
   const list = (await db.all('trips')).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  if (stale(my)) return;
   trail([{ t: 'Trips', h: '/' }], null);
   const tiles = await Promise.all(list.map(async (t) => {
     const cover = t.coverPhotoId ? await db.get('photos', t.coverPhotoId) : null;
@@ -256,7 +264,8 @@ async function trips() {
       ${tripWhen(t).phase !== 'after' ? `<div class="dr-tile__meta mtm-countdown">${tripWhen(t).text}${tripWhen(t).phase === 'before' && (t.packing || []).length ? ` · ${t.packing.filter((p) => p.done).length} of ${t.packing.length} packed` : ''}</div>` : ''}
     </button>`;
   }));
-  app.innerHTML = `<div class="mtm-stack">
+  const autoOn = await autoLookupOn();
+  if (!paint(my, `<div class="mtm-stack">
     <div><div class="dr-eyebrow">Your trips</div><h1 class="dr-title-xl">Moments That Matter</h1></div>
     ${list.length ? `<div class="dr-shelf">${tiles.join('')}</div>`
       : '<div class="mtm-empty"><p class="dr-body-lg">No trips yet. Start one, and build each day from the moments that matter.</p></div>'}
@@ -264,12 +273,11 @@ async function trips() {
       <button class="dr-btn" data-go="/new">Start a trip</button>
       <label class="dr-btn dr-btn--ghost">Import a trip<input type="file" accept=".json,application/json" hidden id="importFile"></label>
     </div>
-    <label class="dr-check"><input type="checkbox" id="autoLookup" ${await autoLookupOn() ? 'checked' : ''}> Look up place names automatically when online</label>
+    <label class="dr-check"><input type="checkbox" id="autoLookup" ${autoOn ? 'checked' : ''}> Look up place names automatically when online</label>
     <div class="mtm-foot" id="storage"></div>
     <div class="mtm-foot mtm-bar mtm-bar--between"><span>Moments That Matter · version ${APP_VERSION}</span><button class="dr-btn dr-btn--ghost dr-btn--sm" id="checkUpdate">Check for an update</button></div>
-  </div>`;
+  </div>`)) return;
   bindGo();
-  if (!$('#autoLookup')) return; // the screen moved on while the list was loading
   $('#checkUpdate').onclick = async () => {
     const btn = $('#checkUpdate'); btn.disabled = true; toast('Checking…');
     try {
@@ -374,7 +382,8 @@ function bindAbout(trip) {
   if (!about) return;
   about.addEventListener('toggle', () => { aboutOpen = about.open; try { localStorage.setItem('mtm-about', aboutOpen ? '1' : '0'); } catch { /* fine */ } });
   const saveText = debounce(async () => { await touch(trip); }, 400);
-  const commit = async () => { await touch(trip); render(); };
+  leaveHook = saveText.flush;
+  const commit = async () => { await saveText.flush(); await touch(trip); render(); };
   const npl = $('#newPlace');
   const addPlace = async () => { const n = (npl.value || '').trim(); if (!n) return; trip.places.push({ name: n, cities: [] }); npl.value = ''; await commit(); setTimeout(() => $(`[data-newcity="${trip.places.length - 1}"]`)?.focus(), 50); };
   npl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPlace(); } };
@@ -431,28 +440,32 @@ function bindAbout(trip) {
 }
 
 async function tripPage(trip) {
-  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Untitled trip' }], '/');
+  const my = renderSeq;
   const blocks = await db.where('blocks', 'tripId', trip.id);
   const photos = await db.where('photos', 'tripId', trip.id);
+  const dayRecords = await db.where('days', 'tripId', trip.id);
+  if (stale(my)) return;
+  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Untitled trip' }], '/');
+  const dayByIndex = Object.fromEntries(dayRecords.map((d) => [d.index, keyify(d)]));
   const byDay = {};
   blocks.forEach((b) => { (byDay[b.dayIndex] = byDay[b.dayIndex] || []).push(b); });
   const rows = [];
   for (let i = 0; i < trip.dayCount; i++) {
-    const d = await getDay(trip.id, i);
+    const d = dayByIndex[i] || keyify({ id: dayId(trip.id, i), tripId: trip.id, index: i, city: '', weather: '' });
     const bs = (byDay[i] || []).sort((a, b) => a.order - b.order);
     const withPhoto = bs.find((b) => b.photoId);
     const ph = (d.keyPhotos[0] && photos.find((p) => p.id === d.keyPhotos[0])) || (withPhoto ? photos.find((p) => p.id === withPhoto.photoId) : null);
     const art = ph ? `<div class="dr-row__art dr-row__art--disc"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${i + 1}</div>`;
     const meta = bs.length ? `${d.city ? esc(d.city) + ' · ' : ''}${bs.length} moment${bs.length === 1 ? '' : 's'}` : (d.city ? esc(d.city) + ' · nothing yet' : 'Nothing yet');
-    const snap = bs.slice(0, 8).map((b) => b.emoji || '·').join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
+    const snap = bs.slice(0, 8).map((b) => esc(b.emoji || '·')).join('') + (bs.length > 8 ? `<small>+${bs.length - 8}</small>` : '');
     rows.push(`<div class="dr-row ${bs.length ? '' : 'is-empty'}" data-go="/t/${trip.id}/d/${i}" role="button" tabindex="0" aria-label="Day ${i + 1}">${art}
       <div class="dr-row__text"><div class="dr-row__title">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div><div class="dr-row__meta">${meta}</div>${snap ? `<div class="mtm-snap" title="${bs.length} moments">${snap}</div>` : ''}</div>
-      <div class="dr-row__end">${d.weather ? `<span class="mtm-snap">${d.weather}</span>` : ''}<button class="mtm-more" data-more="${i}" aria-label="Day ${i + 1} options">⋯</button></div></div>`);
+      <div class="dr-row__end">${d.weather ? `<span class="mtm-snap">${esc(d.weather)}</span>` : ''}<button class="mtm-more" data-more="${i}" aria-label="Day ${i + 1} options">⋯</button></div></div>`);
   }
   const due = backupDue(trip);
   const last = trip.backup?.lastAt;
   const tripBytes = photos.reduce((n, p) => n + (p.bytes || p.blob?.size || 0), 0);
-  app.innerHTML = `<div class="mtm-stack">
+  if (!paint(my, `<div class="mtm-stack">
     <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div>
       <div class="mtm-titlerow"><h1 class="dr-title-xl" id="tripTitle">${esc(trip.title || 'Untitled trip')}</h1><button class="mtm-pencil" id="editTitle" aria-label="Rename the trip">✎</button></div></div>
     ${aboutPanel(trip, photos.length, tripBytes)}
@@ -470,7 +483,7 @@ async function tripPage(trip) {
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="archive">Archive: back up, then remove from this phone</button>
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="delete">Delete trip</button>
     </div>
-  </div>`;
+  </div>`)) return;
   bindGo();
   bindAbout(trip);
   $('#backup').onclick = () => backupTrip(trip);
@@ -537,12 +550,13 @@ async function deliverFiles(files, title) {
 
 // The Recap: the trip summed up, and exported as a PDF or pictures (Decision, 2026-10-17).
 async function recapPage(trip) {
-  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: 'Recap' }], `/t/${trip.id}`);
+  const my = renderSeq;
   const data = await gather(trip);
+  if (stale(my)) return;
+  trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: 'Recap' }], `/t/${trip.id}`);
   const S = stats(data);
-  app.innerHTML = renderRecap(data, S, photoUrl);
+  if (!paint(my, renderRecap(data, S, photoUrl))) return;
   bindGo();
-  if (!$('#savePdf')) return; // the screen moved on while the recap was gathering
   const baseName = `${(trip.title || 'Trip').replace(/[\/:*?"<>|]+/g, ' ').trim()} recap`;
   const busy = (on) => $$('#savePdf, #sharePics').forEach((b) => { b.disabled = on; });
   $('#savePdf').onclick = async () => {
@@ -574,18 +588,20 @@ let dragMoved = false;
 
 async function board(trip, i) {
   if (!(i >= 0 && i < trip.dayCount)) return go(`/t/${trip.id}`);
+  const my = renderSeq;
   const day = await getDay(trip.id, i);
   const blocks = await blocksForDay(day.id);
   const stays = await staysCovering(trip.id, i);
   const photos = await db.where('photos', 'tripId', trip.id);
+  if (stale(my)) return;
   const pmap = Object.fromEntries(photos.map((p) => [p.id, p]));
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}${day.city ? ' · ' + day.city : ''}` }], `/t/${trip.id}`);
 
   const tile = (b) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
     const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
-    const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${b.emoji || '🏷️'}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
-      : (b.emoji ? `<div class="mtm-block__emoji">${b.emoji}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
+    const face = ph ? `<img src="${photoUrl(ph)}" alt=""><span class="mtm-block__badge">${esc(b.emoji || '🏷️')}</span>${keyN ? `<span class="mtm-block__key" title="Key picture ${keyN}">${keyN}</span>` : ''}`
+      : (b.emoji ? `<div class="mtm-block__emoji">${esc(b.emoji)}</div>` : `<div class="mtm-block__emoji mtm-block__emoji--word">${esc(cap(b.label))}</div>`);
     return `<div class="dr-tile mtm-block" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">
       <div class="dr-cover">${face}</div>
       <div class="dr-tile__title">${esc(titleOf(b))}</div>
@@ -593,7 +609,7 @@ async function board(trip, i) {
   };
   const row = (b, idx) => {
     const ph = b.photoId ? pmap[b.photoId] : null;
-    const art = ph ? `<div class="dr-row__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${b.emoji || '•'}</div>`;
+    const art = ph ? `<div class="dr-row__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-daynum">${esc(b.emoji || '•')}</div>`;
     return `<div class="dr-row mtm-rowblock" data-id="${b.id}" role="button" tabindex="0" aria-label="${esc(titleOf(b))}">${art}
       <div class="dr-row__text"><div class="dr-row__title">${esc(titleOf(b))}</div><div class="dr-row__meta">${esc(blockMeta(b))}</div></div>
       <div class="dr-row__end mtm-move">
@@ -601,7 +617,7 @@ async function board(trip, i) {
         <button data-move="1" data-id="${b.id}" ${idx === blocks.length - 1 ? 'disabled' : ''} aria-label="Move down">↓</button>
       </div></div>`;
   };
-  app.innerHTML = `<div class="mtm-stack">
+  if (!paint(my, `<div class="mtm-stack">
     <div class="mtm-stack mtm-stack--tight">
       <div class="dr-eyebrow">Day ${i + 1} of ${trip.dayCount} · ${fmtDay(addDays(trip.startDate, i))}</div>
       <input class="mtm-city" id="city" placeholder="Where were you?" value="${esc(day.city)}" autocomplete="off" aria-label="City or area" list="plannedCities">
@@ -617,7 +633,7 @@ async function board(trip, i) {
       ? (view === 'tiles' ? `<div class="mtm-grid" id="grid">${blocks.map(tile).join('')}</div>` : `<div class="dr-list">${blocks.map(row).join('')}</div>`)
       : '<div class="mtm-empty"><p class="dr-body-lg">Tap <strong>+</strong> to add the first moment of the day. A coffee counts.</p></div>'}
   </div>
-  <button class="dr-btn dr-btn--icon mtm-fab" aria-label="Add a moment" data-go="/t/${trip.id}/d/${i}/add">+</button>`;
+  <button class="dr-btn dr-btn--icon mtm-fab" aria-label="Add a moment" data-go="/t/${trip.id}/d/${i}/add">+</button>`)) return;
   bindGo();
 
   const city = $('#city');
@@ -783,6 +799,7 @@ async function createBlock(trip, i, partial) {
 }
 
 async function editor(trip, i, bid) {
+  const my = renderSeq;
   const b = await db.get('blocks', bid);
   if (!b) return go(`/t/${trip.id}/d/${i}`);
   normalize(b);
@@ -792,6 +809,7 @@ async function editor(trip, i, bid) {
   const keyN = ph ? day.keyPhotos.indexOf(ph.id) + 1 : 0;
   const keyFull = day.keyPhotos.length >= KEY_MAX;
   const family = await familyOf(b);
+  if (stale(my)) return;
   const onDays = new Set(family.map((x) => x.dayIndex));
   const dayChips = Array.from({ length: trip.dayCount }, (_, d) => `<button type="button" class="mtm-chip mtm-chip--text ${onDays.has(d) ? 'is-on' : ''}" data-day="${d}" ${d === i ? 'disabled' : ''}>Day ${d + 1}</button>`).join('');
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}${day.city ? ' · ' + day.city : ''}`, h: `/t/${trip.id}/d/${i}` }, { t: titleOf(b) }], `/t/${trip.id}/d/${i}`);
@@ -823,9 +841,9 @@ async function editor(trip, i, bid) {
   const ownRow = ownOpen === b.id ? `<div class="dr-field mtm-detail"><label for="ownLabel">Your own detail</label>
     <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownLabel" placeholder="Name the detail" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownAdd">Add</button></div></div>` : '';
 
-  app.innerHTML = `<div class="mtm-stack">
+  if (!paint(my, `<div class="mtm-stack">
     <div class="mtm-editor-head">
-      ${b.emoji ? `<span class="mtm-big">${b.emoji}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}
+      ${b.emoji ? `<span class="mtm-big">${esc(b.emoji)}</span>` : `<span class="mtm-big mtm-big--word">${esc(cap(b.label))}</span>`}
       <div><div class="dr-eyebrow">${esc(kind ? kind.name : cap(b.label))}</div><div class="dr-caption">Day ${i + 1} · ${fmtDay(addDays(trip.startDate, i))}</div></div>
     </div>
     <label class="mtm-photo ${ph ? 'has-picture' : ''}" ${ph && ph.w && ph.h ? `style="aspect-ratio: ${ph.w} / ${ph.h}"` : ''}>
@@ -853,7 +871,7 @@ async function editor(trip, i, bid) {
       <button class="dr-btn dr-btn--ghost dr-btn--sm" id="deleteBlock">Delete this moment</button>
       <button class="dr-btn" id="done">Done</button>
     </div>
-  </div>`;
+  </div>`)) return;
 
   const save = debounce(async () => { await db.put('blocks', b); await syncFamily(b); await touch(trip); }, 350);
   leaveHook = save.flush;
@@ -864,7 +882,7 @@ async function editor(trip, i, bid) {
       const there = family.find((x) => x.dayIndex === d);
       if (there) {
         if (there.photoId && !confirm(`Day ${d + 1}'s copy has its own picture. Remove it anyway?`)) return;
-        if (there.photoId) await db.del('photos', there.photoId);
+        if (there.photoId) { await db.del('photos', there.photoId); await forgetPhoto(trip, d, there.photoId); }
         await db.del('blocks', there.id); await touch(trip);
         toast(`Taken off day ${d + 1}.`);
       } else {
@@ -1033,13 +1051,27 @@ async function maybeAutoName(b) {
 }
 
 // ---------- photos ----------
+// A picture that goes away must leave the day's key list; a picture that is replaced keeps its slot.
+async function forgetPhoto(trip, dayIndex, photoId) {
+  if (trip.coverPhotoId === photoId) trip.coverPhotoId = null;
+  const day = await getDay(trip.id, dayIndex);
+  if (day.keyPhotos.includes(photoId)) { day.keyPhotos = day.keyPhotos.filter((k) => k !== photoId); keyify(day); await db.put('days', day); }
+}
+async function replacePhotoRefs(trip, dayIndex, oldId, newId) {
+  if (trip.coverPhotoId === oldId) trip.coverPhotoId = newId;
+  const day = await getDay(trip.id, dayIndex);
+  const at = day.keyPhotos.indexOf(oldId);
+  if (at >= 0) { day.keyPhotos[at] = newId; keyify(day); await db.put('days', day); }
+}
 async function attachPhoto(trip, b, file) {
   const exif = await readExif(file);
   const { blob, w, h } = await shrink(file);
   const photo = { id: uid(), tripId: trip.id, blockId: b.id, blob, w, h, takenAt: exif.takenAt || '', lat: exif.lat ?? null, lon: exif.lon ?? null, bytes: blob.size, createdAt: Date.now() };
-  if (b.photoId) await db.del('photos', b.photoId);
+  const old = b.photoId;
+  if (old) await db.del('photos', old);
   await db.put('photos', photo);
   b.photoId = photo.id;
+  if (old) await replacePhotoRefs(trip, b.dayIndex, old, photo.id);
   normalize(b);
   if (!b.details.time && exif.takenAt) { const t = exifDateToLocal(exif.takenAt); if (t) b.details.time = t.slice(11, 16); }
   if (b.place.lat == null && exif.lat != null) { b.place.lat = exif.lat; b.place.lon = exif.lon; b.place.from = 'photo'; }
@@ -1077,17 +1109,8 @@ async function backupTrip(trip) {
   const payload = { format: 'moments-that-matter', version: 1, exportedAt: new Date().toISOString(), trip: { ...trip }, days, blocks, photos: photoData };
   const name = `${(trip.title || 'Trip').replace(/[\\/:*?"<>|]+/g, ' ').trim()} - Moments backup ${todayIso()}.json`;
   const file = new File([JSON.stringify(payload)], name, { type: 'application/json' });
-  let shared = false;
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: name }); shared = true; }
-    catch (e) { if (e.name === 'AbortError') { toast('Backup cancelled.'); return false; } }
-  }
-  if (!shared) {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(file); a.download = name;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-  }
+  const went = await deliverFiles([file], name);
+  if (!went) { toast('Backup cancelled.'); return false; }
   trip.backup = { lastAt: Date.now() };
   trip.pending = { changes: 0, bytes: 0 };
   await db.put('trips', trip);
@@ -1108,11 +1131,27 @@ async function archiveTrip(trip) {
   toast('Archived. Import brings it back any time.');
   go('/');
 }
+// A backup is data from outside: keep ids id-shaped and glyphs glyph-shaped before anything renders them.
+function cleanImport(data) {
+  const idOr = (v, fallback) => safeId(v) || fallback;
+  const t = data.trip;
+  t.dayCount = Math.max(1, Math.min(400, Number(t.dayCount) || 1));
+  t.startDate = /^\d{4}-\d{2}-\d{2}$/.test(String(t.startDate || '')) ? t.startDate : todayIso();
+  t.coverPhotoId = safeId(t.coverPhotoId);
+  data.days = (Array.isArray(data.days) ? data.days : []).filter((d) => Number.isInteger(d?.index)).map((d) => ({
+    ...d, weather: safeGlyph(d.weather), keyPhotos: (Array.isArray(d.keyPhotos) ? d.keyPhotos : [d.keyPhotoId]).map(safeId).filter(Boolean), keyPhotoId: undefined,
+  }));
+  data.blocks = (Array.isArray(data.blocks) ? data.blocks : []).filter((b) => safeId(b?.id) && Number.isInteger(b.dayIndex)).map((b) => ({
+    ...b, emoji: safeGlyph(b.emoji), photoId: safeId(b.photoId), groupId: safeId(b.groupId) || undefined, kind: typeof b.kind === 'string' ? b.kind.slice(0, 20) : 'other',
+  }));
+  data.photos = (Array.isArray(data.photos) ? data.photos : []).filter((p) => safeId(p?.id) && typeof p.data === 'string' && p.data.startsWith('data:image/')).map((p) => ({ ...p, blockId: idOr(p.blockId, undefined) }));
+}
 async function importTrip(file) {
   if (!file) return;
   try {
     const data = JSON.parse(await file.text());
-    if (data.format !== 'moments-that-matter') throw new Error('That is not a Moments backup file.');
+    if (data.format !== 'moments-that-matter' || !data.trip || !safeId(data.trip.id)) throw new Error('That is not a Moments backup file.');
+    cleanImport(data);
     const exists = !!(await db.get('trips', data.trip.id));
     const map = {};
     const nid = (old) => (exists ? (map[old] || (map[old] = uid())) : old);

@@ -1,9 +1,9 @@
 // Moments That Matter — offline shell. Bump VERSION whenever a shell file changes.
-const VERSION = 'mtm-v24';
+const VERSION = 'mtm-v25';
 const SHELL = [
   './', './index.html', './manifest.webmanifest',
   './css/darkroom-tokens.css', './css/darkroom.css', './css/app.css',
-  './js/app.js', './js/db.js', './js/exif.js', './js/words.js', './js/recap.js',
+  './js/app.js', './js/db.js', './js/exif.js', './js/words.js', './js/recap.js', './js/util.js',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png',
 ];
 
@@ -28,7 +28,8 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       caches.open(VERSION + '-fonts').then(async (c) => {
         const hit = await c.match(req);
-        const net = fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit);
+        // Font responses are opaque (no-cors), so r.ok is false even when they are fine: cache those too.
+        const net = fetch(req).then((r) => { if (r.ok || r.type === 'opaque') c.put(req, r.clone()); return r; }).catch(() => hit);
         return hit || net;
       })
     );

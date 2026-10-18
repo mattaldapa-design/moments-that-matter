@@ -65,6 +65,15 @@ export async function delWhere(store, index, value) {
   keys.forEach((k) => t.objectStore(store).delete(k));
   return new Promise((resolve, reject) => { t.oncomplete = resolve; t.onerror = () => reject(t.error); });
 }
+// Several writes across several stores in ONE transaction: all land or none do.
+// fn receives an object of stores and must only queue requests (no awaits inside).
+export async function batch(storeNames, fn) {
+  const db = await open();
+  const t = db.transaction(storeNames, 'readwrite');
+  const stores = Object.fromEntries(storeNames.map((n) => [n, t.objectStore(n)]));
+  fn(stores);
+  return new Promise((resolve, reject) => { t.oncomplete = resolve; t.onerror = () => reject(t.error); t.onabort = () => reject(t.error); });
+}
 export async function setting(key, fallback) {
   const row = await get('meta', key);
   return row ? row.value : fallback;

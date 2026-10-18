@@ -27,7 +27,8 @@
     // Register the offline worker; when a newer one takes over, reopen once so the new files are in use.
     if ('serviceWorker' in navigator) {
       let hadWorker = !!navigator.serviceWorker.controller;
-      navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker) location.reload(); hadWorker = true; });
+      // Tell the app; it reloads on the next screen change rather than while something is being typed.
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker) window.dispatchEvent(new Event('mtm-new-worker')); hadWorker = true; });
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
   </script>

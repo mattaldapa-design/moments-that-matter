@@ -1,22 +1,16 @@
 // The Recap (Decision, 2026-10-17): one long scroll — cover, stats with pictures, every emoji, then day by day —
 // and an export that draws each band to a picture and wraps the pictures into a PDF, on the phone.
 import * as db from './db.js';
+import { esc, addDays, fmtDay, fmtLong, joinNames, titleOf } from './util.js';
 
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : '');
-const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d; };
-const fmtDay = (d) => d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-const fmtLong = (d) => d.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 const num = (v) => { const m = String(v || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
 const money = (n) => '$' + Math.round(n).toLocaleString();
-const joinNames = (arr) => (arr.length <= 1 ? arr.join('') : arr.length === 2 ? `${arr[0]} and ${arr[1]}` : `${arr.slice(0, -1).join(', ')} and ${arr[arr.length - 1]}`);
 // The day's pictures for a card: key pictures in tap order, then the rest in day order, four at most.
 function pickFour(d, pmap) {
   const keys = (d.keyPhotos || []).map((id) => pmap[id]).filter(Boolean);
   const rest = d.blocks.map((b) => b.photoId && pmap[b.photoId]).filter((p) => p && !keys.includes(p));
   return [...keys, ...rest].slice(0, 4);
 }
-const titleOf = (b) => b.title || (b.kind === 'people' && b.fields?.people?.length ? `Met ${joinNames(b.fields.people)}` : '') || cap(b.label) || 'Moment';
 
 // ---------- data ----------
 export async function gather(trip) {
@@ -81,7 +75,7 @@ export function renderRecap(data, S, photoUrl) {
   const logged = days.filter((d) => d.blocks.length);
   const statCard = (s) => {
     const ph = s.photoId ? pmap[s.photoId] : null;
-    return `<div class="dr-panel mtm-stat">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${s.emoji}</div>`}
+    return `<div class="dr-panel mtm-stat">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt=""></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
       <div><div class="dr-title mtm-stat__big">${esc(s.big)}</div><div class="dr-body-sm">${esc(s.small)}</div></div></div>`;
   };
   const dayBand = (d) => {
@@ -89,11 +83,11 @@ export function renderRecap(data, S, photoUrl) {
     return `<section class="dr-panel mtm-dayband">
       <button class="mtm-dayband__head" data-go="/t/${trip.id}/d/${d.index}" aria-label="Open day ${d.index + 1}">
         <div class="dr-eyebrow">Day ${d.index + 1} · ${fmtDay(d.date)}</div>
-        <div class="mtm-bar mtm-bar--between"><h3 class="dr-heading">${esc(d.city || 'Somewhere')} <span class="mtm-dayband__go">›</span></h3><span class="mtm-snap">${d.weather || ''}</span></div>
+        <div class="mtm-bar mtm-bar--between"><h3 class="dr-heading">${esc(d.city || 'Somewhere')} <span class="mtm-dayband__go">›</span></h3><span class="mtm-snap">${esc(d.weather || '')}</span></div>
       </button>
-      <div class="mtm-snap mtm-dayband__emojis">${d.blocks.map((b) => b.emoji || '·').join('')}</div>
+      <div class="mtm-snap mtm-dayband__emojis">${d.blocks.map((b) => esc(b.emoji || '·')).join('')}</div>
       ${pics.length ? `<div class="mtm-dayband__pics mtm-dayband__pics--${Math.min(pics.length, 4)}">${pics.map((p) => `<div class="dr-cover"><img src="${photoUrl(p)}" alt=""></div>`).join('')}</div>` : ''}
-      <div class="mtm-dayband__titles">${d.blocks.slice(0, 10).map((b) => `<button data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}">${b.emoji || ''} ${esc(titleOf(b))}</button>`).join('')}${d.blocks.length > 10 ? `<span class="dr-caption">+${d.blocks.length - 10} more</span>` : ''}</div>
+      <div class="mtm-dayband__titles">${d.blocks.slice(0, 10).map((b) => `<button data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}">${esc(b.emoji || '')} ${esc(titleOf(b))}</button>`).join('')}${d.blocks.length > 10 ? `<span class="dr-caption">+${d.blocks.length - 10} more</span>` : ''}</div>
     </section>`;
   };
   return `<div class="mtm-stack mtm-recap">
@@ -104,7 +98,7 @@ export function renderRecap(data, S, photoUrl) {
       <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p></div>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
     ${S.length ? `<div><div class="dr-eyebrow">The numbers</div><div class="mtm-stats">${S.map(statCard).join('')}</div></div>` : ''}
-    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${b.emoji || '·'}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
+    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${esc(b.emoji || '·')}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
     ${logged.length ? `<div><div class="dr-eyebrow">Day by day</div><div class="mtm-stack">${logged.map(dayBand).join('')}</div></div>` : ''}
   </div>`;
 }

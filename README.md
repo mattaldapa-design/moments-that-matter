@@ -1055,6 +1055,24 @@ limits before I break them."*
 
 Dated, append-only. What was learned, in the order it was learned.
 
+- **2026-10-17 — Code review of the day's work** (the agent's /code-review
+  at high effort, ten findings, all fixed the same day, version 25): a
+  backup file's emoji, weather and ids were rendered as raw HTML, so a
+  crafted file from someone else could have run script inside the app
+  (import now keeps ids id-shaped and glyphs tag-free, and glyphs are
+  escaped on render); replacing a picture left a dead id in the day's key
+  list and the trip cover (slots now carry over); screens had no render
+  token, so a slow screen could paint over a newer one (each render now
+  has a number and stale ones stop); a new service worker reloaded the
+  page mid-edit (it now waits for the next screen change); trip-level
+  details were not flushed on leaving the trip page; Google Fonts were
+  never cached offline (opaque responses are now cached); moving days ran
+  across many transactions (now one); the backup re-implemented the share
+  path (now shares deliverFiles); helpers were duplicated between app.js and
+  recap.js (now util.js); the trip page read days one at a time (now one
+  read). Verified in the preview: a malicious import rendered inert, a day
+  slid in cleanly, a replaced key picture kept its slot.
+
 - **2026-10-17 — Eleventh look, planning a trip ahead.** "Travelled
   with" reads past tense for a trip not yet taken; wants a saved packing
   list he can reuse (*"if I can import a packing list uh, like already, or
