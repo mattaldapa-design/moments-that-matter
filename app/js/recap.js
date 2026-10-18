@@ -55,6 +55,13 @@ export function stats(data) {
   days.forEach((d) => { if (d.weather) weather[d.weather] = (weather[d.weather] || 0) + 1; });
   const wk = Object.entries(weather).sort((a, b) => b[1] - a[1]);
   add(wk.length, wk[0]?.[0], wk.map(([e, n]) => `${e}${n}`).join('  '), 'the weather, counted by day', null);
+  const rated = blocks.filter((b) => Number(b.details?.rating) > 0);
+  const fourPlus = rated.filter((b) => Number(b.details.rating) >= 4);
+  const best = rated.slice().sort((a, b) => Number(b.details.rating) - Number(a.details.rating))[0];
+  add(fourPlus.length, '⭐', fourPlus.length, `moment${fourPlus.length === 1 ? '' : 's'} you gave four stars or more`, firstPhoto(fourPlus));
+  add(best, '🏆', '★'.repeat(Number(best?.details.rating || 0)), `your top rating: ${best ? titleOf(best) : ''}`, best?.photoId || null);
+  const hosts = blocks.map((b) => b.details?.host).filter(Boolean);
+  add(hosts.length, '🙌', hosts.length, `guide${hosts.length === 1 ? '' : 's'} and hosts worth remembering: ${hosts.slice(0, 3).join(', ')}${hosts.length > 3 ? '…' : ''}`, null);
   const total = blocks.reduce((s, b) => s + num(b.details?.cost), 0);
   add(total > 0 && total !== foodSpend, '🧾', money(total), 'spent in all, as entered', null);
   return S;

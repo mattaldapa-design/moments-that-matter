@@ -98,6 +98,7 @@ const DETAILS = [
   { k: 'distance', label: 'Distance', hint: '7.2 mi' },
   { k: 'room', label: 'Room', hint: '1412' },
   { k: 'confirmation', label: 'Confirmation number', hint: 'ABC123' },
+  { k: 'host', label: 'Guide or host', hint: 'Their name, if they were good' },
 ];
 const stars = (n) => '★'.repeat(Number(n) || 0) + '☆'.repeat(5 - (Number(n) || 0));
 const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
@@ -125,6 +126,7 @@ function blockMeta(b) {
   if (b.details.distance) parts.push(b.details.distance);
   if (b.details.steps) parts.push(`${b.details.steps} steps`);
   if (b.details.room) parts.push(`Room ${b.details.room}`);
+  if (b.details.host) parts.push(`with ${b.details.host}`);
   (b.custom || []).forEach((c) => { if (c.value) parts.push(`${c.label} ${c.value}`); });
   if (b.details.website || b.details.menu) parts.push('🔗');
   if (b.kind === 'stay' && b.fields?.nights) parts.push(`${b.fields.nights} night${+b.fields.nights === 1 ? '' : 's'}`);
@@ -368,6 +370,7 @@ async function recapPage(trip) {
   const S = stats(data);
   app.innerHTML = renderRecap(data, S, photoUrl);
   bindGo();
+  if (!$('#savePdf')) return; // the screen moved on while the recap was gathering
   const baseName = `${(trip.title || 'Trip').replace(/[\/:*?"<>|]+/g, ' ').trim()} recap`;
   const busy = (on) => $$('#savePdf, #sharePics').forEach((b) => { b.disabled = on; });
   $('#savePdf').onclick = async () => {

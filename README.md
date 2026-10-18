@@ -623,6 +623,23 @@ struck.
   titles) and hands it to the share sheet. Verified in the preview (97 KB
   JPEG).
 
+- **I20 — Rate a meal or a tour with stars, see the stars in the recap,
+  and keep the name of a guide or waiter who was good.** *(2026-10-17)*
+  Matt, on hearing "rating" for a trail: *"what if you can rate your meal
+  that you had? Maybe you really loved the meal and you can give it a, a, a
+  star rating [...] you can see how many like like four star meals you had
+  or something like that [...] maybe you took a really good tour and you had
+  the tour guide's name and you want to write that down, like the, you had
+  a really good waiter at the restaurant."*
+
+  **Settles when:** any block can take stars (already true since I17), the
+  recap counts them, and a block can carry a guide's or waiter's name. (The
+  settling condition is the agent's draft.)
+
+  **Built 2026-10-17:** the recap shows how many moments got four stars or
+  more and the top-rated one, plus a line of guides and hosts; "Guide or
+  host" is a ready-made detail. Verified in the preview.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
