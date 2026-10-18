@@ -838,6 +838,22 @@ struck.
   Travel's Company field offers them. The old single "Airline or cruise
   line" detail migrates into the list. Verified in the preview.
 
+- **I31 — The packing list folds under its title, with the unpacked
+  items first.** *(2026-10-18)* Matt: *"the packing list is starting to get
+  really long [...] I'd like the, the packing list to be collapsible from
+  the packing list like um, title [...] imagine I have a four of 23 packed
+  [...] when I click on packing list, it will like ex- expand down and it'll
+  show me everything [...] it should also just default to having unchecked
+  items at the top of the list, that way I can I can see what I haven't
+  finished yet. And then as I add it, it'll just they'll they'll be they'll
+  be placed at the bottom of the list."*
+
+  **Settles when:** the list opens and closes from its title with the count
+  beside it, and ticked items drop to the bottom. (The settling condition is
+  the agent's draft.)
+
+  **Built 2026-10-18.**
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

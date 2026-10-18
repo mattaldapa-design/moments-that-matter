@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 34; // keep in step with VERSION in sw.js
+const APP_VERSION = 35; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -136,6 +136,8 @@ function countryOf(trip, city) {
   return (hit || trip.places[0])?.name || '…';
 }
 let ownTripOpen = null;
+let packOpen = false;
+try { packOpen = localStorage.getItem('mtm-pack') === '1'; } catch { /* default folded */ }
 let aboutOpen = false;
 try { aboutOpen = localStorage.getItem('mtm-about') === '1'; } catch { /* default closed */ }
 const asLink = (v) => (/^https?:\/\//i.test(v) ? v : 'https://' + v);
@@ -415,10 +417,14 @@ function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
       ${ownTripOpen === trip.id ? `<div class="dr-field mtm-detail"><label for="ownTripLabel">Your own detail</label>
         <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="ownTripLabel" placeholder="Name the detail" autocomplete="off" autocapitalize="words" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="ownTripAdd">Add</button></div></div>` : ''}
       <div class="dr-field"><label for="addTripDetail">Add a trip detail</label><select class="dr-select" id="addTripDetail"><option value="">Choose one…</option>${hidden.map((d) => `<option value="${d.k}">${esc(d.label)}</option>`).join('')}<option value="__own">Your own…</option></select></div>
-      <div class="dr-field"><label for="newPack">Packing list${trip.packing.length ? ` <span class="dr-caption">· ${packed} of ${trip.packing.length} packed</span>` : ''}</label>
-        ${trip.packing.length ? `<div class="mtm-pack">${trip.packing.map((p, k) => `<div class="mtm-pack__item ${p.done ? 'is-done' : ''}"><label class="dr-check"><input type="checkbox" data-pack="${k}" ${p.done ? 'checked' : ''}><span>${esc(p.text)}</span></label><button type="button" class="mtm-x" data-unpack="${k}" aria-label="Remove ${esc(p.text)}">×</button></div>`).join('')}</div>` : ''}
-        <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div>
-        <div class="mtm-bar">${trip.packing.length ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="savePack">Save this list for next time</button>' : ''}<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="usePack">Use my saved list</button></div></div>
+      <details class="mtm-packlist" id="packlist" ${packOpen ? 'open' : ''}>
+        <summary><span class="dr-label">Packing list</span>${trip.packing.length ? `<span class="dr-caption">${packed} of ${trip.packing.length} packed</span>` : '<span class="dr-caption">nothing yet</span>'}</summary>
+        <div class="mtm-stack mtm-stack--tight" style="margin-top:10px">
+          ${trip.packing.length ? `<div class="mtm-pack">${trip.packing.map((p, k) => ({ p, k })).sort((x, y) => Number(x.p.done) - Number(y.p.done)).map(({ p, k }) => `<div class="mtm-pack__item ${p.done ? 'is-done' : ''}"><label class="dr-check"><input type="checkbox" data-pack="${k}" ${p.done ? 'checked' : ''}><span>${esc(p.text)}</span></label><button type="button" class="mtm-x" data-unpack="${k}" aria-label="Remove ${esc(p.text)}">×</button></div>`).join('')}</div>` : ''}
+          <div class="mtm-bar" style="flex-wrap:nowrap"><input class="dr-input mtm-grow" id="newPack" placeholder="Add an item" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--quiet dr-btn--sm" id="addPack">Add</button></div>
+          <div class="mtm-bar">${trip.packing.length ? '<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="savePack">Save this list for next time</button>' : ''}<button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="usePack">Use my saved list</button></div>
+        </div>
+      </details>
     </div>
   </details>`;
 }
@@ -486,6 +492,8 @@ function bindAbout(trip) {
     ol.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addOwn(); } };
     $('#ownTripAdd').onclick = addOwn;
   }
+  const pl = $('#packlist');
+  if (pl) pl.addEventListener('toggle', () => { packOpen = pl.open; try { localStorage.setItem('mtm-pack', packOpen ? '1' : '0'); } catch { /* fine */ } });
   const np = $('#newPack');
   const addPack = async () => { const t = (np.value || '').trim(); if (!t) return; trip.packing.push({ text: t, done: false }); np.value = ''; await commit(); setTimeout(() => $('#newPack')?.focus(), 50); };
   np.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addPack(); } };

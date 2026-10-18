@@ -244,6 +244,12 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-person button { width: 28px; height: 28px; border-radius: var(--radius-disc); border: 0; background: var(--room-100); color: var(--cream-dim); font-size: 18px; line-height: 1; cursor: pointer; }
 .mtm-person .mtm-person__go { font-size: 14px; }
 
+/* Packing list folds under its title */
+.mtm-packlist summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.mtm-packlist summary::-webkit-details-marker { display: none; }
+.mtm-packlist summary .dr-label::after { content: "›"; color: var(--accent); display: inline-block; margin-left: 10px; transition: transform var(--dur-move) var(--ease-out); }
+.mtm-packlist[open] summary .dr-label::after { transform: rotate(90deg); }
+
 /* About this trip */
 .mtm-about { padding: 0; overflow: hidden; }
 .mtm-about summary { list-style: none; cursor: pointer; padding: 18px var(--space-5); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
