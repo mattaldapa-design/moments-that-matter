@@ -259,14 +259,16 @@ export async function drawDayCard(data, dayIndex) {
   g.fillStyle = glow; g.fillRect(0, 0, CW, CH);
 
   // Header: trip, Day N, date · city, weather, emojis
+  // Header: the date and the place lead; "Day n" sits small by the weather (Matt, seventh look).
   let y = P;
   y = eyebrow(g, `${trip.title || 'My trip'}${trip.region && trip.region !== trip.title ? ' · ' + trip.region : ''}`, y);
-  text(g, `Day ${d.index + 1}`, P, y + 58, { font: `800 68px ${F.loud}`, color: C.signal, lineHeight: 1 });
-  if (d.weather) { g.font = `64px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, CW - P, y + 58); }
-  y += 112;
-  y = text(g, `${fmtDay(d.date)}${d.city ? ' · ' + d.city : ''}`, P, y, { font: `700 40px ${F.display}`, maxLines: 1, maxWidth: inner });
-  g.font = `38px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 10);
-  y += 50;
+  const top = y;
+  if (d.weather) { g.font = `64px ${F.body}`; g.textAlign = 'right'; g.fillStyle = C.cream; g.fillText(d.weather, CW - P, top + 58); }
+  text(g, `Day ${d.index + 1}`, CW - P, top + (d.weather ? 108 : 50), { font: `700 28px ${F.display}`, color: C.signal, align: 'right' });
+  y = text(g, fmtDay(d.date), P, top + 48, { font: `700 40px ${F.display}`, color: C.dim, maxLines: 1, maxWidth: inner - 220 });
+  y = text(g, d.city || 'Somewhere', P, y + 14, { font: `800 60px ${F.loud}`, maxLines: 1, maxWidth: inner - 220, lineHeight: 1 });
+  g.font = `38px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream; g.fillText(d.blocks.map((b) => b.emoji || '·').join(' ').slice(0, 60), P, y + 24);
+  y += 64;
 
   // Words at the bottom: title · place, and a note line when there is one. Up to six moments.
   const shown = d.blocks.slice(0, 6);

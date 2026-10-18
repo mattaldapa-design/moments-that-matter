@@ -94,7 +94,9 @@ Then, in the agreed order: Archive to a file (I3) and place levels (I7),
 both verified in the preview.
 Then the longer detail list with "Your own" (I17) and "Share this day" as
 one picture (I19). Then stars in the recap (I20) and "About this trip" with the
-packing list (I18). After Matt's sixth look: the day picture is photo-first
+packing list (I18). After the seventh look: the day picture leads with date and place,
+"Day n" by the weather; Activity asks "What did you do?" first and the icon
+follows the words. After Matt's sixth look: the day picture is photo-first
 (one, two side by side, one tall and two stacked, or a 2×2 fill the middle,
 words below with place, stars and a note line) and tile captions show only
 place and stars.
@@ -976,6 +978,19 @@ decided, where it is enforced, and what it **serves**.
 ## Findings
 
 Dated, append-only. What was learned, in the order it was learned.
+
+- **2026-10-17 — Seventh look.** The day picture's header: *"day one
+  doesn't need to be as take up so much space. I think, like, the more
+  important thing is, like, the day, date, and location, and day one can be
+  maybe next to the next to the uh, weather icon."* Activity: *"I use that
+  the most because I do most activities [...] it always just defaults to the
+  little sparkle icon [...] I think it should prompt you really to, to like
+  put in the activity first and it'll give you an emoji with it. And then
+  you'll have the option just to replace that with a picture."* He thought
+  about moving the type-anything box above the kinds and decided against:
+  *"I like it with the emojis underneath it."* Changed the same day: the
+  day picture leads with the date and place, "Day n" sits by the weather;
+  tapping Activity asks "What did you do?" first, the icon follows the words.
 
 - **2026-10-17 — Sixth look: the day picture and the board, with
   screenshots.** The one-day picture: *"I have three pictures in it, and it,

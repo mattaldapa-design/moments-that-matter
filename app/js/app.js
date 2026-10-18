@@ -619,14 +619,16 @@ function addPage(trip, i) {
   trail([{ t: 'Trips', h: '/' }, { t: trip.title || 'Trip', h: `/t/${trip.id}` }, { t: `Day ${i + 1}`, h: `/t/${trip.id}/d/${i}` }, { t: 'Add' }], `/t/${trip.id}/d/${i}`);
   app.innerHTML = `<div class="mtm-stack">
     <h1 class="dr-title">Add to day ${i + 1}</h1>
+    <div id="askPanel"></div>
     <div class="mtm-kinds">${KINDS.map((k) => `<button class="mtm-kind" data-kind="${k.key}"><span class="mtm-kind__emoji">${k.emoji}</span><span class="mtm-kind__name">${esc(k.name)}</span></button>`).join('')}</div>
     <div class="dr-field"><label for="q">Or type anything</label>
       <input class="dr-input dr-input--search" id="q" placeholder="coffee, museum, haircut…" autocomplete="off" autocapitalize="none" enterkeyhint="done"></div>
     <div class="mtm-gallery" id="gallery"></div>
   </div>`;
   const q = $('#q'), gal = $('#gallery');
+  if (!q || !gal) return; // the screen moved on while this was drawing
   const draw = () => {
-    if (!q.isConnected) return; // the screen moved on while this was drawing
+    if (!q.isConnected) return;
     const s = q.value.trim().toLowerCase();
     const list = (s ? WORDS.filter((w) => w.word.includes(s)) : WORDS).slice(0, 80);
     const exact = s && WORDS.some((w) => w.word === s);
@@ -640,11 +642,37 @@ function addPage(trip, i) {
     const k = e.target.closest('[data-kind]'), w = e.target.closest('[data-word]'), n = e.target.closest('[data-new]');
     if (!k && !w && !n) return;
     let partial;
-    if (k) { const kind = kindOf(k.dataset.kind); partial = { kind: kind.key, emoji: kind.emoji, label: kind.name }; }
+    if (k) {
+      const kind = kindOf(k.dataset.kind);
+      if (ASK_FIRST.includes(kind.key)) { askFirst(trip, i, kind); return; }
+      partial = { kind: kind.key, emoji: kind.emoji, label: kind.name };
+    }
     else if (w) partial = { kind: 'other', emoji: w.dataset.emoji, label: w.dataset.word };
     else { const word = q.value.trim(); partial = { kind: 'other', emoji: emojiFor(word), label: word }; }
     await createBlock(trip, i, partial);
   };
+}
+
+// Kinds that ask what you did before anything else; the icon follows the words (Matt, seventh look).
+const ASK_FIRST = ['activity'];
+function askFirst(trip, i, kind) {
+  const panel = $('#askPanel');
+  panel.innerHTML = `<div class="dr-panel mtm-ask">
+    <div class="dr-eyebrow">${esc(kind.name)}</div>
+    <label class="dr-field" for="askTitle"><span class="dr-label">What did you do?</span>
+      <div class="mtm-bar" style="flex-wrap:nowrap"><span class="mtm-ask__emoji" id="askEmoji">${kind.emoji}</span><input class="dr-input mtm-grow" id="askTitle" placeholder="Surf lesson, hike to the falls, museum…" autocomplete="off" enterkeyhint="done"><button type="button" class="dr-btn dr-btn--sm" id="askGo">Add</button></div></label>
+    <div class="dr-field__hint">The icon follows your words. You can add a picture next.</div>
+  </div>`;
+  const input = $('#askTitle'), face = $('#askEmoji');
+  input.oninput = () => { face.textContent = emojiFromText(input.value) || kind.emoji; };
+  const go = () => {
+    const title = input.value.trim();
+    createBlock(trip, i, { kind: kind.key, emoji: emojiFromText(title) || kind.emoji, label: kind.name, title });
+  };
+  input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+  $('#askGo').onclick = go;
+  panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  setTimeout(() => input.focus(), 50);
 }
 
 async function createBlock(trip, i, partial) {

@@ -125,6 +125,10 @@ body { min-height: 100%; overscroll-behavior-y: none; }
   z-index: 15; width: 64px; height: 64px; font-size: 34px; box-shadow: 0 18px 40px -12px var(--glow);
 }
 
+/* Ask-first kinds */
+.mtm-ask { display: grid; gap: 10px; margin-bottom: 12px; }
+.mtm-ask__emoji { font-size: 36px; line-height: 1; width: 48px; text-align: center; flex: none; }
+
 /* Add page */
 .mtm-kinds { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 520px) { .mtm-kinds { grid-template-columns: repeat(4, 1fr); } }
