@@ -285,6 +285,10 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-mindlink:hover { background: var(--room-100); }
 .mtm-mind .mtm-chips { margin-top: 6px; }
 
+/* Trip picture (I36) */
+.mtm-coverthumb { width: 72px; height: 72px; border-radius: var(--radius-md); overflow: hidden; flex: none; background: var(--room-200); box-shadow: var(--shadow-rest); }
+.mtm-coverthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
 /* About this trip */
 .mtm-about { padding: 0; overflow: hidden; }
 .mtm-about summary { list-style: none; cursor: pointer; padding: 18px var(--space-5); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }

@@ -13,8 +13,9 @@ function pickFour(d, pmap) {
 // ---------- data ----------
 export async function gather(trip) {
   const blocks = (await db.where('blocks', 'tripId', trip.id)).sort((a, b) => a.dayIndex - b.dayIndex || a.order - b.order);
-  const photos = await db.where('photos', 'tripId', trip.id);
-  const pmap = Object.fromEntries(photos.map((p) => [p.id, p]));
+  const all = await db.where('photos', 'tripId', trip.id);
+  const photos = all.filter((p) => p.role !== 'cover'); // the trip's own picture is not a moment's picture
+  const pmap = Object.fromEntries(all.map((p) => [p.id, p]));
   const days = [];
   for (let i = 0; i < trip.dayCount; i++) {
     const d = (await db.get('days', `${trip.id}:${i}`)) || { index: i, city: '', weather: '' };

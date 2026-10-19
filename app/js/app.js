@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 42; // keep in step with VERSION in sw.js
+const APP_VERSION = 43; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -365,7 +365,7 @@ async function trips() {
 
 // Settings & help (Decision, 2026-10-17): how it works, the settings, and your name.
 const HOW_IT_WORKS = [
-  ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup.'],
+  ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup. Give it a picture in About this trip and it fronts the Trips screen from day one; otherwise the first day picture stands in.'],
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
   ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story. The ring on a picture is the spot every crop keeps; tap Reframe, then the picture, to move it.'],
   ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Add to it if you want: Spent today adds itself up from the moments that have a price; Miles and Steps are yours to type.'],
@@ -463,7 +463,7 @@ function newTrip() {
   };
 }
 
-function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
+function aboutPanel(trip, photoCount = 0, photoBytes = 0, coverOwn = null) {
   normalizeTrip(trip);
   const shown = TRIP_DETAILS.filter((d) => (trip.details[d.k] !== undefined && trip.details[d.k] !== '') || trip.extras.includes(d.k));
   const hidden = TRIP_DETAILS.filter((d) => !shown.includes(d));
@@ -485,6 +485,10 @@ function aboutPanel(trip, photoCount = 0, photoBytes = 0) {
   return `<details class="dr-panel mtm-about" id="about" ${aboutOpen ? 'open' : ''}>
     <summary><span class="dr-heading">About this trip</span><span class="dr-caption">${esc(bits.join(' · ') || 'who, what, and what to pack')}</span></summary>
     <div class="mtm-stack mtm-stack--tight mtm-about__body">
+      <div class="dr-field"><label>Trip picture</label>
+        ${coverOwn ? `<div class="mtm-bar"><div class="mtm-coverthumb"><img src="${photoUrl(coverOwn)}" alt="" style="${objectPosition(coverOwn, 1, 1)}"></div><label class="dr-btn dr-btn--ghost dr-btn--sm">Replace<input type="file" accept="image/*" id="coverFile" hidden aria-label="Choose a trip picture"></label><button type="button" class="dr-btn dr-btn--ghost dr-btn--sm" id="coverRemove">Remove</button></div>`
+          : `<div class="mtm-bar"><label class="dr-btn dr-btn--quiet dr-btn--sm">Choose a picture<input type="file" accept="image/*" id="coverFile" hidden aria-label="Choose a trip picture"></label></div>`}
+        <div class="dr-field__hint">${coverOwn ? 'Fronts the trip on the Trips screen, whatever the days hold.' : 'Fronts the trip on the Trips screen from today. Without one, the first day picture stands in.'}</div></div>
       <div class="dr-field"><label for="firstDay">First day</label><input class="dr-input" type="date" id="firstDay" value="${esc(trip.startDate)}"><div class="dr-field__hint">Move it and every day moves with it. Nothing is lost.</div></div>
       <div class="dr-field"><label for="newCarrier">Airlines and lines</label>
         ${trip.carriers.length ? `<div class="mtm-chips">${trip.carriers.map((n, k) => `<span class="mtm-person">${esc(n)}<button type="button" class="mtm-person__go" data-carrierday="${k}" title="Put on a day">📅</button><button type="button" data-uncarrier="${k}" aria-label="Remove ${esc(n)}">×</button></span>`).join('')}</div>` : ''}
@@ -519,6 +523,10 @@ function bindAbout(trip) {
   const saveText = debounce(async () => { await touch(trip); }, 400);
   leaveHook = saveText.flush;
   const commit = async () => { await saveText.flush(); await touch(trip); render(); };
+  const cf = $('#coverFile');
+  if (cf) cf.onchange = async () => { const f = cf.files[0]; if (!f) return; toast('Setting the picture…'); await saveText.flush(); await setTripCover(trip, f); };
+  const cr = $('#coverRemove');
+  if (cr) cr.onclick = async () => { await saveText.flush(); await removeTripCover(trip); };
   const fd = $('#firstDay');
   fd.onchange = async () => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fd.value)) return;
@@ -626,7 +634,7 @@ async function tripPage(trip) {
   if (!paint(my, `<div class="mtm-stack">
     <div><div class="dr-eyebrow">${fmtRange(trip)}${tripWhen(trip).phase === 'before' ? ' · ' + tripWhen(trip).text : ''}</div>
       <div class="mtm-titlerow"><h1 class="dr-title-xl" id="tripTitle">${esc(trip.title || 'Untitled trip')}</h1><button class="mtm-pencil" id="editTitle" aria-label="Rename the trip">✎</button></div></div>
-    ${aboutPanel(trip, photos.length, tripBytes)}
+    ${aboutPanel(trip, photos.filter((p) => p.role !== 'cover').length, tripBytes, photos.find((p) => p.role === 'cover' && p.id === trip.coverPhotoId) || null)}
     <div class="mtm-backup">
       <button class="dr-btn dr-btn--sm" data-go="/t/${trip.id}/recap">Recap</button>
       <button class="dr-btn ${due ? '' : 'dr-btn--quiet'} dr-btn--sm" id="backup">Back up this trip</button>
@@ -1285,6 +1293,27 @@ async function replacePhotoRefs(trip, dayIndex, oldId, newId) {
   const day = await getDay(trip.id, dayIndex);
   const at = day.keyPhotos.indexOf(oldId);
   if (at >= 0) { day.keyPhotos[at] = newId; keyify(day); await db.put('days', day); }
+}
+// A trip picture of its own (I36): a photo with no moment behind it. Day pictures never replace it.
+async function setTripCover(trip, file) {
+  const { blob, w, h } = await shrink(file);
+  const photo = { id: uid(), tripId: trip.id, blockId: null, role: 'cover', blob, w, h, bytes: blob.size, createdAt: Date.now() };
+  const old = trip.coverPhotoId ? await db.get('photos', trip.coverPhotoId) : null;
+  if (old && old.role === 'cover') await db.del('photos', old.id);
+  await db.put('photos', photo);
+  trip.coverPhotoId = photo.id;
+  await touch(trip, blob.size);
+  toast('Trip picture set.');
+  render();
+}
+async function removeTripCover(trip) {
+  const old = trip.coverPhotoId ? await db.get('photos', trip.coverPhotoId) : null;
+  if (old && old.role === 'cover') await db.del('photos', old.id);
+  const rest = (await db.where('photos', 'tripId', trip.id)).filter((p) => p.role !== 'cover' && p.blockId).sort((x, y) => (x.createdAt || 0) - (y.createdAt || 0));
+  trip.coverPhotoId = rest[0]?.id || null;
+  await touch(trip);
+  toast(rest[0] ? 'Trip picture removed. The first day picture stands in.' : 'Trip picture removed.');
+  render();
 }
 async function attachPhoto(trip, b, file) {
   const exif = await readExif(file);

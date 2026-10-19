@@ -1010,6 +1010,25 @@ struck.
   **Built 2026-10-18:** Done is a floating button in the + position; Delete
   this moment stays at the end of the form.
 
+- **I36 — A trip can have a picture of its own, shown on the Trips screen
+  before any day has one.** *(2026-10-19)* Matt, with a screenshot of the
+  Trips screen showing the Mediterranean Cruise as a plain red tile six days
+  out: *"I'd [like] the ability to add a photo to a trip so it appears on
+  the Home Screen without adding a photo on a day. That way it can be used
+  in advance and the screen isn't a default swash."*
+
+  **Settles when:** About this trip has a Trip picture that Matt can choose,
+  replace or remove; it fronts the trip's tile on the Trips screen and the
+  recap cover whether or not any day has a picture; day pictures never push
+  it out. (The settling condition is the agent's draft; "Home Screen" read
+  as the Trips screen.)
+
+  **Built 2026-10-19:** Trip picture is the first row of About this trip:
+  Choose a picture, then a thumbnail with Replace and Remove. It is a photo
+  with no moment behind it, so it is left out of the picture counts, the
+  recap's day pictures and Send this day, and it travels in a backup. Remove
+  hands the tile back to the first day picture, if there is one.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
