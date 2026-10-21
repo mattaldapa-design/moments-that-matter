@@ -1,3 +1,4 @@
+/* Dark Room kit · 2026.10.20 · changelog and update procedure: CHANGELOG.md, UPDATING.md beside this file in D:\UI Guide\Dark Room */
 /* Dark Room — component stylesheet.
    Load tokens.css first (it defines --room-000, --signal, --font-display, --space-5, --radius-pill, --shadow-lift, --ease-out ...).
    Every class is prefixed dr-. Scope a splash accent on any element:
@@ -20,11 +21,11 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-/* The one hint of grit. Add class dr-grain to body. */
+/* Texture scales with the surface: none on controls, faint on the room, visible on fields. Add class dr-grain to body. */
 .dr-grain { position: relative; }
 .dr-grain::before {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  opacity: .09; mix-blend-mode: soft-light;
+  opacity: var(--grain-room, .09); mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 .dr-grain > * { position: relative; z-index: 1; }
@@ -91,6 +92,18 @@ body {
 /* Typographic cover for things with no artwork: title as the picture */
 .dr-cover--type { display: grid; align-items: end; padding: 14px; background: var(--accent); color: var(--on-accent); }
 .dr-cover--type span { font-family: var(--font-display); font-weight: 800; font-size: clamp(22px, 3vw, 34px); line-height: .98; letter-spacing: -0.02em; }
+/* Sleeve covers: one color family per cover, light corner to dark corner. Provisional: Matt may pull the gradient and keep flat sleeves. */
+.dr-cover--sleeve { box-shadow: var(--shadow-rest), inset 0 1px 0 rgba(255,255,255,.22); }
+.dr-cover--tangerine { background: linear-gradient(155deg, var(--tangerine-light), var(--tangerine) 45%, var(--tangerine-deep)); }
+.dr-cover--gold      { background: linear-gradient(155deg, var(--gold-light), var(--gold) 45%, var(--gold-deep)); }
+.dr-cover--leaf      { background: linear-gradient(155deg, var(--leaf-light), var(--leaf) 45%, var(--leaf-deep)); }
+.dr-cover--lilac     { background: linear-gradient(155deg, var(--lilac-light), var(--lilac) 45%, var(--lilac-deep)); }
+.dr-cover--lagoon    { background: linear-gradient(155deg, var(--lagoon-light), var(--lagoon) 45%, var(--lagoon-deep)); }
+.dr-cover--pink      { background: linear-gradient(155deg, var(--hot-pink-light), var(--hot-pink) 45%, var(--hot-pink-deep)); }
+.dr-cover--acid      { background: linear-gradient(155deg, var(--acid-light), var(--acid) 45%, var(--acid-deep)); }
+.dr-cover--signal    { background: linear-gradient(155deg, var(--tangerine), var(--signal) 50%, var(--rust)); }
+/* Flat sleeves, the fallback if the gradients come out */
+.dr-cover--flat { background-image: none; }
 
 /* ---------- Peek ---------- */
 .dr-peek {
@@ -150,7 +163,7 @@ body {
   position: absolute; display: flex; align-items: center; gap: 10px;
   padding: 10px 16px 10px 10px; border-radius: var(--radius-pill);
   background: var(--room-200);
-  box-shadow: 0 10px 24px -12px rgba(0,0,0,.9), 0 0 0 1px var(--line);
+  box-shadow: var(--shadow-raised), 0 0 0 1px var(--line);
   font-family: var(--font-display); font-weight: 700; font-size: 17px;
   cursor: grab; user-select: none; -webkit-user-select: none; white-space: nowrap;
   transition: box-shadow .3s var(--ease-out), transform .3s var(--ease-out);
@@ -216,7 +229,41 @@ body {
 .dr-badge--warn { background: var(--state-warn); color: var(--on-acid); }
 .dr-badge--bad { background: var(--state-bad); color: var(--on-signal); }
 
-/* ---------- Panel ---------- */
-.dr-panel { background: var(--room-100); border-radius: var(--radius-lg); padding: var(--space-5); }
-.dr-panel--raised { background: var(--room-200); }
+/* ---------- Panel: lit by the one lamp, top-left ---------- */
+.dr-panel {
+  background: radial-gradient(120% 90% at 0% 0%, var(--lamp), transparent 55%), var(--room-100);
+  border-radius: var(--radius-lg); padding: var(--space-5);
+  box-shadow: var(--shadow-rest);
+}
+.dr-panel--raised { background: radial-gradient(120% 90% at 0% 0%, var(--lamp), transparent 55%), var(--room-200); box-shadow: var(--shadow-raised); }
+.dr-panel--floating { background: radial-gradient(120% 90% at 0% 0%, var(--lamp), transparent 55%), var(--room-200); box-shadow: var(--shadow-float); }
 .dr-divider { border: 0; border-top: 1px solid var(--line); margin: var(--space-5) 0; }
+
+/* ---------- Field: the one other large surface ---------- */
+.dr-field-plum {
+  position: relative; overflow: hidden;
+  background: var(--plum); color: var(--cream);
+  border-radius: var(--radius-xl); padding: var(--space-6);
+}
+.dr-field-plum::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  opacity: var(--grain-field, .16); mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dr-field-plum::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(100% 80% at 80% 0%, rgba(255,210,184,.18), transparent 60%); }
+.dr-field-plum > * { position: relative; z-index: 1; }
+.dr-field-plum .dr-body-lg, .dr-field-plum .dr-body-sm, .dr-field-plum .dr-eyebrow { color: var(--peach); }
+
+/* ---------- Tints: quiet highlights ---------- */
+.dr-hint { background: var(--room-200); border-radius: 14px; padding: 14px 16px; box-shadow: inset 6px 0 0 var(--peach); }
+.dr-hint--rose { box-shadow: inset 6px 0 0 var(--rose); }
+
+/* ---------- Sleeve badges ---------- */
+.dr-badge--tangerine { background: var(--tangerine); color: var(--on-signal); }
+.dr-badge--gold { background: var(--gold); color: var(--on-signal); }
+.dr-badge--leaf { background: var(--leaf); color: var(--on-signal); }
+.dr-badge--lilac { background: var(--lilac); color: var(--on-signal); }
+.dr-badge--lagoon { background: var(--lagoon); color: var(--on-lagoon); }
+.dr-badge--pink { background: var(--hot-pink); color: var(--on-hot-pink); }
+.dr-badge--peach { background: var(--peach); color: var(--on-peach); }
+.dr-badge--rose { background: var(--rose); color: var(--on-rose); }

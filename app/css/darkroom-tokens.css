@@ -1,8 +1,10 @@
+/* Dark Room kit · 2026.10.20 · changelog and update procedure: CHANGELOG.md, UPDATING.md beside this file in D:\UI Guide\Dark Room */
 /* Dark Room — design tokens. Mirrors tokens.json in the Dark Room design system.
    Load the Google Fonts link first, then this file, then darkroom.css.
    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Unbounded:wght@600;800&family=Figtree:wght@400;500;600&display=swap">
 */
 :root {
+  --dr-version: "2026.10.20";
   color-scheme: dark;
 
   /* The room */
@@ -29,12 +31,37 @@
   --state-warn: var(--acid);
   --state-bad: var(--signal);
 
-  /* Light */
+  /* The sleeve rack: for things, not chrome. Two per screen beside signal, except in a chart. */
+  --tangerine: #ff8a3d; --tangerine-light: #ffb070; --tangerine-deep: #c24d1a;
+  --gold: #f2b63c;      --gold-light: #ffd978;      --gold-deep: #a86f12;
+  --leaf: #5ccf7a;      --leaf-light: #9df0b0;      --leaf-deep: #1f7a3c;
+  --lilac: #b48cff;     --lilac-light: #d9c4ff;     --lilac-deep: #5f3fb0;   /* the one cool color; a sleeve and nothing else */
+  --lagoon-light: #7fe3ea;   --lagoon-deep: #0f7a82;
+  --hot-pink-light: #ff8fc0; --hot-pink-deep: #b0145f;
+  --acid-light: #f6fb8a;     --acid-deep: #9aa30d;
+  --rust: #a8321f;                       /* the deep end of signal */
+
+  /* Fields and tints */
+  --plum: #5a1a33;  --on-plum: var(--peach);   /* the only large surface besides room-000 */
+  --peach: #ffd2b8; --on-peach: #15100e;        /* quiet highlights, text on plum, the lamp */
+  --rose: #f7c6cf;  --on-rose: #15100e;         /* the soft things */
+
+  /* Heat ramp: rust through signal to peach */
+  --ramp-0: #3a1210; --ramp-1: #6b1e18; --ramp-2: var(--rust); --ramp-3: var(--signal);
+  --ramp-4: var(--tangerine); --ramp-5: #ffb48a; --ramp-6: var(--peach);
+
+  /* Light: one lamp, top-left, warm. Three elevations, named. */
+  --lamp: rgba(255, 210, 184, 0.10);
+  --edge: rgba(255, 228, 206, 0.08);
   --glow: rgba(255, 77, 46, 0.45);
   --focus: var(--signal);
-  --shadow-rest: 0 10px 30px -18px rgba(0, 0, 0, 0.9);
+  --shadow-rest:   inset 0 1px 0 rgba(255, 228, 206, 0.05), 0 8px 20px -14px rgba(0, 0, 0, 0.8);
+  --shadow-raised: inset 0 1px 0 rgba(255, 228, 206, 0.07), 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+  --shadow-float:  inset 0 1px 0 rgba(255, 228, 206, 0.10), 0 30px 70px -22px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 228, 206, 0.10);
   --shadow-lift: 0 30px 60px -22px rgba(255, 77, 46, 0.6), 0 0 0 2px rgba(255, 77, 46, 0.35);
-  --shadow-float: 0 30px 70px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 228, 206, 0.10);
+
+  /* Texture scales with the surface */
+  --grain-control: 0; --grain-room: 0.09; --grain-field: 0.16;
 
   /* Voice */
   --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;            /* talking */

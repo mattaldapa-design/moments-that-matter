@@ -32,11 +32,12 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-**As of 2026-10-18, version 38 is live** at
+**As of 2026-10-21, version 43 is live** at
 <https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
-on Matt's iPhone for a real trip; version 39 (the review fixes below) is in
-the working tree, waiting on Matt's commit. Everything below was built on
-2026-10-17 and 2026-10-18; the Decisions and Intentions carry the detail.
+on Matt's iPhone for a real trip; version 44 (the kit refresh, I37) is in
+the working tree, waiting on Matt's commit. Everything below was built
+between 2026-10-17 and 2026-10-21; the Decisions and Intentions carry the
+detail.
 The 18th added: Send this day (I25), Settings & help with a User guide and
 your name (I24), a colour per kind (I26), tap-to-reframe pictures (I28),
 recap sleeves (I27), the removal of Pass the notebook, a movable first day
@@ -44,7 +45,10 @@ recap sleeves (I27), the removal of Pass the notebook, a movable first day
 change a moment's emoji (I32), a Day summary fold on every board with a
 note, Spent today, Miles and Steps (I33), Mindfulness moments with I
 statements (I34), word tiles for Notes and Mindfulness, and two rounds of
-code-review fixes. What it does: trips (start one, set its days, rename, add
+code-review fixes. The 19th to 21st added: Done floating in the corner
+(I35), a trip picture of its own (I36), Reframe before a picture's focal
+point moves (I28), rounded-tile chips, and the Dark Room kit's 20 October
+sleeves, plum field, tints and lamp-lit depth (I37). What it does: trips (start one, set its days, rename, add
 or remove a day, delete); boards (a city, a weather tap, the Day summary
 fold, tiles in time order, drag to reorder, a list view with move arrows);
 the add flow (eight kinds, a type-anything box, a gallery of about 300 words
@@ -1028,6 +1032,37 @@ struck.
   with no moment behind it, so it is left out of the picture counts, the
   recap's day pictures and Send this day, and it travels in a backup. Remove
   hands the tile back to the first day picture, if there is one.
+
+- **I37 — The app takes the Dark Room kit's 20 October additions for a
+  fresh coat of paint and more visual variety.** *(2026-10-20)* Matt: *"the
+  darkroom style design that I have incorporated into this project just
+  received some updates. I think it'd be nice to try and incorporate them
+  into the design that we already have currently. That way it has like a
+  little bit of a fresh coat of paint based on some of the feedback I had
+  [...] give the app a little more visual variety given the expansion of the
+  design kit."* On the kit's rule that restyles happen on a
+  `ui-refresh/<app>` branch: *"the dark room was implemented from the start
+  on this project. So the stuff about the separate branch was mostly
+  intended for projects that I designed dark room after they're created
+  [...] since it's already kind of built in to it, you can make these
+  updates and add these kind of cosmetic changes to your main thread."*
+
+  **Settles when:** the app carries the kit's 20 October files and uses the
+  new pieces where they fit (sleeves, plum, tints, the lamp and the three
+  shadows), without changing what any control does, and Matt has seen it
+  and kept it or said what to change. (The settling condition is the
+  agent's draft.)
+
+  **Built 2026-10-21**, the placement the agent's: the two kit files
+  refreshed, so every panel is lit from the top-left lamp and sits on the
+  three named shadows; a trip with no picture wears a tangerine or gold
+  sleeve on the Trips screen instead of the red type tile; the recap's head
+  (cover, title, the one loud line) sits on the plum field with peach text,
+  the app's one hero section; the recap's number tiles cycle the five
+  sleeves; Mindfulness wears rose, on its tiles, its kind button and the day
+  summary's statement links; Spent today is a peach hint. Boards keep their
+  colour per kind, since six kinds on one screen would break the two-sleeve
+  rule. The PDF and day-card drawings are unchanged.
 
 ## Decisions
 

@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 43; // keep in step with VERSION in sw.js
+const APP_VERSION = 44; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -341,7 +341,7 @@ async function trips() {
   const tiles = await Promise.all(list.map(async (t, idx) => {
     const cover = t.coverPhotoId ? await db.get('photos', t.coverPhotoId) : null;
     const face = cover ? `<img src="${photoUrl(cover)}" alt="" style="${objectPosition(cover, 1, 1)}">`
-      : `<div class="dr-cover--type" data-tone="${idx % 4}" style="position:absolute;inset:0"><span>${esc(t.title || 'Untitled trip')}</span></div>`;
+      : `<div class="dr-cover--type dr-cover--sleeve ${idx % 2 ? 'dr-cover--gold' : 'dr-cover--tangerine'}" style="position:absolute;inset:0"><span>${esc(t.title || 'Untitled trip')}</span></div>`;
     return `<button class="dr-tile" data-go="/t/${t.id}">
       <div class="dr-cover mtm-trip-cover">${face}<span class="dr-badge mtm-days">${t.dayCount} day${t.dayCount === 1 ? '' : 's'}</span></div>
       <div class="dr-tile__title">${esc(t.title || 'Untitled trip')}</div>

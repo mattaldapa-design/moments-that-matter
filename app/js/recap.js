@@ -75,7 +75,7 @@ export function renderRecap(data, S, photoUrl) {
   const logged = days.filter((d) => d.blocks.length);
   const statCard = (s, k) => {
     const ph = s.photoId ? pmap[s.photoId] : null;
-    return `<div class="dr-panel mtm-stat" data-tone="${k % 4}">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
+    return `<div class="dr-panel mtm-stat" data-sleeve="${k % 5}">${ph ? `<div class="mtm-stat__art"><img src="${photoUrl(ph)}" alt="" style="${objectPosition(ph, 1, 1)}"></div>` : `<div class="mtm-stat__art mtm-stat__art--emoji">${esc(s.emoji)}</div>`}
       <div><div class="dr-title mtm-stat__big">${esc(s.big)}</div><div class="dr-body-sm">${esc(s.small)}</div></div></div>`;
   };
   const dayBand = (d) => {
@@ -91,11 +91,13 @@ export function renderRecap(data, S, photoUrl) {
     </section>`;
   };
   return `<div class="mtm-stack mtm-recap">
-    <div class="dr-cover dr-tile--wide mtm-recap__cover">${cover ? `<img src="${photoUrl(cover)}" alt="" style="${objectPosition(cover, 16, 10)}">` : `<div class="dr-cover--type" style="position:absolute;inset:0"><span>${esc(trip.title || 'Your trip')}</span></div>`}</div>
-    <div><div class="dr-eyebrow">${trip.region ? esc(trip.region) + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
+    <section class="dr-field-plum mtm-recap__head">
+      ${cover ? `<div class="dr-cover dr-tile--wide mtm-recap__cover"><img src="${photoUrl(cover)}" alt="" style="${objectPosition(cover, 16, 10)}"></div>` : ''}
+      <div class="dr-eyebrow">${trip.region ? esc(trip.region) + ' · ' : ''}${fmtLong(addDays(trip.startDate, 0))} – ${fmtLong(addDays(trip.startDate, trip.dayCount - 1))}</div>
       <h1 class="dr-title-xl">${esc(trip.title || 'Your trip')}</h1>
       ${keeper || trip.companions?.length ? `<p class="dr-body-sm">${keeper ? `Kept by ${esc(keeper)}` : ''}${keeper && trip.companions?.length ? ' · ' : ''}${trip.companions?.length ? `with ${esc(joinNames(trip.companions))}` : ''}</p>` : ''}
-      <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p></div>
+      <p class="dr-hero mtm-recap__hero">${trip.dayCount} day${trip.dayCount === 1 ? '' : 's'}, ${blocks.length} moment${blocks.length === 1 ? '' : 's'}.</p>
+    </section>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
     ${S.length ? `<div><div class="dr-eyebrow">The numbers</div><div class="mtm-stats">${S.map(statCard).join('')}</div></div>` : ''}
     ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${esc(b.emoji || '·')}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}

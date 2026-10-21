@@ -102,7 +102,14 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-seg button.is-on { background: var(--room-200); color: var(--cream); }
 
 /* A splash per kind, in the artwork slots only (Dark Room: pink, acid and lagoon are earned splashes) */
-[data-kind="travel"], [data-kind="mind"], [data-tone="3"] { --kind: var(--lagoon); --on-kind: var(--on-lagoon); }
+[data-kind="travel"], [data-tone="3"] { --kind: var(--lagoon); --on-kind: var(--on-lagoon); }
+[data-kind="mind"] { --kind: var(--rose); --on-kind: var(--on-rose); } /* the soft things: the sentimental category wears rose (kit, 20 Oct) */
+/* The sleeve rack on the recap's numbers: a chart, so every sleeve may sit together */
+[data-sleeve="0"] { --kind: var(--tangerine); --on-kind: var(--on-signal); }
+[data-sleeve="1"] { --kind: var(--gold); --on-kind: var(--on-signal); }
+[data-sleeve="2"] { --kind: var(--leaf); --on-kind: var(--on-signal); }
+[data-sleeve="3"] { --kind: var(--lagoon); --on-kind: var(--on-lagoon); }
+[data-sleeve="4"] { --kind: var(--lilac); --on-kind: var(--on-signal); }
 [data-kind="food"], [data-kind="people"], [data-tone="1"] { --kind: var(--hot-pink); --on-kind: var(--on-hot-pink); }
 [data-kind="activity"], [data-kind="note"], [data-tone="2"] { --kind: var(--acid); --on-kind: var(--on-acid); }
 [data-kind="place"], [data-kind="stay"], [data-tone="0"] { --kind: var(--signal); --on-kind: var(--on-signal); }
@@ -111,7 +118,8 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-kind { --accent: var(--kind, var(--signal)); }
 .mtm-kind__emoji { width: 56px; height: 56px; border-radius: var(--radius-disc); display: grid; place-items: center; background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--kind, var(--signal)) 55%, transparent), color-mix(in srgb, var(--kind, var(--signal)) 18%, var(--room-200)) 70%); }
 .mtm-stat__art--emoji { background: radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--kind, var(--signal)) 50%, transparent), color-mix(in srgb, var(--kind, var(--signal)) 16%, var(--room-200)) 70%); }
-.dr-cover--type { background: var(--kind, var(--accent)); color: var(--on-kind, var(--on-accent)); }
+.dr-cover--type:not(.dr-cover--sleeve) { background: var(--kind, var(--accent)); color: var(--on-kind, var(--on-accent)); }
+.dr-cover--type.dr-cover--sleeve { color: var(--on-signal); }
 
 /* Block tiles: magnets with a picture */
 .mtm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 14px; touch-action: pan-y; }
@@ -225,8 +233,10 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-detail .mtm-bar { flex-wrap: nowrap; }
 
 /* Recap */
-.mtm-recap__cover { aspect-ratio: 16 / 10; }
-.mtm-recap__hero { color: var(--accent); margin-top: var(--space-3); }
+.mtm-recap__head { display: grid; gap: var(--space-3); }
+.mtm-recap__cover { aspect-ratio: 16 / 10; margin-bottom: var(--space-2); }
+.mtm-recap__hero { color: var(--peach); margin-top: var(--space-2); }
+.mtm-recap__head .dr-title-xl { color: var(--cream); }
 .mtm-stats { display: grid; gap: 12px; margin-top: var(--space-3); }
 @media (min-width: 520px) { .mtm-stats { grid-template-columns: 1fr 1fr; } }
 .mtm-stat { display: flex; align-items: center; gap: 16px; padding: 16px; box-shadow: inset 4px 0 0 var(--kind, var(--accent)), var(--shadow-rest); transition: transform var(--dur-move) var(--ease-out), box-shadow var(--dur-move) var(--ease-out); }
@@ -278,10 +288,10 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-daysum[open] summary .dr-label::after { transform: rotate(90deg); }
 .mtm-daysum summary .dr-caption { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .mtm-daysum__body { padding: 0 var(--space-5) var(--space-5); }
-.mtm-daysum__tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 12px 16px; border-radius: var(--radius-md); background: var(--room-200); }
+.mtm-daysum__tally { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 12px 16px; border-radius: 14px; background: var(--room-200); box-shadow: inset 6px 0 0 var(--peach); }
 .mtm-daysum__tally b { font-family: var(--font-display); font-size: 22px; }
 .mtm-mindlist { display: grid; gap: 6px; }
-.mtm-mindlink { display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left; padding: 10px 14px; border: 0; border-radius: var(--radius-md); background: var(--room-200); color: var(--cream); font: inherit; cursor: pointer; }
+.mtm-mindlink { display: flex; align-items: baseline; gap: 10px; width: 100%; text-align: left; padding: 10px 14px; border: 0; border-radius: 14px; background: var(--room-200); color: var(--cream); font: inherit; cursor: pointer; box-shadow: inset 6px 0 0 var(--rose); }
 .mtm-mindlink:hover { background: var(--room-100); }
 .mtm-mind .mtm-chips { margin-top: 6px; }
 
