@@ -100,10 +100,14 @@ export function renderRecap(data, S, photoUrl) {
     </section>
     <div class="mtm-bar"><button class="dr-btn" id="savePdf">Save as PDF</button><button class="dr-btn dr-btn--ghost" id="sharePics">Share as pictures</button></div>
     ${S.length ? `<div><div class="dr-eyebrow">The numbers</div><div class="mtm-stats">${S.map(statCard).join('')}</div></div>` : ''}
-    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${esc(b.emoji || '·')}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
+    ${blocks.length ? `<div><div class="dr-eyebrow">Everything you did</div><div class="mtm-emojifield" style="--emoji-size:${emojiSizeOnScreen(blocks.length)}px">${blocks.map((b) => `<button class="mtm-emojifield__item" data-go="/t/${trip.id}/d/${b.dayIndex}/b/${b.id}" title="${esc(titleOf(b))}" aria-label="${esc(titleOf(b))}">${esc(b.emoji || '·')}</button>`).join('')}</div><div class="dr-field__hint">Tap one to open that moment.</div></div>` : '<p class="dr-body-lg">No moments yet. The recap fills itself as the days do.</p>'}
     ${logged.length ? `<div><div class="dr-eyebrow">Day by day</div><div class="mtm-stack">${logged.map(dayBand).join('')}</div></div>` : ''}
   </div>`;
 }
+
+// Emojis in "Everything you did" scale with the count (I40): few moments, big emojis; many, back to the old size.
+// On screen a gentle curve, since the field shares the screen: 80px down to 32px by about 20 moments.
+function emojiSizeOnScreen(n) { return Math.max(32, Math.min(80, Math.round(144 / Math.sqrt(Math.max(1, n))))); }
 
 // ---------- pages drawn to canvas ----------
 const W = 1080, H = 1620, P = 72;
@@ -199,17 +203,33 @@ export async function drawPages(data, S) {
     pages.push(c);
   }
 
-  // 3. Everything you did
+  // 3. Everything you did: the emojis are drawn as big as will fit the page for this many moments (I40),
+  // between 240px (a young trip) and the old 72px (a full one; past that the page continues).
   if (blocks.length) {
+    const top = eyebrow(newPage().g, 'Everything you did', P + 20) + 70, avail = H - P - top, inner = W - 2 * P;
+    let size = 72;
+    for (let s = 240; s >= 72; s -= 4) {
+      const gp = Math.round(s * 0.3), cols = Math.max(1, Math.floor((inner + gp) / (s * 1.15 + gp))), rows = Math.ceil(blocks.length / cols);
+      if (rows * (s + gp) - gp <= avail) { size = s; break; }
+    }
+    const gap = Math.round(size * 0.3), first = (g, label) => eyebrow(g, label, P + 20) + 70 + Math.round(size * 0.85);
     let { c, g } = newPage();
-    let y = eyebrow(g, 'Everything you did', P + 20) + 70;
-    let x = P; const size = 72, gap = 22; g.textBaseline = 'alphabetic';
+    g.font = `${size}px ${F.body}`;
+    // Lay the rows out first, so each can be drawn centred rather than hugging the left edge.
+    const rows = [[]]; let used = 0;
     for (const b of blocks) {
+      const e = b.emoji || '·'; const w = Math.max(g.measureText(e).width, size * 0.9);
+      if (used && used + gap + w > inner) { rows.push([]); used = 0; }
+      rows[rows.length - 1].push({ e, w }); used += (used ? gap : 0) + w;
+    }
+    let y = first(g, 'Everything you did'); g.textBaseline = 'alphabetic';
+    for (const row of rows) {
+      if (y + size * 0.2 > H - P) { pages.push(c); ({ c, g } = newPage()); y = first(g, 'Everything you did, continued'); }
       g.font = `${size}px ${F.body}`; g.textAlign = 'left'; g.fillStyle = C.cream;
-      const e = b.emoji || '·'; const w = Math.max(g.measureText(e).width, size * 0.9) + gap;
-      if (x + w > W - P) { x = P; y += size + gap; }
-      if (y > H - P) { pages.push(c); ({ c, g } = newPage()); y = eyebrow(g, 'Everything you did, continued', P + 20) + 70; x = P; g.font = `${size}px ${F.body}`; g.fillStyle = C.cream; }
-      g.fillText(e, x, y); x += w;
+      const rowW = row.reduce((s, it) => s + it.w, 0) + gap * (row.length - 1);
+      let x = P + Math.max(0, (inner - rowW) / 2);
+      for (const it of row) { g.fillText(it.e, x, y); x += it.w + gap; }
+      y += size + gap;
     }
     pages.push(c);
   }

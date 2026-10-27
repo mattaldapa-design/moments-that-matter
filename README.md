@@ -32,10 +32,10 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-**As of 2026-10-26, version 47 is live** at
+**As of 2026-10-26, version 48 is live** at
 <https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
-on Matt's iPhone for a real trip; version 48 (two recap stats reworded,
-I39) is in the working tree, waiting on Matt's commit. Everything
+on Matt's iPhone for a real trip; version 49 (emojis that scale with the
+count, I40) is in the working tree, waiting on Matt's commit. Everything
 below was built between 2026-10-17 and 2026-10-26; the Decisions and
 Intentions carry the detail.
 The 18th added: Send this day (I25), Settings & help with a User guide and
@@ -1113,6 +1113,28 @@ struck.
   the Decision of the same date. The other stat lines are unchanged until he
   says one reads oddly.
 
+- **I40 — The emojis in "Everything you did" scale with how many moments
+  there are.** *(2026-10-26)* Matt, with a picture of the shared page
+  holding seven emojis in one row above a blank page: *"this screen on the
+  recap is a little lackluster due to the large amount of space being
+  unutilized. I think that the emoji image sizes should scale along with
+  the number that are currently logged so they take up more space when
+  there are less, and then shrink in size as more are logged."* Asked
+  whether that meant the shared page only or the on-screen section too:
+  *"yes, both"*.
+
+  **Settles when:** a trip with a handful of moments shows them large
+  enough to fill the shared page and the on-screen field, a full trip shows
+  them at about today's size, and Matt looks at both and keeps them. (The
+  settling condition is the agent's draft.)
+
+  **Built 2026-10-26:** the shared page and PDF pick the largest size, from
+  240px down to the old 72px, at which every emoji fits the page, with each
+  row centred rather than hugging the left edge; past that the page
+  continues as before. On screen the field goes from 80px for one
+  to three moments down to the old 32px at about twenty, on a gentler curve
+  because it shares the screen with the numbers and the day bands.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1491,6 +1513,20 @@ decided, where it is enforced, and what it **serves**.
   least one moment, so an empty day does not pull it down; the line simply
   no longer says so (the agent's note, not Matt's). Enforced: `stats()` in
   `app/js/recap.js`. **Serves →** I39.
+
+- **2026-10-26 — "Everything you did" scales its emojis on the page and on
+  screen.** Chosen: both the shared page/PDF and the on-screen recap section
+  draw the emojis as large as fits the space for that many moments, growing
+  when the trip is young and shrinking back toward the old size as moments
+  pile up. Alternative: the page only, which lost because Matt sees the
+  on-screen section far more often and chose *"yes, both"*. Matt: *"the
+  emoji image sizes should scale along with the number that are currently
+  logged so they take up more space when there are less, and then shrink in
+  size as more are logged."* The caps (240px on the page, 80px on screen)
+  and the gentler on-screen curve are the agent's. Enforced: the
+  "Everything you did" step of `drawPages()` and `emojiSizeOnScreen()` in
+  `app/js/recap.js`, `--emoji-size` in `app/css/app.css`. **Serves →**
+  I40.
 
 **Open decisions — waiting on Matt, oldest first:**
 
