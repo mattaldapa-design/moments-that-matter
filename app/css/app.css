@@ -216,7 +216,12 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-focus::before { width: 2px; height: 10px; transform: translate(-50%, -50%); }
 .mtm-focus::after { width: 10px; height: 2px; transform: translate(-50%, -50%); }
 .mtm-focus i { display: none; position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; font: 700 12px/1 var(--font-display); font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--cream); background: rgba(0,0,0,.6); padding: 4px 8px; border-radius: var(--radius-sm); }
-.mtm-photo.has-picture { cursor: default; }
+.mtm-photo.has-picture { cursor: zoom-in; }
+/* The picture on its own (I38) */
+.mtm-viewer { position: fixed; inset: 0; z-index: 80; background: #000; display: grid; place-items: center; opacity: 0; transition: opacity var(--dur-quick) var(--ease-out); cursor: zoom-out; }
+.mtm-viewer.is-in { opacity: 1; }
+.mtm-viewer img { max-width: 100vw; max-height: 100vh; width: auto; height: auto; object-fit: contain; display: block; }
+.mtm-viewer__close { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: calc(12px + env(safe-area-inset-right)); width: 44px; height: 44px; border-radius: var(--radius-disc); border: 0; background: rgba(255, 255, 255, .16); color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
 .mtm-photo.is-reframing { cursor: crosshair; box-shadow: 0 0 0 3px var(--accent), var(--shadow-rest); }
 .mtm-photo.is-reframing .mtm-focus { width: 44px; height: 44px; border-color: var(--accent); }
 .mtm-photo.is-reframing .mtm-focus i { display: block; background: var(--accent); color: var(--on-accent); } /* the label shows only while reframing (Matt, 2026-10-26) */

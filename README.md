@@ -1074,6 +1074,22 @@ struck.
   colour per kind, since six kinds on one screen would break the two-sleeve
   rule. The PDF and day-card drawings are unchanged.
 
+- **I38 — Tap a moment's picture to see it on its own, unobstructed, then
+  come back.** *(2026-10-26)* Matt: *"Let's make it so a person can tap on
+  the image and view it as a standalone image - unobstructed - and then be
+  able to return to the memory/screen."*
+
+  **Settles when:** a tap on the picture in a moment shows it alone, full
+  screen with nothing over it, and a tap, the × or the phone's Back returns
+  to the same moment with nothing lost. (The settling condition is the
+  agent's draft.)
+
+  **Built 2026-10-26:** the picture fills a black screen with one × in the
+  corner; a tap anywhere, the ×, Escape or Back closes it. Back works
+  because opening the viewer adds one step to the phone's history, so Back
+  closes the picture rather than leaving the moment. Reframe still takes
+  its own tap first.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who

@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 45; // keep in step with VERSION in sw.js
+const APP_VERSION = 46; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -274,6 +274,28 @@ function pickEmoji(current, titleEmoji) {
   });
 }
 
+// See the picture on its own (I38): tap it and it fills the screen; a tap, × or Back returns to the moment.
+let viewerOpen = null;
+function viewPhoto(ph) {
+  if (viewerOpen) return;
+  const v = document.createElement('div'); v.className = 'mtm-viewer'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-label', 'The picture on its own');
+  v.innerHTML = `<img src="${photoUrl(ph)}" alt=""><button type="button" class="mtm-viewer__close" aria-label="Back to the moment">×</button>`;
+  let pushed = false;
+  try { history.pushState({ mtmViewer: true }, ''); pushed = true; } catch { /* no history: tap still closes */ }
+  const onKey = (e) => { if (e.key === 'Escape') close(false); };
+  const close = (viaHistory) => {
+    if (!viewerOpen) return;
+    viewerOpen = null; v.remove(); document.removeEventListener('keydown', onKey);
+    if (pushed && !viaHistory && history.state?.mtmViewer) history.back();
+  };
+  v.onclick = () => close(false);
+  document.addEventListener('keydown', onKey);
+  document.body.append(v);
+  viewerOpen = { close };
+  requestAnimationFrame(() => v.classList.add('is-in'));
+}
+window.addEventListener('popstate', () => { if (viewerOpen) viewerOpen.close(true); });
+
 function sheet(title, actions) {
   return new Promise((resolve) => {
     const back = document.createElement('div'); back.className = 'mtm-backdrop';
@@ -367,7 +389,7 @@ async function trips() {
 const HOW_IT_WORKS = [
   ['Start a trip', 'Give it a name and a first day. Every day gets its own board. That’s the whole setup. Give it a picture in About this trip and it fronts the Trips screen from day one; otherwise the first day picture stands in.'],
   ['Add the moments', 'Tap + and pick a kind, or type any word and watch the icon appear. A coffee counts. Nothing is required, ever. Not the icon you’d choose? Open the moment and tap the pencil by its emoji; the title stays as it is.'],
-  ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story. The ring on a picture is the spot every crop keeps; tap Reframe, then the picture, to move it.'],
+  ['Pictures', 'One picture per moment, straight from your photos. Mark up to four a day as key pictures and they lead the story. The ring on a picture is the spot every crop keeps; tap Reframe, then the picture, to move it. Tap a picture to see it on its own, and tap again to come back.'],
   ['Day summary', 'At the top of each day, folded away until you want it. One place for your thoughts on the whole day, as long as you like. Add to it if you want: Spent today adds itself up from the moments that have a price; Miles and Steps are yours to type.'],
   ['Mindfulness', 'A kind of moment of its own, 💭, or an I statement inside any other moment: I was surprised, I felt, I reflected, I learned, I noticed, I’m grateful for, or your own. The day summary lists the day’s statements and opens each one; Add to the summary → Mindfulness starts a new one. A Note or Mindfulness tile with no picture shows its words.'],
   ['Back up and Archive', 'Both make the same file, and it’s yours to keep anywhere: Files, iCloud, Google Drive, a text. Back up: save a copy, carry on. Archive: save a copy, clear the trip off this phone. Import a trip brings either back.'],
@@ -1041,7 +1063,7 @@ async function editor(trip, i, bid) {
     ${ph ? `<div class="mtm-photo has-picture" id="photoFrame" style="aspect-ratio: ${ph.w && ph.h ? `${ph.w} / ${ph.h}` : '4 / 3'}">
       <img src="${photoUrl(ph)}" alt=""><span class="mtm-focus" id="focusDot" style="left:${Math.round((ph.focus?.x ?? 0.5) * 100)}%;top:${Math.round((ph.focus?.y ?? 0.5) * 100)}%"><i>Kept in frame</i></span>
     </div>
-    <div class="dr-caption" id="frameHint">The ring marks what every crop keeps in frame. Reframe to move it.</div>
+    <div class="dr-caption" id="frameHint">Tap the picture to see it on its own. The ring is what every crop keeps; Reframe moves it.</div>
     <div class="mtm-bar"><button class="dr-btn dr-btn--ghost dr-btn--sm" id="reframe">Reframe</button><button class="dr-btn ${keyN ? 'dr-btn--quiet' : 'dr-btn--ghost'} dr-btn--sm" id="keyPhoto" ${!keyN && keyFull ? 'disabled' : ''}>${keyN ? `Key picture ${keyN} of ${KEY_MAX} · tap to take it off` : keyFull ? `The day’s ${KEY_MAX} key pictures are chosen` : `Make this key picture ${day.keyPhotos.length + 1} of ${KEY_MAX}`}</button><label class="dr-btn dr-btn--ghost dr-btn--sm">Replace picture<input type="file" accept="image/*" id="photoFile" hidden aria-label="Choose a picture"></label><button class="dr-btn dr-btn--ghost dr-btn--sm" id="removePhoto">Remove picture</button></div>`
     : `<label class="mtm-photo">
       <div class="mtm-photo__empty"><span style="font-size:40px">🖼️</span><b>Add a picture</b><span class="dr-caption">From your photos. Place and time fill in when the photo carries them.</span></div>
@@ -1172,7 +1194,7 @@ async function editor(trip, i, bid) {
       frame.classList.toggle('is-reframing', on);
       rf.textContent = on ? 'Never mind' : 'Reframe';
       rf.classList.toggle('dr-btn--quiet', on); rf.classList.toggle('dr-btn--ghost', !on);
-      hint.textContent = on ? 'Tap the picture where it matters most.' : 'The ring marks what every crop keeps in frame. Reframe to move it.';
+      hint.textContent = on ? 'Tap the picture where it matters most.' : 'Tap the picture to see it on its own. The ring is what every crop keeps; Reframe moves it.';
       if (on) frame.scrollIntoView({ block: 'center', behavior: 'smooth' });
     };
     const setFocus = async (clientX, clientY) => {
@@ -1185,7 +1207,7 @@ async function editor(trip, i, bid) {
       toast('Crops will keep that spot in frame.');
     };
     rf.onclick = () => arm(!frame.classList.contains('is-reframing'));
-    frame.addEventListener('click', (e) => { if (frame.classList.contains('is-reframing')) setFocus(e.clientX, e.clientY); });
+    frame.addEventListener('click', (e) => { if (frame.classList.contains('is-reframing')) setFocus(e.clientX, e.clientY); else viewPhoto(ph); });
   }
   const kp = $('#keyPhoto');
   if (kp) kp.onclick = async () => {
