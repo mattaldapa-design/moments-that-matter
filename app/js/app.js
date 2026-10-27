@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 46; // keep in step with VERSION in sw.js
+const APP_VERSION = 47; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;
@@ -1200,10 +1200,17 @@ async function editor(trip, i, bid) {
     const setFocus = async (clientX, clientY) => {
       const r = frame.getBoundingClientRect();
       const x = Math.min(1, Math.max(0, (clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (clientY - r.top) / r.height));
-      ph.focus = { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
-      const dot = $('#focusDot'); if (dot) { dot.style.left = `${Math.round(x * 100)}%`; dot.style.top = `${Math.round(y * 100)}%`; }
       arm(false);
+      // Never hand a picture read from the database straight back to it: Safari can break the picture on the way
+      // (WebKit 158991, seen on Matt's phone 2026-10-26 as a "?"). Store a fresh copy of its bytes, and show that copy.
+      let fresh = null;
+      try { const buf = await ph.blob.arrayBuffer(); if (buf.byteLength) fresh = new Blob([buf], { type: ph.blob.type || 'image/jpeg' }); } catch { /* unreadable: keep what is stored */ }
+      if (!fresh) { toast('Could not reframe: the picture would not read back. Nothing was changed.'); return; }
+      ph.focus = { x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 };
+      ph.blob = fresh;
+      const dot = $('#focusDot'); if (dot) { dot.style.left = `${Math.round(x * 100)}%`; dot.style.top = `${Math.round(y * 100)}%`; }
       await db.put('photos', ph); await touch(trip);
+      const img = frame.querySelector('img'); if (img) img.src = photoUrl(ph);
       toast('Crops will keep that spot in frame.');
     };
     rf.onclick = () => arm(!frame.classList.contains('is-reframing'));

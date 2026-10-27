@@ -832,6 +832,12 @@ struck.
   turn signal red and the hint says where to tap; the tap sets the point and
   ends the mode. Never mind cancels.
 
+  *Reported 2026-10-26*: *"When I reframe a picture - it disappears. I
+  just see a '?' in the memory."* See Findings, same date: the fix in
+  version 47 stores a fresh copy of the picture's bytes instead of handing
+  the stored picture back to the database, and refreshes the picture on
+  screen.
+
   *Added 2026-10-26*: *"currently the 'kept in frame' appears constantly
   once a photo is added - I'd like that to only appear when reframing
   appears."* **Changed the same day:** the label shows only in reframe mode;
@@ -1559,6 +1565,20 @@ limits before I break them."*
 | Storage on the phone | the browser's quota for the app; the Trips screen shows what is used | `storageLine` |
 
 ## Findings
+
+- **2026-10-26 — Reframing broke the picture on the iPhone.** Matt: *"When
+  I reframe a picture - it disappears. I just see a '?' in the memory."*
+  Reframe wrote the photo record back with the same Blob it had read from
+  IndexedDB. On Safari a Blob read from IndexedDB and stored again can come
+  back unreadable, and the picture's object URL breaks with it (WebKit bug
+  158991 describes the same symptom; the desktop preview never shows it).
+  Fix, version 47: Reframe reads the picture's bytes into memory, stores a
+  new Blob made from them, and points the picture on screen at that copy;
+  if the bytes cannot be read, nothing is written and a toast says so. The
+  one other place that wrote a stored picture back was this one; every
+  other write stores a picture that was just made. Whether pictures already
+  reframed on the phone are recoverable is unknown until Matt reopens one:
+  if the moment shows it again, only the on-screen URL had broken.
 
 Dated, append-only. What was learned, in the order it was learned.
 
