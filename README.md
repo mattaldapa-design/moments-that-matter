@@ -32,12 +32,12 @@ git                  remote: github.com/mattaldapa-design/moments-that-matter
                      (branch claude/journaling-app-0aafd1, also pushed as main)
 ```
 
-**As of 2026-10-21, version 43 is live** at
+**As of 2026-10-26, version 47 is live** at
 <https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
-on Matt's iPhone for a real trip; version 44 (the kit refresh, I37) is in
-the working tree, waiting on Matt's commit. Everything below was built
-between 2026-10-17 and 2026-10-21; the Decisions and Intentions carry the
-detail.
+on Matt's iPhone for a real trip; version 48 (two recap stats reworded,
+I39) is in the working tree, waiting on Matt's commit. Everything
+below was built between 2026-10-17 and 2026-10-26; the Decisions and
+Intentions carry the detail.
 The 18th added: Send this day (I25), Settings & help with a User guide and
 your name (I24), a colour per kind (I26), tap-to-reframe pictures (I28),
 recap sleeves (I27), the removal of Pass the notebook, a movable first day
@@ -48,7 +48,10 @@ statements (I34), word tiles for Notes and Mindfulness, and two rounds of
 code-review fixes. The 19th to 21st added: Done floating in the corner
 (I35), a trip picture of its own (I36), Reframe before a picture's focal
 point moves (I28), rounded-tile chips, and the Dark Room kit's 20 October
-sleeves, plum field, tints and lamp-lit depth (I37). What it does: trips (start one, set its days, rename, add
+sleeves, plum field, tints and lamp-lit depth (I37). The 26th added:
+Taxi or ride share and Shuttle as travel modes (I4), the Kept in frame
+label only while reframing (I28), tap a picture to see it on its own
+(I38), and the Safari reframe fix (Findings). What it does: trips (start one, set its days, rename, add
 or remove a day, delete); boards (a city, a weather tap, the Day summary
 fold, tiles in time order, drag to reorder, a list view with move arrows);
 the add flow (eight kinds, a type-anything box, a gallery of about 300 words
@@ -1096,6 +1099,20 @@ struck.
   closes the picture rather than leaving the moment. Reframe still takes
   its own tap first.
 
+- **I39 — The recap's stat lines read clearly at a glance.** *(2026-10-26)*
+  Matt, reviewing a recap: *"Some of the phrasing are a little weird. For
+  example - one of the stats says '3 - different places, by name' what is
+  that supposed really mean? [...] Another says '3.5 - moments a day, over
+  days with something logged' Is that two stats?"*
+
+  **Settles when:** every stat line on the recap says one plain thing, and
+  Matt reads a recap of a real trip without a line he has to puzzle over.
+  (The settling condition is the agent's draft.)
+
+  **Built 2026-10-26:** the two lines he named now read in his words, see
+  the Decision of the same date. The other stat lines are unchanged until he
+  says one reads oddly.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1464,6 +1481,17 @@ decided, where it is enforced, and what it **serves**.
   `.is-reframing` in `app/js/app.js` and `app/css/app.css`. **Serves →**
   I28.
 
+- **2026-10-26 — Two recap stats reworded in Matt's words.** Chosen: the
+  place count reads "different places you visited" and the average reads
+  "average moments each day". Alternative: the agent's "different places,
+  by name" and "moments a day, over N days with something logged", which
+  lost because Matt found them unclear; the second read as two stats.
+  Matt: *"How about '3 - different places you visited', and '3.5 average
+  moments each day'"*. The average still divides by the days that have at
+  least one moment, so an empty day does not pull it down; the line simply
+  no longer says so (the agent's note, not Matt's). Enforced: `stats()` in
+  `app/js/recap.js`. **Serves →** I39.
+
 **Open decisions — waiting on Matt, oldest first:**
 
 - *2026-10-17* — **What "Import a trip" means and where it lives.** Today
@@ -1576,9 +1604,10 @@ limits before I break them."*
   new Blob made from them, and points the picture on screen at that copy;
   if the bytes cannot be read, nothing is written and a toast says so. The
   one other place that wrote a stored picture back was this one; every
-  other write stores a picture that was just made. Whether pictures already
-  reframed on the phone are recoverable is unknown until Matt reopens one:
-  if the moment shows it again, only the on-screen URL had broken.
+  other write stores a picture that was just made. Pictures already
+  reframed on the phone were not lost: after version 47 landed, Matt
+  reopened one and said *"Yes, it does"* show its picture again, so only
+  the on-screen URL had broken, not the stored bytes.
 
 Dated, append-only. What was learned, in the order it was learned.
 

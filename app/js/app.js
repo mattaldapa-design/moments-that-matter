@@ -14,7 +14,7 @@ const go = (h) => { location.hash = h; };
 
 // Backup reminder threshold. Placeholder until the open decision in README is settled.
 const BACKUP_DUE = { changes: 10, bytes: 8 * 1024 * 1024 };
-const APP_VERSION = 47; // keep in step with VERSION in sw.js
+const APP_VERSION = 48; // keep in step with VERSION in sw.js
 
 // ---------- dates ----------
 const fmtRange = (t) => `${fmtDay(addDays(t.startDate, 0))} – ${fmtDay(addDays(t.startDate, t.dayCount - 1))}`;

@@ -47,10 +47,10 @@ export function stats(data) {
   const cities = new Set(days.map((d) => (d.city || '').trim().toLowerCase()).filter(Boolean));
   add(cities.size > 1, '🏙️', cities.size, 'cities and towns, by the day', firstPhoto(blocks));
   const named = new Set(blocks.map((b) => (b.place?.name || '').trim().toLowerCase()).filter(Boolean));
-  add(named.size > 1, '📍', named.size, 'different places, by name', firstPhoto(blocks.filter((b) => b.place?.name)));
+  add(named.size > 1, '📍', named.size, 'different places you visited', firstPhoto(blocks.filter((b) => b.place?.name)));
   const daysLogged = days.filter((d) => d.blocks.length).length;
   const avg = daysLogged ? blocks.length / daysLogged : 0;
-  add(daysLogged > 1, '🧮', Number.isInteger(avg) ? avg : avg.toFixed(1), `moments a day, over ${daysLogged} days with something logged`, null);
+  add(daysLogged > 1, '🧮', Number.isInteger(avg) ? avg : avg.toFixed(1), 'average moments each day', null); // over the days with something logged; Matt's wording, 2026-10-26
   const biggest = days.reduce((m, d) => (d.blocks.length > (m ? m.blocks.length : 0) ? d : m), null);
   add(biggest && biggest.blocks.length > 1, '🔥', `Day ${(biggest?.index ?? 0) + 1}`, `was the biggest: ${biggest?.blocks.length} moments${biggest?.city ? ' in ' + biggest.city : ''}`, biggest ? firstPhoto(biggest.blocks) : null);
   const weather = {};
