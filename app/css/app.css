@@ -215,11 +215,11 @@ body { min-height: 100%; overscroll-behavior-y: none; }
 .mtm-focus::before, .mtm-focus::after { content: ""; position: absolute; left: 50%; top: 50%; background: var(--cream); box-shadow: 0 0 0 1px rgba(0,0,0,.45); }
 .mtm-focus::before { width: 2px; height: 10px; transform: translate(-50%, -50%); }
 .mtm-focus::after { width: 10px; height: 2px; transform: translate(-50%, -50%); }
-.mtm-focus i { position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; font: 700 12px/1 var(--font-display); font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--cream); background: rgba(0,0,0,.6); padding: 4px 8px; border-radius: var(--radius-sm); }
+.mtm-focus i { display: none; position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; font: 700 12px/1 var(--font-display); font-style: normal; letter-spacing: .04em; text-transform: uppercase; color: var(--cream); background: rgba(0,0,0,.6); padding: 4px 8px; border-radius: var(--radius-sm); }
 .mtm-photo.has-picture { cursor: default; }
 .mtm-photo.is-reframing { cursor: crosshair; box-shadow: 0 0 0 3px var(--accent), var(--shadow-rest); }
 .mtm-photo.is-reframing .mtm-focus { width: 44px; height: 44px; border-color: var(--accent); }
-.mtm-photo.is-reframing .mtm-focus i { background: var(--accent); color: var(--on-accent); }
+.mtm-photo.is-reframing .mtm-focus i { display: block; background: var(--accent); color: var(--on-accent); } /* the label shows only while reframing (Matt, 2026-10-26) */
 .mtm-fields { display: grid; gap: var(--space-4); }
 @media (min-width: 520px) { .mtm-fields--two { grid-template-columns: 1fr 1fr; } }
 .mtm-chips { display: flex; flex-wrap: wrap; gap: 8px; }

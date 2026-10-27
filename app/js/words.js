@@ -2,7 +2,7 @@
 export const KINDS = [
   { key: 'travel', emoji: '✈️', name: 'Travel', hint: 'Where to, and how',
     fields: [
-      { k: 'mode', label: 'How', type: 'chips', options: ['✈️ Plane', '🚆 Train', '🚌 Bus', '🚗 Car', '⛴️ Boat', '🚲 Bike', '🚶 Walk'] },
+      { k: 'mode', label: 'How', type: 'chips', options: ['✈️ Plane', '🚆 Train', '🚌 Bus', '🚗 Car', '🚕 Taxi or ride share', '🚐 Shuttle', '⛴️ Boat', '🚲 Bike', '🚶 Walk'] },
       { k: 'company', label: 'Company', hint: 'Airline, line or operator' },
       { k: 'from', label: 'From' }, { k: 'to', label: 'To' },
       { k: 'seat', label: 'Seat or number', hint: 'Seat or flight number' },

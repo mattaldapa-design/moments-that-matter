@@ -361,6 +361,10 @@ struck.
   **Built 2026-10-17** in the first build: boards, tiles, drag, list view,
   the seven kinds, Stay across nights.
 
+  *Added 2026-10-26*, on Travel's How chips: *"I'd also like the ability to
+  add Taxi/Ride Share and Shuttle as travel method options."* **Changed the
+  same day:** 🚕 Taxi or ride share and 🚐 Shuttle sit after Car.
+
 - **I5 (struck 2026-10-17) — A block's icon can be a word instead of an emoji.** *(2026-10-17)*
   Matt, while deciding how blocks work: *"some people might not want it to
   look like emojis and might not want those. And that might not be easily
@@ -827,6 +831,12 @@ struck.
   crosshairs and a "Kept in frame" label; while reframing the frame and ring
   turn signal red and the hint says where to tap; the tap sets the point and
   ends the mode. Never mind cancels.
+
+  *Added 2026-10-26*: *"currently the 'kept in frame' appears constantly
+  once a photo is added - I'd like that to only appear when reframing
+  appears."* **Changed the same day:** the label shows only in reframe mode;
+  the small crosshair ring still marks the point at rest. (Keeping the ring
+  is the agent's reading of "kept in frame" as the label.)
 
 - **I29 — Change a trip's first day and have every day move with it.**
   *(2026-10-18)* Matt: *"be able to change the trip start date and then it
