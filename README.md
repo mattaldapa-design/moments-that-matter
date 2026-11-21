@@ -146,8 +146,8 @@ changed file does not reach an installed phone until `VERSION` in
    session works in its own side copy under `.claude/worktrees/` on its own
    branch; it publishes by pushing its commits to `main`
    (`git push origin HEAD:main`) and then fast-forwarding the folder's
-   `main`. The first such branch, `claude/journaling-app-0aafd1`, is kept on
-   GitHub and no longer publishes. Bump `VERSION` in `app/sw.js` and `APP_VERSION` in `app/js/app.js`
+   `main`. The first such branch, `claude/journaling-app-0aafd1`, was
+   deleted from GitHub on 2026-11-20; GitHub holds `main` only. Bump `VERSION` in `app/sw.js` and `APP_VERSION` in `app/js/app.js`
    together with every publish, or phones keep the old files. The Trips
    screen shows the version it is running and has "Check for an update";
    when a newer worker takes over, the app reopens itself once.
@@ -1557,6 +1557,17 @@ decided, where it is enforced, and what it **serves**.
   Enforced: the repository's default-branch setting, the `github-pages`
   environment's branch list, `.github/workflows/pages.yml`. **Serves →**
   I41.
+
+- **2026-11-20 — The old branch is deleted from GitHub.** Chosen: remove
+  `claude/journaling-app-0aafd1` from GitHub now that `main` holds every
+  commit it had (checked before deleting: none only on the old branch, no
+  open pull request), and take it off the `github-pages` environment's
+  branch list. Alternative: keeping it, the agent's default during the
+  move, which lost because Matt said *"Delete the old branch"*. A limit,
+  not a choice: the local copy of that branch stays while the session that
+  runs inside it is open, and goes when that session is archived. Enforced:
+  GitHub's branch list (`main` only) and the environment's branch list
+  (`main` only). **Serves →** I41.
 
 **Open decisions — waiting on Matt, oldest first:**
 
