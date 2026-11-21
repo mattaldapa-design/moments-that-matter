@@ -29,13 +29,12 @@ app/                 the first build: 1,114 lines in 8 files the agent wrote
                      placeholder icons
 .claude/launch.json  the preview server for the desktop app
 git                  remote: github.com/mattaldapa-design/moments-that-matter
-                     (branch claude/journaling-app-0aafd1, also pushed as main)
+                     (branch main, the default; it publishes)
 ```
 
-**As of 2026-10-26, version 48 is live** at
-<https://mattaldapa-design.github.io/moments-that-matter/> and in daily use
-on Matt's iPhone for a real trip; version 49 (emojis that scale with the
-count, I40) is in the working tree, waiting on Matt's commit. Everything
+**As of 2026-11-20, version 49 is live** at
+<https://mattaldapa-design.github.io/moments-that-matter/>, published from
+`main`, and in use on Matt's iPhone. Everything
 below was built between 2026-10-17 and 2026-10-26; the Decisions and
 Intentions carry the detail.
 The 18th added: Send this day (I25), Settings & help with a User guide and
@@ -137,14 +136,18 @@ changed file does not reach an installed phone until `VERSION` in
    or the old files keep being served.
 2. **Publish.** The code is on GitHub at
    <https://github.com/mattaldapa-design/moments-that-matter>. Pushing
-   `claude/journaling-app-0aafd1` (the repository's default branch, because
-   it was pushed first) runs `.github/workflows/pages.yml`, which serves the
-   `app/` folder at <https://mattaldapa-design.github.io/moments-that-matter/>.
-   Pages was switched on by Matt on 2026-10-17 (Settings → Pages → Source →
-   GitHub Actions); the `github-pages` environment only lets the default
-   branch deploy, so a push to remote `main` is a copy, not a publish, until
-   `main` is made the default. The local default branch is `master` (the seed
-   only). Bump `VERSION` in `app/sw.js` and `APP_VERSION` in `app/js/app.js`
+   `main` (the repository's default branch since 2026-11-20) runs
+   `.github/workflows/pages.yml`, which serves the `app/` folder at
+   <https://mattaldapa-design.github.io/moments-that-matter/>. Pages was
+   switched on by Matt on 2026-10-17 (Settings → Pages → Source → GitHub
+   Actions); the `github-pages` environment names the branches allowed to
+   deploy, and `main` was added to that list on 2026-11-20. The folder
+   `D:\Moments That Matter` is on `main` and holds the app. A desktop-app
+   session works in its own side copy under `.claude/worktrees/` on its own
+   branch; it publishes by pushing its commits to `main`
+   (`git push origin HEAD:main`) and then fast-forwarding the folder's
+   `main`. The first such branch, `claude/journaling-app-0aafd1`, is kept on
+   GitHub and no longer publishes. Bump `VERSION` in `app/sw.js` and `APP_VERSION` in `app/js/app.js`
    together with every publish, or phones keep the old files. The Trips
    screen shows the version it is running and has "Check for an update";
    when a newer worker takes over, the app reopens itself once.
@@ -1135,6 +1138,18 @@ struck.
   to three moments down to the old 32px at about twenty, on a gentler curve
   because it shares the screen with the numbers and the day bands.
 
+- **I41 — The project lives on `main`.** *(2026-11-20)* Matt: *"I noticed
+  that this is not on a main for the folder. Is there any way we can merge
+  and move all of this into main?"*
+
+  **Settles when:** the folder `D:\Moments That Matter` holds the app on a
+  branch called `main`, GitHub's default branch is `main`, and a publish
+  from `main` reaches the phone. (The settling condition is the agent's
+  draft.)
+
+  **Done 2026-11-20:** see the Decision of the same date. Checked: the
+  publish run from `main` succeeded and the site still serves version 49.
+
 ## Decisions
 
 Dated, append-only. Each says what was chosen, the alternative, why, who
@@ -1527,6 +1542,21 @@ decided, where it is enforced, and what it **serves**.
   "Everything you did" step of `drawPages()` and `emojiSizeOnScreen()` in
   `app/js/recap.js`, `--emoji-size` in `app/css/app.css`. **Serves →**
   I40.
+
+- **2026-11-20 — Everything moves to `main`.** Chosen: the full move.
+  `main` on GitHub was fast-forwarded 59 commits to version 49 and made the
+  default branch; `main` was added to the branches the `github-pages`
+  environment lets deploy (it had named only the old branch); the local
+  `master` was renamed `main` and fast-forwarded, so the app is in
+  `D:\Moments That Matter`; publishing runs from `main`. Alternative: copy
+  only, leaving the default branch and publishing where they were, which
+  lost because two branches would have to be kept in step on every commit.
+  Matt: *"Full move"*. The agent's, not Matt's: the old branch
+  `claude/journaling-app-0aafd1` is kept rather than deleted, and a session
+  keeps working in its side copy and pushes each commit to `main`.
+  Enforced: the repository's default-branch setting, the `github-pages`
+  environment's branch list, `.github/workflows/pages.yml`. **Serves →**
+  I41.
 
 **Open decisions — waiting on Matt, oldest first:**
 
